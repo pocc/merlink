@@ -1,14 +1,15 @@
 #!/usr/bin/python3
 # This program will connect desktop clients to Meraki firewalls
 import sys
-from PyQt5.QtWidgets import (QApplication, QLineEdit, QWidget, QPushButton, QLabel, QVBoxLayout, QHBoxLayout)
+import time
+from PyQt5.QtWidgets import (QApplication, QLineEdit, QWidget, QPushButton, QLabel,
+                             QVBoxLayout, QHBoxLayout, QComboBox)
 from PyQt5.QtGui import QPixmap
 
 
-class MainWindow(QWidget):
-
+class LoginWindow(QWidget):
     def __init__(self):
-        super(MainWindow, self).__init__()
+        super(LoginWindow, self).__init__()
 
         self.meraki_img = QLabel()
 
@@ -76,19 +77,51 @@ class MainWindow(QWidget):
         layout_main = QHBoxLayout()
         layout_main.addWidget(self.meraki_img)
         layout_main.addWidget(login_widget)
-        self.login_btn.clicked.connect(self.make_connection)
+        self.login_btn.clicked.connect(self.attempt_login)
 
         self.setLayout(layout_main)
         self.setWindowTitle('Meraki Client VPN')
 
         self.show()
 
-    def make_connection(self):
+    def attempt_login(self):
+        # ACTUALLY attempt to login
+        self.close()
+        # Call an object in the other class to continue
+        init_main_window = MainWindow()
+        init_main_window()
+
+
+class MainWindow(QWidget):
+    def __init__(self):
+        super(MainWindow, self).__init__()
+
+        self.init_ui()
+        self.attempt_connection()
+
+        self.show()
+
+    def init_ui(self):
+
+        self.setWindowTitle('Meraki Client VPN: Main')
+        self.Organizations = QComboBox()
+        # List of lorem ipsum organizations
+        self.Organizations.addItems({"Wonka Industries", "Acme Corp.", "Stark Industries", "Wayne Enterprises", "Hooli"})
+        self.Networks = QComboBox()
+        self.Networks.addItems({"Atlantis", "Gotham City", "Metropolis", "Rivendell", "Coruscant"})
+        self.Organizations.setCurrentText("Acme Corp.")
+        self.Networks.setCurrentText("Gotham City")
+        vert_layout = QVBoxLayout()
+        vert_layout.addWidget(self.Organizations)
+        vert_layout.addWidget(self.Networks)
+        vert_layout.addStretch()
+        self.setLayout(vert_layout)
+
+    def attempt_connection(self):
         # This is where OS-specific code will go
         pass
 
-
 app = QApplication(sys.argv)
-window = MainWindow()
-# sys.exit(app.exec_()) # this causes errors on linux
+window = LoginWindow()
+# sys.exit(app.exec_()) # this causes warnings on linux
 app.exec()
