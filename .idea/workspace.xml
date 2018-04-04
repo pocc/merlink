@@ -31,8 +31,8 @@
       <file leaf-file-name="client_vpn.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/client_vpn.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="265">
-              <caret line="46" column="45" lean-forward="true" selection-start-line="46" selection-start-column="45" selection-end-line="46" selection-end-column="45" />
+            <state relative-caret-position="337">
+              <caret line="63" column="64" selection-start-line="63" selection-start-column="64" selection-end-line="63" selection-end-column="64" />
               <folding>
                 <element signature="e#83#93#0" expanded="true" />
               </folding>
@@ -176,8 +176,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/client_vpn.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="265">
-          <caret line="46" column="45" lean-forward="true" selection-start-line="46" selection-start-column="45" selection-end-line="46" selection-end-column="45" />
+        <state relative-caret-position="337">
+          <caret line="63" column="64" selection-start-line="63" selection-start-column="64" selection-end-line="63" selection-end-column="64" />
           <folding>
             <element signature="e#83#93#0" expanded="true" />
           </folding>
