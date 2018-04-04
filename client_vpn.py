@@ -2,9 +2,9 @@
 # This program will connect desktop clients to Meraki firewalls
 import sys
 import time
-from PyQt5.QtWidgets import (QApplication, QLineEdit, QWidget, QPushButton, QLabel,
+from PyQt5.QtWidgets import (QApplication, QLineEdit, QWidget, QPushButton, QLabel, QSystemTrayIcon,
                              QVBoxLayout, QHBoxLayout, QComboBox, QMainWindow, QAction)
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QIcon
 
 
 class LoginWindow(QWidget):
@@ -30,6 +30,8 @@ class LoginWindow(QWidget):
         self.password_lbl = QLabel("Password")
         self.password_lbl.setStyleSheet(self.label_style)
         self.password = QLineEdit(self)
+        # Masks password as a series of dots instead of characters
+        self.password.setEchoMode(QLineEdit.Password)
         self.login_btn = QPushButton("Log in")
 
         # self.login_btn.setStyleSheet(self.login_btn_style)
@@ -103,6 +105,11 @@ class MainWindow(QMainWindow):
         self.show()
 
     def init_ui(self):
+        # Set the Window Icon
+        self.setWindowIcon(QIcon('miles_meraki.png'))
+        # Set the tray icon and show it
+        tray_icon = QSystemTrayIcon(QIcon('miles_meraki.png'))
+        tray_icon.show()
 
         self.setWindowTitle('Meraki Client VPN: Main')
         self.Organizations = QComboBox()
@@ -113,7 +120,6 @@ class MainWindow(QMainWindow):
         self.Organizations.setCurrentText("Acme Corp.")
         self.Networks.setCurrentText("Gotham City")
         self.connect_btn = QPushButton("Connect")
-
 
         vert_layout = QVBoxLayout()
         vert_layout.addWidget(self.Organizations)
