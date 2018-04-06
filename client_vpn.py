@@ -34,9 +34,9 @@ class LoginWindow(QDialog):
         self.heading.setStyleSheet(self.heading_style)
         self.username_lbl = QLabel("Email")
         self.username_lbl.setStyleSheet(self.label_style)
-        self.username_field = QLineEdit(self)
         self.password_lbl = QLabel("Password")
         self.password_lbl.setStyleSheet(self.label_style)
+        self.username_field = QLineEdit(self)
         self.password_field = QLineEdit(self)
         # Masks password as a series of dots instead of characters
         self.password_field.setEchoMode(QLineEdit.Password)
@@ -118,9 +118,18 @@ class LoginWindow(QDialog):
         if '/login/login' not in result_url:
             self.accept()
         else:
-            # self.QMessageBox.warning('ERROR: Invalid username or password.)
-            print("ERROR: Invalid username or password")
+            # Error message popup that will take control and that the user will need to acknowledge
+            error_message = QMessageBox()
+            error_message.setIcon(QMessageBox.Critical)
+            error_message.setWindowTitle("Error!")
+            error_message.setText('ERROR: Invalid username or password.')
+            error_message.exec_()
 
+            # Sanitize fields so they can reenter credentials
+            self.password_field.setText('')
+            self.username_field.setText('')
+
+            # Return 'Rejected' as value from QDialog object
             self.reject()
 
     # Return browser with any username, password, and cookies with it
@@ -303,11 +312,20 @@ class MainWindow(QMainWindow):
 
 
 DEBUG = False
-app = QApplication(sys.argv)
-login_window = LoginWindow()
-# QDialog has two return values: Accepted and Rejected
-# login_window.exec_() should return one of those 2 values
-if login_window.exec_() == QDialog.Accepted:
+app = None
+
+
+def main():  # Syntax per PyQt recommendations: http://pyqt.sourceforge.net/Docs/PyQt5/gotchas.html
+    app = QApplication(sys.argv)
+    login_window = LoginWindow()
+    # QDialog has two return values: Accepted and Rejected
+    # login_window.exec_() will execute while we keep on getting Rejected
+    while login_window.exec_() != QDialog.Accepted:
+        pass
     main_window = MainWindow(login_window.get_browser())
     main_window.show()
-sys.exit(app.exec_())
+    sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    main()
