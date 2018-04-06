@@ -1,14 +1,16 @@
 #!/usr/bin/python3
 # This program will connect desktop clients to Meraki firewalls
 import sys
-import time
 from PyQt5.QtWidgets import (QApplication, QLineEdit, QWidget, QPushButton, QLabel, QSystemTrayIcon,
-                             QVBoxLayout, QHBoxLayout, QComboBox, QMainWindow, QAction)
+                             QVBoxLayout, QHBoxLayout, QComboBox, QMainWindow, QAction, QDialog, QMessageBox)
 from PyQt5.QtGui import QPixmap, QIcon
 
 
-class LoginWindow(QWidget):
+class LoginWindow(QDialog):
     def __init__(self):
+        if DEBUG:
+            print("In Login Window")
+
         super(LoginWindow, self).__init__()
 
         self.meraki_img = QLabel()
@@ -79,32 +81,35 @@ class LoginWindow(QWidget):
         layout_main = QHBoxLayout()
         layout_main.addWidget(self.meraki_img)
         layout_main.addWidget(login_widget)
-        self.login_btn.clicked.connect(self.attempt_login)
-
         self.setLayout(layout_main)
         self.setWindowTitle('Meraki Client VPN')
 
-        self.show()
+        self.login_btn.clicked.connect(self.attempt_login)
 
     def attempt_login(self):
-        # ACTUALLY attempt to login
-        self.close()
-        # Call an object in the other class to continue
-        init_main_window = MainWindow()
-        init_main_window()
+        # Temp code before I use beautiful soup to do web scraping
+        a = True
+        if a:
+            self.accept()
+        else:
+            self.reject()
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
+        if DEBUG:
+            print("Main Window")
 
-        self.init_ui()
+        # QMainWindow requires that a central widget be set
+        self.cw = QWidget(self)
+        self.setCentralWidget(self.cw)
+
+        self.main_init_ui()
         self.menu_bars()
         self.attempt_connection()
 
-        self.show()
-
-    def init_ui(self):
+    def main_init_ui(self):
         # Set the Window Icon
         self.setWindowIcon(QIcon('miles_meraki.png'))
         # Set the tray icon and show it
@@ -126,7 +131,7 @@ class MainWindow(QMainWindow):
         vert_layout.addWidget(self.Networks)
         vert_layout.addStretch()
         vert_layout.addWidget(self.connect_btn)
-        self.setLayout(vert_layout)
+        self.cw.setLayout(vert_layout)
 
     def menu_bars(self):
         bar = self.menuBar()
@@ -239,13 +244,17 @@ class MainWindow(QMainWindow):
         # Apache License
         pass
 
-
     def attempt_connection(self):
         # This is where OS-specific code will go
         pass
 
 
+DEBUG = True
 app = QApplication(sys.argv)
-window = LoginWindow()
-# sys.exit(app.exec_()) # this causes warnings on linux
-app.exec()
+login_window = LoginWindow()
+# QDialog has two return values: Accepted and Rejected
+# login_window.exec_() should return one of those 2 values
+if login_window.exec_() == QDialog.Accepted:
+    main_window = MainWindow()
+    main_window.show()
+sys.exit(app.exec_())
