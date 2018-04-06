@@ -154,6 +154,9 @@ class MainWindow(QMainWindow):
         self.scrape_info()
         self.main_init_ui()
         self.menu_bars()
+        self.select_network() # Once an organization has been selected, networks will start populating for that org
+        # -------------------------
+        # When you have ALL the information
         self.attempt_connection()
 
     def scrape_info(self):
@@ -305,6 +308,12 @@ class MainWindow(QMainWindow):
         # Also, pre-alpha, version -1
         # Apache License
         pass
+
+    def select_network(self):
+        # If they select an organization name, org_dict maps that to the URL
+        org_name = self.Organizations.currentText()
+        org_url = self.org_dict[org_name]
+        self.browser.open(org_url)
 
     def attempt_connection(self):
         # This is where OS-specific code will go
