@@ -12,7 +12,6 @@ import mechanicalsoup
 import re
 
 
-
 class LoginWindow(QDialog):
     def __init__(self):
         if DEBUG:
@@ -111,13 +110,17 @@ class LoginWindow(QDialog):
         form = self.browser.select_form()
         self.browser["email"] = self.username
         self.browser["password"] = self.password
-        form.choose_submit('commit')
-        resp = self.browser.submit_selected()
+        form.choose_submit('commit')  # Click login button
+        resp = self.browser.submit_selected()  # resp should be '<Response [200]>'
+        result_url = self.browser.get_url()
 
-        if str(resp) == '<Response [200]>':
+        # URL contains /login/login if login failed
+        if '/login/login' not in result_url:
             self.accept()
         else:
-            self.QMessageBox.warning('Error: ', resp)
+            # self.QMessageBox.warning('ERROR: Invalid username or password.)
+            print("ERROR: Invalid username or password")
+
             self.reject()
 
     # Return browser with any username, password, and cookies with it
