@@ -1,9 +1,16 @@
 #!/usr/bin/python3
 # This program will connect desktop clients to Meraki firewalls
+
+# System
 import sys
+# Qt5
 from PyQt5.QtWidgets import (QApplication, QLineEdit, QWidget, QPushButton, QLabel, QSystemTrayIcon,
                              QVBoxLayout, QHBoxLayout, QComboBox, QMainWindow, QAction, QDialog, QMessageBox)
 from PyQt5.QtGui import QPixmap, QIcon
+# Web Scraping
+import mechanicalsoup
+import re
+
 
 
 class LoginWindow(QDialog):
@@ -28,12 +35,12 @@ class LoginWindow(QDialog):
         self.heading.setStyleSheet(self.heading_style)
         self.username_lbl = QLabel("Email")
         self.username_lbl.setStyleSheet(self.label_style)
-        self.username = QLineEdit(self)
+        self.username_field = QLineEdit(self)
         self.password_lbl = QLabel("Password")
         self.password_lbl.setStyleSheet(self.label_style)
-        self.password = QLineEdit(self)
+        self.password_field = QLineEdit(self)
         # Masks password as a series of dots instead of characters
-        self.password.setEchoMode(QLineEdit.Password)
+        self.password_field.setEchoMode(QLineEdit.Password)
         self.login_btn = QPushButton("Log in")
 
         # self.login_btn.setStyleSheet(self.login_btn_style)
@@ -65,9 +72,9 @@ class LoginWindow(QDialog):
         layout_login = QVBoxLayout(login_widget)
         layout_login.addWidget(self.heading)
         layout_login.addWidget(self.username_lbl)
-        layout_login.addWidget(self.username)
+        layout_login.addWidget(self.username_field)
         layout_login.addWidget(self.password_lbl)
-        layout_login.addWidget(self.password)
+        layout_login.addWidget(self.password_field)
         layout_login.addWidget(self.login_btn)
         # Should prevent users from decreasing the size of the window past the minimum
         # Add a stretch so that all elements are at the top, regardless of user resizes
@@ -84,19 +91,43 @@ class LoginWindow(QDialog):
         self.setLayout(layout_main)
         self.setWindowTitle('Meraki Client VPN')
 
+        # Once the user has entered the username/password, collect those
+        self.username_field.textChanged.connect(self.set_username)
+        self.password_field.textChanged.connect(self.set_password)
         self.login_btn.clicked.connect(self.attempt_login)
 
+    def set_username(self, text):
+        self.username = text
+
+    def set_password(self, text):
+        self.password = text
+
     def attempt_login(self):
-        # Temp code before I use beautiful soup to do web scraping
-        a = True
-        if a:
+        # Instantiate browser
+        self.browser = mechanicalsoup.StatefulBrowser()
+
+        # Navigate to login page
+        self.browser.open('https://account.meraki.com/login/dashboard_login')
+        form = self.browser.select_form()
+        self.browser["email"] = self.username
+        self.browser["password"] = self.password
+        form.choose_submit('commit')
+        resp = self.browser.submit_selected()
+
+        if str(resp) == '<Response [200]>':
             self.accept()
         else:
+            self.QMessageBox.warning('Error: ', resp)
             self.reject()
+
+    # Return browser with any username, password, and cookies with it
+    def get_browser(self):
+        return self.browser
 
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    # Pass in browser_session object from LoginWindow so that we can maintain the same session
+    def __init__(self, browser_session):
         super(MainWindow, self).__init__()
         if DEBUG:
             print("Main Window")
@@ -104,10 +135,30 @@ class MainWindow(QMainWindow):
         # QMainWindow requires that a central widget be set
         self.cw = QWidget(self)
         self.setCentralWidget(self.cw)
+        # CURRENT minimum width of Main Window - SUBJECT TO CHANGE as features are added
+        self.cw.setMinimumWidth(330)
 
+        self.browser = browser_session
+        self.scrape_info()
         self.main_init_ui()
         self.menu_bars()
         self.attempt_connection()
+
+    def scrape_info(self):
+
+        # NOTE: Until you choose an organization, Dashboard will not let you visit pages you should have access to
+        page = self.browser.get_current_page()
+        # Get a list of all org links
+        org_hrefs = page.findAll('a', href=re.compile('/login/org_choose\?eid=.{6}'))
+        # Get the number of orgs
+        org_qty = len(org_hrefs)
+        # Initialize organization dictionary {Name: Link}
+        self.org_dict = {}
+        for i in range(org_qty):
+            org_str = str(org_hrefs[i])
+            # 39:-4 = Name, 9:37 = Link
+            self.org_dict[org_str[39:-4]] = 'https://account.meraki.com' + org_str[9:37]
+        # browser.open_relative(organizations[<org name>])
 
     def main_init_ui(self):
         # Set the Window Icon
@@ -119,10 +170,9 @@ class MainWindow(QMainWindow):
         self.setWindowTitle('Meraki Client VPN: Main')
         self.Organizations = QComboBox()
         # List of lorem ipsum organizations
-        self.Organizations.addItems({"Wonka Industries", "Acme Corp.", "Stark Industries", "Wayne Enterprises", "Hooli"})
+        self.Organizations.addItems(list(self.org_dict.keys()))
         self.Networks = QComboBox()
         self.Networks.addItems({"Atlantis", "Gotham City", "Metropolis", "Rivendell", "Coruscant"})
-        self.Organizations.setCurrentText("Acme Corp.")
         self.Networks.setCurrentText("Gotham City")
         self.connect_btn = QPushButton("Connect")
 
@@ -249,12 +299,12 @@ class MainWindow(QMainWindow):
         pass
 
 
-DEBUG = True
+DEBUG = False
 app = QApplication(sys.argv)
 login_window = LoginWindow()
 # QDialog has two return values: Accepted and Rejected
 # login_window.exec_() should return one of those 2 values
 if login_window.exec_() == QDialog.Accepted:
-    main_window = MainWindow()
+    main_window = MainWindow(login_window.get_browser())
     main_window.show()
 sys.exit(app.exec_())
