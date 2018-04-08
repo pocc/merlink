@@ -38,6 +38,10 @@ class LoginWindow(QDialog):
         self.password_lbl.setStyleSheet(self.label_style)
         self.username_field = QLineEdit(self)
         self.password_field = QLineEdit(self)
+        # Set up username and password so these vars have values
+        self.username = ''
+        self.password = ''
+
         # Masks password as a series of dots instead of characters
         self.password_field.setEchoMode(QLineEdit.Password)
         self.login_btn = QPushButton("Log in")
@@ -93,7 +97,7 @@ class LoginWindow(QDialog):
         # Once the user has entered the username/password, collect those
         self.username_field.textChanged.connect(self.set_username)
         self.password_field.textChanged.connect(self.set_password)
-        self.login_btn.clicked.connect(self.attempt_login)
+        self.login_btn.clicked.connect(self.init_browser)
 
     def set_username(self, text):
         self.username = text
@@ -101,7 +105,7 @@ class LoginWindow(QDialog):
     def set_password(self, text):
         self.password = text
 
-    def attempt_login(self):
+    def init_browser(self):
         # Instantiate browser
         self.browser = mechanicalsoup.StatefulBrowser()
 
@@ -112,10 +116,14 @@ class LoginWindow(QDialog):
         self.browser["password"] = self.password
         form.choose_submit('commit')  # Click login button
         resp = self.browser.submit_selected()  # resp should be '<Response [200]>'
-        result_url = self.browser.get_url()
+        self.result_url = self.browser.get_url()
 
+        # After setting everything up, let's see whether user authenticates correctly
+        self.attempt_login()
+
+    def attempt_login(self):
         # URL contains /login/login if login failed
-        if '/login/login' not in result_url:
+        if '/login/login' not in self.result_url:
             self.accept()
         else:
             # Error message popup that will take control and that the user will need to acknowledge
@@ -159,6 +167,7 @@ class MainWindow(QMainWindow):
         # When you have ALL the information
         self.attempt_connection()
 
+    # This function will get the organizations and then save them as a dict of names and links
     def scrape_info(self):
 
         # NOTE: Until you choose an organization, Dashboard will not let you visit pages you should have access to
