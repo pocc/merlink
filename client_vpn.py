@@ -94,18 +94,12 @@ class LoginWindow(QDialog):
         self.setLayout(layout_main)
         self.setWindowTitle('Meraki Client VPN')
 
-        # Once the user has entered the username/password, collect those
-        self.username_field.textChanged.connect(self.set_username)
-        self.password_field.textChanged.connect(self.set_password)
+        # Test connection with a virtual browser
         self.login_btn.clicked.connect(self.init_browser)
 
-    def set_username(self, text):
-        self.username = text
-
-    def set_password(self, text):
-        self.password = text
-
     def init_browser(self):
+        self.username = self.username_field.text()
+        self.password = self.password_field.text()
         # Instantiate browser
         self.browser = mechanicalsoup.StatefulBrowser()
 
