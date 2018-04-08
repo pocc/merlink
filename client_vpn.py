@@ -10,6 +10,7 @@ from PyQt5.QtGui import QPixmap, QIcon
 # Web Scraping
 import mechanicalsoup
 import re
+import json
 
 
 class LoginWindow(QDialog):
@@ -153,8 +154,11 @@ class MainWindow(QMainWindow):
         self.cw.setMinimumWidth(330)
 
         self.browser = browser_session
-        self.scrape_info()
+        self.scrape_orgs()
+        self.current_org = self.org_list[0]
         self.main_init_ui()
+        self.get_networks()
+      #  self.scrape_networks()
         self.menu_bars()
         self.select_network() # Once an organization has been selected, networks will start populating for that org
         # -------------------------
@@ -162,21 +166,49 @@ class MainWindow(QMainWindow):
         self.attempt_connection()
 
     # This function will get the organizations and then save them as a dict of names and links
-    def scrape_info(self):
-
+    def scrape_orgs(self):
         # NOTE: Until you choose an organization, Dashboard will not let you visit pages you should have access to
         page = self.browser.get_current_page()
         # Get a list of all org links
         org_hrefs = page.findAll('a', href=re.compile('/login/org_choose\?eid=.{6}'))
         # Get the number of orgs
-        org_qty = len(org_hrefs)
-        # Initialize organization dictionary {Name: Link}
-        self.org_dict = {}
-        for i in range(org_qty):
+        self.org_qty = len(org_hrefs)
+        # Initialize organization dictionary {Name: Link} and list for easier access
+        self.org_links = {}
+        self.org_list = []
+        for i in range(self.org_qty):
             org_str = str(org_hrefs[i])
             # 39:-4 = Name, 9:37 = Link
-            self.org_dict[org_str[39:-4]] = 'https://account.meraki.com' + org_str[9:37]
-        # browser.open_relative(organizations[<org name>])
+            self.org_links[org_str[39:-4]] = 'https://account.meraki.com' + org_str[9:37]
+            self.org_list.append(org_str[39:-4])
+
+    def select_org(self):
+        pass
+
+    def get_networks(self):
+        # This method will get the networks by using the administered_orgs json blob
+        current_url = self.browser.get_url()
+        # base_url is up to '/manage/'
+        base_url_index = current_url.find('/manage')
+        base_url = current_url[:base_url_index + 7]  # Add 7 for '/manage'
+        administered_orgs = base_url + '/organization/administered_orgs'
+        self.browser.open(administered_orgs)
+        administered_orgs_text = self.browser.get_current_page()
+        self.orgs_json = json.loads(administered_orgs_text)
+
+        # Network list will be a list of networks ordered by alphabetical organization order
+        # This will be the same organizational ordering as org_links
+        self.nework_list = []
+
+        for i in range(self.org_qty):  # For every organization
+            this_org = list(self.orgs_json)[i]  # get this org's id
+            num_networks = self.orgs_json[this_org]['num_networks']
+            node_group_data = self.orgs_json[list(self.orgs_json)[0]]['node_groups']
+            network_names = []
+            for j in range(num_networks):
+                node_group_id = list(node_group_data)[j]
+                network_names.append(node_group_data[node_group_id]['n'])
+            self.network_list.append(network_names)
 
     def main_init_ui(self):
         # Set the Window Icon
@@ -187,8 +219,13 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle('Meraki Client VPN: Main')
         self.Organizations = QComboBox()
-        # List of lorem ipsum organizations
-        self.Organizations.addItems(list(self.org_dict.keys()))
+        if self.org_qty > 0:
+            # Autochoose first organization
+            self.browser.open(list(self.org_links.values())[0])
+            self.Organizations.addItems(self.org_list)
+        else:
+            self.get_networks()
+
         self.Networks = QComboBox()
         self.Networks.addItems({"Atlantis", "Gotham City", "Metropolis", "Rivendell", "Coruscant"})
         self.Networks.setCurrentText("Gotham City")
@@ -200,6 +237,11 @@ class MainWindow(QMainWindow):
         vert_layout.addStretch()
         vert_layout.addWidget(self.connect_btn)
         self.cw.setLayout(vert_layout)
+
+        # When we have the organization, we can scrape networks
+        # When the user changes the organization dropdown, call the scrap networks method
+        # Only change organization when there are more than 1 organization to change
+        self.Organizations.currentIndexChanged.connect(self.get_networks)
 
     def menu_bars(self):
         bar = self.menuBar()
@@ -313,9 +355,9 @@ class MainWindow(QMainWindow):
         pass
 
     def select_network(self):
-        # If they select an organization name, org_dict maps that to the URL
+        # If they select an organization name, org_links maps that to the URL
         org_name = self.Organizations.currentText()
-        org_url = self.org_dict[org_name]
+        org_url = self.org_links[org_name]
         self.browser.open(org_url)
 
     def attempt_connection(self):
