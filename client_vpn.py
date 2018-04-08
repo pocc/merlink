@@ -157,10 +157,8 @@ class MainWindow(QMainWindow):
         self.scrape_orgs()
         self.current_org = self.org_list[0]
         self.main_init_ui()
-        self.get_networks()
-      #  self.scrape_networks()
         self.menu_bars()
-        self.select_network() # Once an organization has been selected, networks will start populating for that org
+        self.select_network()  # Once an organization has been selected, networks will start populating for that org
         # -------------------------
         # When you have ALL the information
         self.attempt_connection()
@@ -193,7 +191,11 @@ class MainWindow(QMainWindow):
         base_url = current_url[:base_url_index + 7]  # Add 7 for '/manage'
         administered_orgs = base_url + '/organization/administered_orgs'
         self.browser.open(administered_orgs)
-        administered_orgs_text = self.browser.get_current_page()
+        print(self.browser.get_url())
+        #administered_orgs_text = self.browser.get_current_page()
+        self.browser.launch_browser()
+
+        ''' print(administered_orgs_text)
         self.orgs_json = json.loads(administered_orgs_text)
 
         # Network list will be a list of networks ordered by alphabetical organization order
@@ -209,7 +211,7 @@ class MainWindow(QMainWindow):
                 node_group_id = list(node_group_data)[j]
                 network_names.append(node_group_data[node_group_id]['n'])
             self.network_list.append(network_names)
-
+'''
     def main_init_ui(self):
         # Set the Window Icon
         self.setWindowIcon(QIcon('miles_meraki.png'))
@@ -222,6 +224,8 @@ class MainWindow(QMainWindow):
         if self.org_qty > 0:
             # Autochoose first organization
             self.browser.open(list(self.org_links.values())[0])
+            print("\nin main ui :   " + self.browser.get_url())
+            print(self.org_qty)
             self.Organizations.addItems(self.org_list)
         else:
             self.get_networks()
