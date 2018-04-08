@@ -190,17 +190,18 @@ class MainWindow(QMainWindow):
         base_url_index = current_url.find('/manage')
         base_url = current_url[:base_url_index + 7]  # Add 7 for '/manage'
         administered_orgs = base_url + '/organization/administered_orgs'
+        print(type(administered_orgs))
+        print(administered_orgs)
         self.browser.open(administered_orgs)
-        print(self.browser.get_url())
-        #administered_orgs_text = self.browser.get_current_page()
-        self.browser.launch_browser()
+        print(self.browser.get(administered_orgs))
+        breakpoint()
 
-        ''' print(administered_orgs_text)
-        self.orgs_json = json.loads(administered_orgs_text)
+
+        self.orgs_json = json.loads(str(administered_orgs_text))
 
         # Network list will be a list of networks ordered by alphabetical organization order
         # This will be the same organizational ordering as org_links
-        self.nework_list = []
+        self.network_list = []
 
         for i in range(self.org_qty):  # For every organization
             this_org = list(self.orgs_json)[i]  # get this org's id
@@ -211,7 +212,8 @@ class MainWindow(QMainWindow):
                 node_group_id = list(node_group_data)[j]
                 network_names.append(node_group_data[node_group_id]['n'])
             self.network_list.append(network_names)
-'''
+            print(network_names)
+
     def main_init_ui(self):
         # Set the Window Icon
         self.setWindowIcon(QIcon('miles_meraki.png'))
@@ -224,15 +226,15 @@ class MainWindow(QMainWindow):
         if self.org_qty > 0:
             # Autochoose first organization
             self.browser.open(list(self.org_links.values())[0])
-            print("\nin main ui :   " + self.browser.get_url())
-            print(self.org_qty)
             self.Organizations.addItems(self.org_list)
+            if DEBUG:
+                print("org_qty > 0")
         else:
             self.get_networks()
+            if DEBUG:
+                print("org_qty <= 0")
 
         self.Networks = QComboBox()
-        self.Networks.addItems({"Atlantis", "Gotham City", "Metropolis", "Rivendell", "Coruscant"})
-        self.Networks.setCurrentText("Gotham City")
         self.connect_btn = QPushButton("Connect")
 
         vert_layout = QVBoxLayout()
@@ -245,7 +247,9 @@ class MainWindow(QMainWindow):
         # When we have the organization, we can scrape networks
         # When the user changes the organization dropdown, call the scrap networks method
         # Only change organization when there are more than 1 organization to change
-        self.Organizations.currentIndexChanged.connect(self.get_networks)
+        self.Organizations.activated.connect(self.get_networks())
+
+        #self.Networks.addItems(self.network_list[0])
 
     def menu_bars(self):
         bar = self.menuBar()
@@ -369,7 +373,7 @@ class MainWindow(QMainWindow):
         pass
 
 
-DEBUG = False
+DEBUG = True
 app = None
 
 
