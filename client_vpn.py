@@ -151,6 +151,7 @@ class MainWindow(QMainWindow):
 
         # Variables
         self.network_admin_only = False
+        self.current_org_index = 0  # By default, we choose the first org to display
 
         # QMainWindow requires that a central widget be set
         self.cw = QWidget(self)
@@ -185,7 +186,7 @@ class MainWindow(QMainWindow):
             # 39:-4 = Name, 9:37 = Link
             self.org_links[org_str[39:-4]] = 'https://account.meraki.com' + org_str[9:37]
             self.org_list.append(org_str[39:-4])
-            print(self.org_links[org_str[39:-4]])
+            print(org_str[39:-4] + self.org_links[org_str[39:-4]])
 
     def select_org(self):
         pass
@@ -222,12 +223,10 @@ class MainWindow(QMainWindow):
         orgs_dict = json.loads(administered_orgs_text)
         if DEBUG:
             print(orgs_dict)
+            print(self.current_org)
 
         # ordering of organizations
-        org_number = 0
-        print(self.current_org)
 
-        primary_org_number = 0
         for i in range(self.org_qty):  # For every organization
             this_org = list(orgs_dict)[i]  # get this org's id
             num_networks = orgs_dict[this_org]['num_networks']  # int of num networks
@@ -240,27 +239,24 @@ class MainWindow(QMainWindow):
             # For orgs that are not the current org, we will get the number of networks, but get node_groups of {}
             if node_groups == {}:
                 num_networks = 0
-            else:
-                # primary_org_number is useful for adding the correct network list to the network QComboBox
-                primary_org_number = org_number
             for j in range(num_networks):
                 node_group_data = node_groups[network_base64_ids[j]]
-                if node_group_data['network_type'] == 'wired':  # and not node_group_data['is_config_template']:
+                if node_group_data['network_type'] == 'wired' and not node_group_data['is_config_template']:
                     network_names.append(node_group_data['n'])
 
             # If that network list is empty, then fill it with the network names
-            print("primary_org_number" + str(primary_org_number))
-            if self.network_list[primary_org_number] == []:
+            if DEBUG:
+                print("self.current_org_index" + str(self.current_org_index))
+            if self.network_list[self.current_org_index] == []:
                 if DEBUG:
                     print("Adding network to list")
-                self.network_list[primary_org_number] = network_names
-            org_number += 1
+                self.network_list[self.current_org_index] = network_names
             if DEBUG:
                 print(self.network_list[i])
 
         # Remove previous contents of Networks QComboBox and add correct ones
         self.Networks.clear()
-        self.Networks.addItems(self.network_list[primary_org_number])
+        self.Networks.addItems(self.network_list[self.current_org_index])
 
     def change_organization(self):
         # Change primary organization
@@ -268,14 +264,18 @@ class MainWindow(QMainWindow):
         # If the organization index of network_list is empty (i.e. this network list for this org has never been
         # updated), then get the networks for this organization
         # This makes it so we don't need to get the network list twice for the same organization
-        current_org_index = self.org_list.index(self.current_org)
-        if self.network_list[current_org_index] == []:
+        self.current_org_index = self.org_list.index(self.current_org)
+        print("In change_organization and this is network list " + str(self.network_list))
+        if self.network_list[self.current_org_index] == []:
+            print("getting networks from change_organization")
+            print("we are getting new info for " + self.current_org + " at index" + str(self.current_org_index))
             self.get_networks()
         else:
+            print("we already have that info for " + self.current_org + " at index" + str(self.current_org_index))
             # If we already have the network list, remove the current entries in the network combobox
             # And add the ones corresponding to the selected organization
             self.Networks.clear()
-            self.Networks.addItems(self.network_list[current_org_index])
+            self.Networks.addItems(self.network_list[self.current_org_index])
 
     def main_init_ui(self):
         # Set the Window Icon
