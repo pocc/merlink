@@ -292,6 +292,16 @@ class MainWindow(QMainWindow):
             self.Networks.clear()
             self.Networks.addItems(self.network_list[self.current_org_index])
 
+    def scrape_client_vpn_info(self):
+        """
+        * This method will scrape two things
+            * Primary WAN IP address
+            * Pre-shared key
+        """
+        self.primary_wan_ip = 0
+        self.psk = 0
+        print("in scrape client vpn info")
+
     def main_init_ui(self):
         # Set the Window Icon
         self.setWindowIcon(QIcon('miles_meraki.png'))
@@ -338,6 +348,7 @@ class MainWindow(QMainWindow):
         # When the user changes the organization dropdown, call the scrap networks method
         # Only change organization when there are more than 1 organization to change
         self.Organizations.currentIndexChanged.connect(self.change_organization)
+        self.Networks.activated.connect(self.scrape_client_vpn_info)
 
     def menu_bars(self):
         bar = self.menuBar()
