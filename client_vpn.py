@@ -212,8 +212,8 @@ class MainWindow(QMainWindow):
         current_url = self.browser.get_url()
         # base_url is up to '/manage/'
         base_url_index = current_url.find('/manage')
-        base_url = current_url[:base_url_index + 7]  # Add 7 for '/manage'
-        administered_orgs = base_url + '/organization/administered_orgs'
+        self.base_url = current_url[:base_url_index + 7]  # Add 7 for '/manage'
+        administered_orgs = self.base_url + '/organization/administered_orgs'
         self.browser.open(administered_orgs)
         if DEBUG:
             print(administered_orgs)
@@ -298,8 +298,25 @@ class MainWindow(QMainWindow):
             * Primary WAN IP address
             * Pre-shared key
         """
-        self.primary_wan_ip = 0
-        self.psk = 0
+
+        client_vpn_url = self.base_url + '/configure/client_vpn_settings'
+        client_vpn_text = requests.get(client_vpn_url, cookies=self.browser.get_cookiejar()).text
+        # If client VPN is enabled, we will see this HTML. If we see this HTML, its position > 0
+        if client_vpn_text.find("name=\"wired_config[client_vpn_enabled]\"><option value=\"true\" "
+                                "selected=\"selected\">Enabled</option>") > 0:
+
+        # The html looks like      wired_config[client_vpn_secret]...value="<psk>" />...   so parse as such
+            self.psk = client_vpn_text.split('wired_config[client_vpn_secret]')[1].split('\" />')[0].split('value=\"')[1]
+            print(self.psk)
+            self.primary_wan_ip = 0
+        else:
+            # Error message popup that will take control and that the user will need to acknowledge
+            error_message = QMessageBox()
+            error_message.setIcon(QMessageBox.Critical)
+            error_message.setWindowTitle("Error!")
+            error_message.setText('ERROR: Client VPN is not enabled.'
+                                  '\nPlease fix this and then reselect a network.')
+            error_message.exec_()
         print("in scrape client vpn info")
 
     def main_init_ui(self):
