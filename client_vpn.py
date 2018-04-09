@@ -150,6 +150,7 @@ class MainWindow(QMainWindow):
             print("Main Window")
 
         # Variables
+        self.network_admin_only = False
 
         # QMainWindow requires that a central widget be set
         self.cw = QWidget(self)
@@ -198,9 +199,11 @@ class MainWindow(QMainWindow):
         if DEBUG:
             print("In get_networks")
 
-        # This method will get the networks by using the administered_orgs json blob
-        current_url = self.org_links[self.current_org]
-        self.browser.open(current_url)
+        # If we're dealing with org admins
+        if not self.network_admin_only:
+            # This method will get the networks by using the administered_orgs json blob
+            current_url = self.org_links[self.current_org]
+            self.browser.open(current_url)
         current_url = self.browser.get_url()
         # base_url is up to '/manage/'
         base_url_index = current_url.find('/manage')
@@ -256,7 +259,6 @@ class MainWindow(QMainWindow):
                 print(self.network_list[i])
 
         # Remove previous contents of Networks QComboBox and add correct ones
-        print(self.org_list[primary_org_number])
         self.Networks.clear()
         self.Networks.addItems(self.network_list[primary_org_number])
 
@@ -286,14 +288,15 @@ class MainWindow(QMainWindow):
         self.Organizations = QComboBox()
         if self.org_qty > 0:
             # Autochoose first organization
+            self.current_org = self.org_list[0]
             self.browser.open(list(self.org_links.values())[0])
             self.Organizations.addItems(self.org_list)
-            self.current_org = self.org_list[0]
-
             if DEBUG:
                 print("org_qty > 0")
         else:
-            #self.get_networks()
+            self.current_org = 'Organization'
+            self.Organizations.setEnabled(False)  # Organizations QComboBox can be grayed out for network admins
+            self.network_admin_only = True
             if DEBUG:
                 print("org_qty <= 0")
 
