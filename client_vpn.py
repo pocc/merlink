@@ -11,6 +11,7 @@ from PyQt5.QtGui import QPixmap, QIcon
 import mechanicalsoup
 import re
 import json
+import requests
 
 
 class LoginWindow(QDialog):
@@ -155,7 +156,6 @@ class MainWindow(QMainWindow):
 
         self.browser = browser_session
         self.scrape_orgs()
-        self.current_org = self.org_list[0]
         self.main_init_ui()
         self.menu_bars()
         self.select_network()  # Once an organization has been selected, networks will start populating for that org
@@ -190,29 +190,34 @@ class MainWindow(QMainWindow):
         base_url_index = current_url.find('/manage')
         base_url = current_url[:base_url_index + 7]  # Add 7 for '/manage'
         administered_orgs = base_url + '/organization/administered_orgs'
-        print(type(administered_orgs))
-        print(administered_orgs)
         self.browser.open(administered_orgs)
-        print(self.browser.get(administered_orgs))
-        breakpoint()
 
+        cj = self.browser.get_cookiejar()
+        response = requests.get(administered_orgs, cookies=cj)
+        administered_orgs_text = response.text
 
-        self.orgs_json = json.loads(str(administered_orgs_text))
+        self.orgs_dict = json.loads(administered_orgs_text)
 
         # Network list will be a list of networks ordered by alphabetical organization order
         # This will be the same organizational ordering as org_links
         self.network_list = []
 
         for i in range(self.org_qty):  # For every organization
-            this_org = list(self.orgs_json)[i]  # get this org's id
-            num_networks = self.orgs_json[this_org]['num_networks']
-            node_group_data = self.orgs_json[list(self.orgs_json)[0]]['node_groups']
+            this_org = list(self.orgs_dict)[i]  # get this org's id
+            num_networks = self.orgs_dict[this_org]['num_networks']  # int of num networks
+            # Inner dict that contains base64 network name and all network info
+            node_groups = self.orgs_dict[this_org]['node_groups']
+            # List of network ids in base64. These network ids are keys for network data dict that is the value
+            network_base64_ids = list(node_groups.keys())
+            # Start out with no network names for each organization
             network_names = []
+            # For orgs that are not the current org, we will get the number of networks, but get node_groups of {}
+            if node_groups == {}:
+                num_networks = 0
             for j in range(num_networks):
-                node_group_id = list(node_group_data)[j]
-                network_names.append(node_group_data[node_group_id]['n'])
+                node_group_data = node_groups[network_base64_ids[j]]
+                network_names.append(node_group_data['n'])
             self.network_list.append(network_names)
-            print(network_names)
 
     def main_init_ui(self):
         # Set the Window Icon
@@ -227,10 +232,12 @@ class MainWindow(QMainWindow):
             # Autochoose first organization
             self.browser.open(list(self.org_links.values())[0])
             self.Organizations.addItems(self.org_list)
+            self.current_org = self.org_list[0]
+
             if DEBUG:
                 print("org_qty > 0")
         else:
-            self.get_networks()
+            #self.get_networks()
             if DEBUG:
                 print("org_qty <= 0")
 
@@ -247,8 +254,8 @@ class MainWindow(QMainWindow):
         # When we have the organization, we can scrape networks
         # When the user changes the organization dropdown, call the scrap networks method
         # Only change organization when there are more than 1 organization to change
-        self.Organizations.activated.connect(self.get_networks())
-
+        # self.Organizations.activated.connect(self.get_networks())
+        self.get_networks()
         #self.Networks.addItems(self.network_list[0])
 
     def menu_bars(self):
