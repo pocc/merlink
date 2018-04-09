@@ -150,7 +150,6 @@ class MainWindow(QMainWindow):
             print("Main Window")
 
         # Variables
-        self.network_list = []
 
         # QMainWindow requires that a central widget be set
         self.cw = QWidget(self)
@@ -162,7 +161,6 @@ class MainWindow(QMainWindow):
         self.scrape_orgs()
         self.main_init_ui()
         self.menu_bars()
-        self.select_network()  # Once an organization has been selected, networks will start populating for that org
         # -------------------------
         # When you have ALL the information
         self.attempt_connection()
@@ -175,6 +173,9 @@ class MainWindow(QMainWindow):
         org_hrefs = page.findAll('a', href=re.compile('/login/org_choose\?eid=.{6}'))
         # Get the number of orgs
         self.org_qty = len(org_hrefs)
+        # Create as many network lists in the network list as there are orgs
+        self.network_list = [[]] * self.org_qty
+        print("init network_list" + str(self.network_list))
         # Initialize organization dictionary {Name: Link} and list for easier access
         self.org_links = {}
         self.org_list = []
@@ -199,7 +200,6 @@ class MainWindow(QMainWindow):
 
         # This method will get the networks by using the administered_orgs json blob
         current_url = self.org_links[self.current_org]
-        print(current_url)
         self.browser.open(current_url)
         current_url = self.browser.get_url()
         # base_url is up to '/manage/'
@@ -207,21 +207,29 @@ class MainWindow(QMainWindow):
         base_url = current_url[:base_url_index + 7]  # Add 7 for '/manage'
         administered_orgs = base_url + '/organization/administered_orgs'
         self.browser.open(administered_orgs)
+        if DEBUG:
+            print(administered_orgs)
 
         cj = self.browser.get_cookiejar()
+        if DEBUG:
+            print(cj)
         response = requests.get(administered_orgs, cookies=cj)
         administered_orgs_text = response.text
 
-        self.orgs_dict = json.loads(administered_orgs_text)
+        orgs_dict = json.loads(administered_orgs_text)
+        if DEBUG:
+            print(orgs_dict)
 
         # ordering of organizations
         org_number = 0
+        print(self.current_org)
+
         primary_org_number = 0
         for i in range(self.org_qty):  # For every organization
-            this_org = list(self.orgs_dict)[i]  # get this org's id
-            num_networks = self.orgs_dict[this_org]['num_networks']  # int of num networks
+            this_org = list(orgs_dict)[i]  # get this org's id
+            num_networks = orgs_dict[this_org]['num_networks']  # int of num networks
             # Inner dict that contains base64 network name and all network info
-            node_groups = self.orgs_dict[this_org]['node_groups']
+            node_groups = orgs_dict[this_org]['node_groups']
             # List of network ids in base64. These network ids are keys for network data dict that is the value
             network_base64_ids = list(node_groups.keys())
             # Start out with no network names for each organization
@@ -235,8 +243,15 @@ class MainWindow(QMainWindow):
             for j in range(num_networks):
                 node_group_data = node_groups[network_base64_ids[j]]
                 network_names.append(node_group_data['n'])
-            self.network_list.append(network_names)
+            # If that network list is empty, then fill it with the network names
+            print("primary_org_number" + str(primary_org_number))
+            if self.network_list[primary_org_number] == []:
+                if DEBUG:
+                    print("Adding network to list")
+                self.network_list[primary_org_number] = network_names
             org_number += 1
+            if DEBUG:
+                print(self.network_list[i])
 
         # Remove previous contents of Networks QComboBox and add correct ones
         print(self.org_list[primary_org_number])
@@ -246,7 +261,17 @@ class MainWindow(QMainWindow):
     def change_organization(self):
         # Change primary organization
         self.current_org = self.Organizations.currentText()
-        self.get_networks()
+        # If the organization index of network_list is empty (i.e. this network list for this org has never been
+        # updated), then get the networks for this organization
+        # This makes it so we don't need to get the network list twice for the same organization
+        current_org_index = self.org_list.index(self.current_org)
+        if self.network_list[current_org_index] == []:
+            self.get_networks()
+        else:
+            # If we already have the network list, remove the current entries in the network combobox
+            # And add the ones corresponding to the selected organization
+            self.Networks.clear()
+            self.Networks.addItems(self.network_list[current_org_index])
 
     def main_init_ui(self):
         # Set the Window Icon
@@ -397,12 +422,6 @@ class MainWindow(QMainWindow):
         # Also, pre-alpha, version -1
         # Apache License
         pass
-
-    def select_network(self):
-        # If they select an organization name, org_links maps that to the URL
-        org_name = self.Organizations.currentText()
-        org_url = self.org_links[org_name]
-        self.browser.open(org_url)
 
     def attempt_connection(self):
         # This is where OS-specific code will go
