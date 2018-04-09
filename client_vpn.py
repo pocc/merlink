@@ -183,6 +183,7 @@ class MainWindow(QMainWindow):
             # 39:-4 = Name, 9:37 = Link
             self.org_links[org_str[39:-4]] = 'https://account.meraki.com' + org_str[9:37]
             self.org_list.append(org_str[39:-4])
+            print(self.org_links[org_str[39:-4]])
 
     def select_org(self):
         pass
@@ -193,8 +194,13 @@ class MainWindow(QMainWindow):
         * browser should be initialized
         * browser should have clicked on an org in the org selection page so we can browse relative paths of an org
         """
+        if DEBUG:
+            print("In get_networks")
 
         # This method will get the networks by using the administered_orgs json blob
+        current_url = self.org_links[self.current_org]
+        print(current_url)
+        self.browser.open(current_url)
         current_url = self.browser.get_url()
         # base_url is up to '/manage/'
         base_url_index = current_url.find('/manage')
@@ -208,9 +214,9 @@ class MainWindow(QMainWindow):
 
         self.orgs_dict = json.loads(administered_orgs_text)
 
-        # Network list will be a list of networks ordered by alphabetical organization order
-        # This will be the same organizational ordering as org_links
-
+        # ordering of organizations
+        org_number = 0
+        primary_org_number = 0
         for i in range(self.org_qty):  # For every organization
             this_org = list(self.orgs_dict)[i]  # get this org's id
             num_networks = self.orgs_dict[this_org]['num_networks']  # int of num networks
@@ -223,10 +229,24 @@ class MainWindow(QMainWindow):
             # For orgs that are not the current org, we will get the number of networks, but get node_groups of {}
             if node_groups == {}:
                 num_networks = 0
+            else:
+                # primary_org_number is useful for adding the correct network list to the network QComboBox
+                primary_org_number = org_number
             for j in range(num_networks):
                 node_group_data = node_groups[network_base64_ids[j]]
                 network_names.append(node_group_data['n'])
             self.network_list.append(network_names)
+            org_number += 1
+
+        # Remove previous contents of Networks QComboBox and add correct ones
+        print(self.org_list[primary_org_number])
+        self.Networks.clear()
+        self.Networks.addItems(self.network_list[primary_org_number])
+
+    def change_organization(self):
+        # Change primary organization
+        self.current_org = self.Organizations.currentText()
+        self.get_networks()
 
     def main_init_ui(self):
         # Set the Window Icon
@@ -260,19 +280,12 @@ class MainWindow(QMainWindow):
         vert_layout.addWidget(self.connect_btn)
         self.cw.setLayout(vert_layout)
 
-        # If the user hasn't made a change to the org, choose the networks in the first one
         self.get_networks()
-        if self.network_list is []:
-            self.Networks.addItems(self.network_list[0])
-        else:
-            print(self.network_list[1])
-            for i in range(len(self.network_list)):
-                self.Networks.addItems(self.network_list[i])
 
         # When we have the organization, we can scrape networks
         # When the user changes the organization dropdown, call the scrap networks method
         # Only change organization when there are more than 1 organization to change
-        self.Organizations.currentIndexChanged.connect(self.get_networks)
+        self.Organizations.currentIndexChanged.connect(self.change_organization)
 
     def menu_bars(self):
         bar = self.menuBar()
