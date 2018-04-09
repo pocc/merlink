@@ -149,6 +149,9 @@ class MainWindow(QMainWindow):
         if DEBUG:
             print("Main Window")
 
+        # Variables
+        self.network_list = []
+
         # QMainWindow requires that a central widget be set
         self.cw = QWidget(self)
         self.setCentralWidget(self.cw)
@@ -185,6 +188,12 @@ class MainWindow(QMainWindow):
         pass
 
     def get_networks(self):
+        """ ASSERTS
+        * get_networks should only be called on initial startup or if a different organization has been chosen
+        * browser should be initialized
+        * browser should have clicked on an org in the org selection page so we can browse relative paths of an org
+        """
+
         # This method will get the networks by using the administered_orgs json blob
         current_url = self.browser.get_url()
         # base_url is up to '/manage/'
@@ -201,7 +210,6 @@ class MainWindow(QMainWindow):
 
         # Network list will be a list of networks ordered by alphabetical organization order
         # This will be the same organizational ordering as org_links
-        self.network_list = []
 
         for i in range(self.org_qty):  # For every organization
             this_org = list(self.orgs_dict)[i]  # get this org's id
@@ -252,12 +260,19 @@ class MainWindow(QMainWindow):
         vert_layout.addWidget(self.connect_btn)
         self.cw.setLayout(vert_layout)
 
+        # If the user hasn't made a change to the org, choose the networks in the first one
+        self.get_networks()
+        if self.network_list is []:
+            self.Networks.addItems(self.network_list[0])
+        else:
+            print(self.network_list[1])
+            for i in range(len(self.network_list)):
+                self.Networks.addItems(self.network_list[i])
+
         # When we have the organization, we can scrape networks
         # When the user changes the organization dropdown, call the scrap networks method
         # Only change organization when there are more than 1 organization to change
-        # self.Organizations.activated.connect(self.get_networks())
-        self.get_networks()
-        #self.Networks.addItems(self.network_list[0])
+        self.Organizations.currentIndexChanged.connect(self.get_networks)
 
     def menu_bars(self):
         bar = self.menuBar()
