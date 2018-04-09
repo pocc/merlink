@@ -242,7 +242,9 @@ class MainWindow(QMainWindow):
                 primary_org_number = org_number
             for j in range(num_networks):
                 node_group_data = node_groups[network_base64_ids[j]]
-                network_names.append(node_group_data['n'])
+                if node_group_data['network_type'] == 'wired':  # and not node_group_data['is_config_template']:
+                    network_names.append(node_group_data['n'])
+
             # If that network list is empty, then fill it with the network names
             print("primary_org_number" + str(primary_org_number))
             if self.network_list[primary_org_number] == []:
