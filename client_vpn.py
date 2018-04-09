@@ -129,9 +129,10 @@ class LoginWindow(QDialog):
             error_message.setText('ERROR: Invalid username or password.')
             error_message.exec_()
 
-            # Sanitize fields so they can reenter credentials
+            # Sanitize password field so they can reenter credentials
+            ''' Design choice: Don't reset username as reentering can be annyoying if only password is wrong
+                self.username_field.setText('')'''
             self.password_field.setText('')
-            self.username_field.setText('')
 
             # Return 'Rejected' as value from QDialog object
             self.reject()
