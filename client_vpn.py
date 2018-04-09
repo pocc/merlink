@@ -152,6 +152,10 @@ class MainWindow(QMainWindow):
         # Variables
         self.network_admin_only = False
         self.current_org_index = 0  # By default, we choose the first org to display
+        self.org_qty = 0  # By default, you have access to 0 orgs
+        # Initialize organization dictionary {Name: Link} and list for easier access. org_list is org_links.keys()
+        self.org_links = {}
+        self.org_list = []
 
         # QMainWindow requires that a central widget be set
         self.cw = QWidget(self)
@@ -169,6 +173,9 @@ class MainWindow(QMainWindow):
 
     # This function will get the organizations and then save them as a dict of names and links
     def scrape_orgs(self):
+        """ ASSERTS
+        * user is an org admin
+        """
         # NOTE: Until you choose an organization, Dashboard will not let you visit pages you should have access to
         page = self.browser.get_current_page()
         # Get a list of all org links
@@ -178,9 +185,6 @@ class MainWindow(QMainWindow):
         # Create as many network lists in the network list as there are orgs
         self.network_list = [[]] * self.org_qty
         print("init network_list" + str(self.network_list))
-        # Initialize organization dictionary {Name: Link} and list for easier access
-        self.org_links = {}
-        self.org_list = []
         for i in range(self.org_qty):
             org_str = str(org_hrefs[i])
             # 39:-4 = Name, 9:37 = Link
@@ -225,8 +229,17 @@ class MainWindow(QMainWindow):
             print(orgs_dict)
             print(self.current_org)
 
-        # ordering of organizations
-
+        # For network_only_admins, we first get org info from the administered_orgs page
+        if self.network_admin_only:
+            self.org_qty = len(orgs_dict.keys())
+            for i in range(self.org_qty):
+                org_id = list(orgs_dict)[i]
+                self.org_list.append(orgs_dict[org_id]['name'])
+            # Duplicating this line here as we're ok with network admins running this code multiple times as it's
+            # dependent on administerd_orgs json. For org admins, we keep it in scrape_orgs() so it runs once
+            self.network_list = [[]] * self.org_qty
+        if DEBUG:
+            print("org_qty " + str(self.org_qty))
         for i in range(self.org_qty):  # For every organization
             this_org = list(orgs_dict)[i]  # get this org's id
             num_networks = orgs_dict[this_org]['num_networks']  # int of num networks
@@ -246,7 +259,8 @@ class MainWindow(QMainWindow):
 
             # If that network list is empty, then fill it with the network names
             if DEBUG:
-                print("self.current_org_index" + str(self.current_org_index))
+                print("self.current_org_index " + str(self.current_org_index))
+                print(self.network_list)
             if self.network_list[self.current_org_index] == []:
                 if DEBUG:
                     print("Adding network to list")
@@ -256,6 +270,7 @@ class MainWindow(QMainWindow):
 
         # Remove previous contents of Networks QComboBox and add correct ones
         self.Networks.clear()
+        print("name of current org " + self.current_org + " | and org index: " + str(self.current_org_index))
         self.Networks.addItems(self.network_list[self.current_org_index])
 
     def change_organization(self):
@@ -290,12 +305,10 @@ class MainWindow(QMainWindow):
             # Autochoose first organization
             self.current_org = self.org_list[0]
             self.browser.open(list(self.org_links.values())[0])
-            self.Organizations.addItems(self.org_list)
             if DEBUG:
                 print("org_qty > 0")
         else:
-            self.current_org = 'Organization'
-            self.Organizations.setEnabled(False)  # Organizations QComboBox can be grayed out for network admins
+            self.current_org = 'Org Placeholder'  # Org name placeholder
             self.network_admin_only = True
             if DEBUG:
                 print("org_qty <= 0")
@@ -311,6 +324,15 @@ class MainWindow(QMainWindow):
         self.cw.setLayout(vert_layout)
 
         self.get_networks()
+        # For network admins, we get org information from administered_orgs json blob
+        self.Organizations.addItems(self.org_list)
+
+        """# Gray out comboboxes if there's only one option for org or network
+        # Currently disabling this as it's not strictly necessary
+        if self.org_qty == 1:
+            self.Organizations.setEnabled(False)
+        if len(self.network_list[self.current_org_index]) == 1:
+            self.Networks.setEnabled(False)"""
 
         # When we have the organization, we can scrape networks
         # When the user changes the organization dropdown, call the scrap networks method
