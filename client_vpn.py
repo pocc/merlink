@@ -173,9 +173,6 @@ class MainWindow(QMainWindow):
         self.scrape_orgs()
         self.main_init_ui()
         self.menu_bars()
-        # -------------------------
-        # When you have ALL the information
-        self.attempt_connection()
 
     # This function will get the organizations and then save them as a dict of names and links
     def scrape_orgs(self):
@@ -345,8 +342,9 @@ class MainWindow(QMainWindow):
     def feature_in_development(self):
         dev_message = QMessageBox()
         dev_message.setIcon(QMessageBox.Information)
-        dev_message.setWindowTitle("In progress...")
+        dev_message.setWindowTitle("Meraki Client VPN: Features in Progress")
         dev_message.setText('This feature is currently in progress.')
+        dev_message.exec_()
 
     def main_init_ui(self):
         # Set the Window Icon
@@ -396,7 +394,7 @@ class MainWindow(QMainWindow):
         # Only change organization when there are more than 1 organization to change
         self.org_dropdown.currentIndexChanged.connect(self.change_organization)
         self.network_dropdown.activated.connect(self.scrape_client_vpn_info)
-        self.connect_btn.clicked.connect(self.attempt_connection())
+        self.connect_btn.clicked.connect(self.attempt_connection)
 
     def menu_bars(self):
         bar = self.menuBar()
