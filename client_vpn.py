@@ -7,7 +7,8 @@ import webbrowser
 
 # Qt5
 from PyQt5.QtWidgets import (QApplication, QLineEdit, QWidget, QPushButton, QLabel, QSystemTrayIcon, QTextEdit,
-                             QVBoxLayout, QHBoxLayout, QComboBox, QMainWindow, QAction, QDialog, QMessageBox)
+                             QVBoxLayout, QHBoxLayout, QComboBox, QMainWindow, QAction, QDialog, QMessageBox,
+                             QStatusBar, QFrame)
 from PyQt5.QtGui import QPixmap, QIcon
 
 # Web Scraping
@@ -386,6 +387,14 @@ class MainWindow(QMainWindow):
         tray_icon = QSystemTrayIcon(QIcon('miles_meraki.png'))
         tray_icon.show()
 
+        # Create a horizontal line above the status bar to highlight it
+        self.hline = QFrame()
+        self.hline.setFrameShape(QFrame.HLine)
+        self.hline.setFrameShadow(QFrame.Sunken)
+
+        self.status = QStatusBar()
+        self.status.showMessage("Ready")
+
         self.setWindowTitle('Meraki Client VPN: Main')
         self.org_dropdown = QComboBox()
         self.org_dropdown.addItems(["-- Select an Organzation --"])
@@ -409,6 +418,8 @@ class MainWindow(QMainWindow):
         vert_layout.addWidget(self.network_dropdown)
         vert_layout.addStretch()
         vert_layout.addWidget(self.connect_btn)
+        vert_layout.addWidget(self.hline)
+        vert_layout.addWidget(self.status)
         self.cw.setLayout(vert_layout)
 
         self.get_networks()
