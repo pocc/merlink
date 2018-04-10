@@ -298,7 +298,7 @@ class MainWindow(QMainWindow):
         self.network_dropdown.addItems(["-- Select a Network --"])
         self.network_dropdown.addItems(self.network_list[self.current_org_index])
 
-    def scrape_client_vpn_info(self):
+    def scrape_psk(self):
         """
         This method will scrape two things
             - Primary WAN IP address
@@ -331,13 +331,36 @@ class MainWindow(QMainWindow):
             ret = error_message.exec_()
             if ret == QMessageBox.Yes:
                 self.enable_client_vpn()
-
-        self.primary_wan_ip = 0
-        print("in scrape client vpn info")
+        print("in scrape psk")
+        self.scrape_ddns()
 
     def enable_client_vpn(self):
         print("In enable_client_vpn. Plan on implementing this eventually")
         pass
+
+    def scrape_ddns(self):
+        """
+        This method will get ddns and ip
+        - Get DDNS name (if enabled)
+        - Get primary interface's IP address
+        - Verify that virtual_ip == {"public_ip":
+        TODO verify that this works on all combinations of warm spares and virtual ips
+        TODO Find out whether it would be faster to add a json blob object and search that vis-a-vis this solution
+        :return:
+        """
+        fw_status_url = self.base_urls[self.current_org_index] + '/nodes/new_wired_status'
+        fw_status_text = self.browser.get(fw_status_url).text
+
+        # ddns value can be found by searching for '"dynamic_dns_name"'
+        ddns_value_start = fw_status_text.find("dynamic_dns_name")+19
+        ddns_value_end = fw_status_text[ddns_value_start:].find('\"') + ddns_value_start
+        self.current_ddns=fw_status_text[ddns_value_start: ddns_value_end]
+
+        # Primary will always come first, so using find should find it's IP address, even if there's a warm spare
+        # Using unique '{"public_ip":' to find primary IP address
+        ip_start = fw_status_text.find("{\"public_ip\":")+14
+        ip_end = fw_status_text[ip_start:].find('\"') + ip_start
+        self.current_primary_ip=fw_status_text[ip_start: ip_end]
 
     def feature_in_development(self):
         dev_message = QMessageBox()
@@ -393,7 +416,7 @@ class MainWindow(QMainWindow):
         # When the user changes the organization dropdown, call the scrap networks method
         # Only change organization when there are more than 1 organization to change
         self.org_dropdown.currentIndexChanged.connect(self.change_organization)
-        self.network_dropdown.activated.connect(self.scrape_client_vpn_info)
+        self.network_dropdown.activated.connect(self.scrape_psk)
         self.connect_btn.clicked.connect(self.attempt_connection)
 
     def menu_bars(self):
@@ -518,8 +541,19 @@ class MainWindow(QMainWindow):
         pass
 
     def attempt_connection(self):
+        if 'Select' not in self.org_dropdown.currentText() and 'Select' not in self.network_dropdown.currentText():
+            self.feature_in_development()
+        else:
+            error_message = QMessageBox()
+            error_message.setIcon(QMessageBox.Critical)
+            error_message.setWindowTitle("Error!")
+            error_message.setText('You must select an organization and network before connecting!')
+            error_message.exec_()
+            pass
+
         # This is where OS-specific code will go
-        self.feature_in_development()
+        if DEBUG:
+            print("Attempting connection...")
         pass
 
 
