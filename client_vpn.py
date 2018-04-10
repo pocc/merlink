@@ -342,6 +342,12 @@ class MainWindow(QMainWindow):
         print("In enable_client_vpn. Plan on implementing this eventually")
         pass
 
+    def feature_in_development(self):
+        dev_message = QMessageBox()
+        dev_message.setIcon(QMessageBox.Information)
+        dev_message.setWindowTitle("In progress...")
+        dev_message.setText('This feature is currently in progress.')
+
     def main_init_ui(self):
         # Set the Window Icon
         self.setWindowIcon(QIcon('miles_meraki.png'))
@@ -390,6 +396,7 @@ class MainWindow(QMainWindow):
         # Only change organization when there are more than 1 organization to change
         self.org_dropdown.currentIndexChanged.connect(self.change_organization)
         self.network_dropdown.activated.connect(self.scrape_client_vpn_info)
+        self.connect_btn.clicked.connect(self.attempt_connection())
 
     def menu_bars(self):
         bar = self.menuBar()
@@ -458,10 +465,12 @@ class MainWindow(QMainWindow):
 
     def file_open_action(self):
         # Might use this to open a saved vpn config
+        self.feature_in_development()
         pass
 
     def file_save_action(self):
         # Might use this to save a vpn config
+        self.feature_in_development()
         pass
 
     def file_quit_action(self):
@@ -470,40 +479,49 @@ class MainWindow(QMainWindow):
 
     def edit_prefs_action(self):
         # Preferences should go here. How many settings are here will depend on the feature set
+        self.feature_in_development()
         pass
 
     def view_interfaces_action(self):
         # If linux/macos > ifconfig
         # If Windows > ipconfig /all
+        self.feature_in_development()
         pass
 
     def view_routing_action(self):
         # If linux/macos > netstat -rn
         # If Windows > route print
+        self.feature_in_development()
         pass
 
     def view_data_action(self):
+        self.feature_in_development()
         pass
 
     def tshoot_error_action(self):
         # In Windows, use powershell: get-eventlog
+        self.feature_in_development()
         pass
 
     def tshoot_pcap_action(self):
+        self.feature_in_development()
         pass
 
     def help_support_action(self):
         # Redirect to https://meraki.cisco.com/support
+        self.feature_in_development()
         pass
 
     def help_about_action(self):
         # Talk about yourself
         # Also, pre-alpha, version -1
         # Apache License
+        self.feature_in_development()
         pass
 
     def attempt_connection(self):
         # This is where OS-specific code will go
+        self.feature_in_development()
         pass
 
 
