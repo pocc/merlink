@@ -1,11 +1,12 @@
 #!/usr/bin/python3
 # This program will connect desktop clients to Meraki firewalls
 
-# System
+# Utilities
 import sys
+import webbrowser
 
 # Qt5
-from PyQt5.QtWidgets import (QApplication, QLineEdit, QWidget, QPushButton, QLabel, QSystemTrayIcon,
+from PyQt5.QtWidgets import (QApplication, QLineEdit, QWidget, QPushButton, QLabel, QSystemTrayIcon, QTextEdit,
                              QVBoxLayout, QHBoxLayout, QComboBox, QMainWindow, QAction, QDialog, QMessageBox)
 from PyQt5.QtGui import QPixmap, QIcon
 
@@ -19,7 +20,7 @@ import bs4
 # VPN creation
 import subprocess
 import platform
-import os
+
 
 class LoginWindow(QDialog):
     def __init__(self):
@@ -464,7 +465,7 @@ class MainWindow(QMainWindow):
         tshoot_pcap.setShortcut('Ctrl+W')
 
         # Help options
-        help_support = QAction('S&upport', self)
+        help_support = QAction('Get S&upport', self)
         help_support.setShortcut('Ctrl+U')
         help_about = QAction('A&bout', self)
         help_about.setShortcut('Ctrl+B')
@@ -538,16 +539,25 @@ class MainWindow(QMainWindow):
         pass
 
     def help_support_action(self):
-        # Redirect to https://meraki.cisco.com/support
-        self.feature_in_development()
-        pass
+        # Redirect to Meraki's support website
+        webbrowser.open('https://meraki.cisco.com/support')
 
     def help_about_action(self):
-        # Talk about yourself
-        # Also, pre-alpha, version -1
-        # Apache License
-        self.feature_in_development()
-        pass
+        about_popup = QDialog()
+        about_popup.setWindowTitle("Meraki Client VPN: About")
+        about_program = QLabel()
+        about_program.setText("<h1>Meraki VPN Client 0.5.1</h1>\nDeveloped by Ross Jacobs<br><br><br>"
+                              "This project is licensed with the Apache License, which can be viewed below:")
+        license_text = open("LICENSE", 'r').read()
+        licenses = QTextEdit()
+        licenses.setText(license_text)
+        licenses.setReadOnly(True)  # People shouldn't be able to edit licenses!
+        popup_layout = QVBoxLayout()
+        popup_layout.addWidget(about_program)
+        popup_layout.addWidget(licenses)
+        about_popup.setLayout(popup_layout)
+        about_popup.setMinimumSize(680, 400)
+        about_popup.exec_()
 
     def attempt_connection(self):
         if 'Select' not in self.org_dropdown.currentText() and 'Select' not in self.network_dropdown.currentText():
