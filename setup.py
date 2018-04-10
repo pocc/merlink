@@ -3,7 +3,7 @@ from cx_Freeze import setup, Executable
 
 # Dependencies are automatically detected, but it might need
 # fine tuning.
-buildOptions = dict(packages=[], excludes=[])
+buildOptions = dict(packages=['PyQt5', 'mechanicalsoup', 'requests', 'bs4'], excludes=[])
 
 base = 'Win32GUI' if sys.platform == 'win32' else None
 

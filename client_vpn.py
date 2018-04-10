@@ -553,6 +553,7 @@ class MainWindow(QMainWindow):
         if 'Select' not in self.org_dropdown.currentText() and 'Select' not in self.network_dropdown.currentText():
             self.scrape_ddns_and_ip()
             if sys.platform == 'win32':
+                # TODO untested
                 arch = platform.architecture()
                 if arch == '64bit':
                     powershell_path = 'C:\\Windows\\SysWOW64\\WindowsPowerShell\\v1.0\\powershell.exe'
@@ -561,22 +562,21 @@ class MainWindow(QMainWindow):
 
                 # Setting execution policy to unrestricted is necessary so that we can access VPN functions
                 # Sending DDNS and IP so if DDNS fails, windows can try IP as well
-                ps_vpn = subprocess.Popen(
+                result = subprocess.Popen(
                     [powershell_path, '-ExecutionPolicy', 'Unrestricted', './connect_windows.ps1',
-                     self.current_ddns, self.current_primary_ip, self.username, self.password], cwd=os.getcwd()
+                     self.current_ddns, self.current_primary_ip, self.username, self.password]
                 )
-                result = ps_vpn.wait()
-                print(result)
 
             elif sys.platform == 'darwin':
-                self.feature_in_development()
-                pass
+                # TODO untested
+                args = [self.current_primary_ip, self.username, self.password]
+                result = subprocess.Popen(['osascript', '-'] + args, stdout=subprocess.PIPE)
 
             elif sys.platform.startswith('linux'):  # linux, linux2 are both valid
+                # bash integration has been verified as working, vpn setup is still work in progress
+                result = subprocess.Popen(["./connect_linux.sh", self.current_primary_ip, self.username, self.password])
 
-                pass
-
-        else:
+        else:  # They haven't selected an item in one of the message boxes
             error_message = QMessageBox()
             error_message.setIcon(QMessageBox.Critical)
             error_message.setWindowTitle("Error!")
@@ -584,10 +584,11 @@ class MainWindow(QMainWindow):
             error_message.exec_()
             pass
 
-        # This is where OS-specific code will go
         if DEBUG:
             print("Attempting connection...")
-        pass
+        # We're setting up threads to read result's streams to force program to wait
+        throwaway_stream = result.communicate()[0]
+        print("The return code is " + str(result.returncode))
 
 
 DEBUG = True
