@@ -3,10 +3,12 @@
 
 # System
 import sys
+
 # Qt5
 from PyQt5.QtWidgets import (QApplication, QLineEdit, QWidget, QPushButton, QLabel, QSystemTrayIcon,
                              QVBoxLayout, QHBoxLayout, QComboBox, QMainWindow, QAction, QDialog, QMessageBox)
 from PyQt5.QtGui import QPixmap, QIcon
+
 # Web Scraping
 import mechanicalsoup
 import re
@@ -14,6 +16,10 @@ import json
 import requests
 import bs4
 
+# VPN creation
+import subprocess
+import platform
+import os
 
 class LoginWindow(QDialog):
     def __init__(self):
@@ -149,7 +155,7 @@ class LoginWindow(QDialog):
 
 class MainWindow(QMainWindow):
     # Pass in browser_session object from LoginWindow so that we can maintain the same session
-    def __init__(self, browser_session):
+    def __init__(self, browser_session, username, password):
         super(MainWindow, self).__init__()
         if DEBUG:
             print("Main Window")
@@ -170,6 +176,8 @@ class MainWindow(QMainWindow):
         self.cw.setMinimumWidth(330)
 
         self.browser = browser_session
+        self.username = username
+        self.password = password
         self.scrape_orgs()
         self.main_init_ui()
         self.menu_bars()
@@ -331,20 +339,21 @@ class MainWindow(QMainWindow):
             ret = error_message.exec_()
             if ret == QMessageBox.Yes:
                 self.enable_client_vpn()
-        print("in scrape psk")
-        self.scrape_ddns()
 
     def enable_client_vpn(self):
-        print("In enable_client_vpn. Plan on implementing this eventually")
+        self.feature_in_development()
         pass
 
-    def scrape_ddns(self):
-        """
-        This method will get ddns and ip
+    def scrape_ddns_and_ip(self):
+        """ ASSERTS
+        * This method gets ddns and ip values for the current network
+        * This method should ONLY be called if the user has hit the connect button
+
+        Features
         - Get DDNS name (if enabled)
         - Get primary interface's IP address
         - Verify that virtual_ip == {"public_ip":
-        TODO verify that this works on all combinations of warm spares and virtual ips
+        TODO verify that this method of getting IP address works on all combinations of warm spares and virtual ips
         TODO Find out whether it would be faster to add a json blob object and search that vis-a-vis this solution
         :return:
         """
@@ -542,7 +551,31 @@ class MainWindow(QMainWindow):
 
     def attempt_connection(self):
         if 'Select' not in self.org_dropdown.currentText() and 'Select' not in self.network_dropdown.currentText():
-            self.feature_in_development()
+            self.scrape_ddns_and_ip()
+            if sys.platform == 'win32':
+                arch = platform.architecture()
+                if arch == '64bit':
+                    powershell_path = 'C:\\Windows\\SysWOW64\\WindowsPowerShell\\v1.0\\powershell.exe'
+                else:  # arch MUST be 32bit if not 64bit
+                    powershell_path = 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe'
+
+                # Setting execution policy to unrestricted is necessary so that we can access VPN functions
+                # Sending DDNS and IP so if DDNS fails, windows can try IP as well
+                ps_vpn = subprocess.Popen(
+                    [powershell_path, '-ExecutionPolicy', 'Unrestricted', './connect_windows.ps1',
+                     self.current_ddns, self.current_primary_ip, self.username, self.password], cwd=os.getcwd()
+                )
+                result = ps_vpn.wait()
+                print(result)
+
+            elif sys.platform == 'darwin':
+                self.feature_in_development()
+                pass
+
+            elif sys.platform.startswith('linux'):  # linux, linux2 are both valid
+
+                pass
+
         else:
             error_message = QMessageBox()
             error_message.setIcon(QMessageBox.Critical)
@@ -568,7 +601,7 @@ def main():  # Syntax per PyQt recommendations: http://pyqt.sourceforge.net/Docs
     # login_window.exec_() will execute while we keep on getting Rejected
     while login_window.exec_() != QDialog.Accepted:
         pass
-    main_window = MainWindow(login_window.get_browser())
+    main_window = MainWindow(login_window.get_browser(), login_window.username, login_window.password)
     main_window.show()
     sys.exit(app.exec_())
 
