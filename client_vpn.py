@@ -275,14 +275,11 @@ class MainWindow(QMainWindow):
             if DEBUG:
                 print(self.network_list[i])
 
-        # Remove previous contents of Networks QComboBox and add correct ones
-        self.Networks.clear()
-        print("name of current org " + self.current_org + " | and org index: " + str(self.current_org_index))
-        self.Networks.addItems(self.network_list[self.current_org_index])
+        self.refresh_network_dropdown()
 
     def change_organization(self):
         # Change primary organization
-        self.current_org = self.Organizations.currentText()
+        self.current_org = self.org_dropdown.currentText()
         # If the organization index of network_list is empty (i.e. this network list for this org has never been
         # updated), then get the networks for this organization
         # This makes it so we don't need to get the network list twice for the same organization
@@ -296,14 +293,22 @@ class MainWindow(QMainWindow):
             print("we already have that info for " + self.current_org + " at index" + str(self.current_org_index))
             # If we already have the network list, remove the current entries in the network combobox
             # And add the ones corresponding to the selected organization
-            self.Networks.clear()
-            self.Networks.addItems(self.network_list[self.current_org_index])
+            self.refresh_network_dropdown()
+
+    def refresh_network_dropdown(self):
+        # Remove previous contents of Networks QComboBox and add new ones according to chosen organization
+        self.network_dropdown.clear()
+        self.network_dropdown.addItems(["-- Select a Network --"])
+        self.network_dropdown.addItems(self.network_list[self.current_org_index])
 
     def scrape_client_vpn_info(self):
         """
-        * This method will scrape two things
-            * Primary WAN IP address
-            * Pre-shared key
+        This method will scrape two things
+            - Primary WAN IP address
+            + Pre-shared key
+        This method will check these things
+            + Is client VPN enabled in dashboard?
+            - Is this a security appliance that is online?
         """
 
         client_vpn_url = self.base_urls[self.current_org_index] + '/configure/client_vpn_settings'
@@ -334,7 +339,7 @@ class MainWindow(QMainWindow):
         print("in scrape client vpn info")
 
     def enable_client_vpn(self):
-
+        print("In enable_client_vpn. Plan on implementing this eventually")
         pass
 
     def main_init_ui(self):
@@ -345,7 +350,9 @@ class MainWindow(QMainWindow):
         tray_icon.show()
 
         self.setWindowTitle('Meraki Client VPN: Main')
-        self.Organizations = QComboBox()
+        self.org_dropdown = QComboBox()
+        self.org_dropdown.addItems(["-- Select an Organzation --"])
+        self.network_dropdown = QComboBox()
         if self.org_qty > 0:
             # Autochoose first organization
             self.current_org = self.org_list[0]
@@ -358,32 +365,31 @@ class MainWindow(QMainWindow):
             if DEBUG:
                 print("org_qty <= 0")
 
-        self.Networks = QComboBox()
         self.connect_btn = QPushButton("Connect")
 
         vert_layout = QVBoxLayout()
-        vert_layout.addWidget(self.Organizations)
-        vert_layout.addWidget(self.Networks)
+        vert_layout.addWidget(self.org_dropdown)
+        vert_layout.addWidget(self.network_dropdown)
         vert_layout.addStretch()
         vert_layout.addWidget(self.connect_btn)
         self.cw.setLayout(vert_layout)
 
         self.get_networks()
         # For network admins, we get org information from administered_orgs json blob
-        self.Organizations.addItems(self.org_list)
+        self.org_dropdown.addItems(self.org_list)
 
         """# Gray out comboboxes if there's only one option for org or network
         # Currently disabling this as it's not strictly necessary
         if self.org_qty == 1:
-            self.Organizations.setEnabled(False)
+            self.org_dropdown.setEnabled(False)
         if len(self.network_list[self.current_org_index]) == 1:
-            self.Networks.setEnabled(False)"""
+            self.network_dropdown.setEnabled(False)"""
 
         # When we have the organization, we can scrape networks
         # When the user changes the organization dropdown, call the scrap networks method
         # Only change organization when there are more than 1 organization to change
-        self.Organizations.currentIndexChanged.connect(self.change_organization)
-        self.Networks.activated.connect(self.scrape_client_vpn_info)
+        self.org_dropdown.currentIndexChanged.connect(self.change_organization)
+        self.network_dropdown.activated.connect(self.scrape_client_vpn_info)
 
     def menu_bars(self):
         bar = self.menuBar()
