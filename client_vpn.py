@@ -12,6 +12,7 @@ import mechanicalsoup
 import re
 import json
 import requests
+import bs4
 
 
 class LoginWindow(QDialog):
@@ -103,7 +104,11 @@ class LoginWindow(QDialog):
         self.username = self.username_field.text()
         self.password = self.password_field.text()
         # Instantiate browser
-        self.browser = mechanicalsoup.StatefulBrowser()
+        self.browser = mechanicalsoup.StatefulBrowser(
+            soup_config={'features': 'lxml'},  # Use the lxml HTML parser
+            raise_on_404=True,
+            user_agent='MyBot/0.1: mysite.example.com/bot_info',
+        )
 
         # Navigate to login page
         self.browser.open('https://account.meraki.com/login/dashboard_login')
@@ -300,24 +305,35 @@ class MainWindow(QMainWindow):
         """
 
         client_vpn_url = self.base_url + '/configure/client_vpn_settings'
-        client_vpn_text = requests.get(client_vpn_url, cookies=self.browser.get_cookiejar()).text
-        # If client VPN is enabled, we will see this HTML. If we see this HTML, its position > 0
-        if client_vpn_text.find("name=\"wired_config[client_vpn_enabled]\"><option value=\"true\" "
-                                "selected=\"selected\">Enabled</option>") > 0:
+        print(client_vpn_url)
+        client_vpn_text = self.browser.get(client_vpn_url).text
+        client_vpn_soup = bs4.BeautifulSoup(client_vpn_text, 'lxml')
 
-        # The html looks like      wired_config[client_vpn_secret]...value="<psk>" />...   so parse as such
-            self.psk = client_vpn_text.split('wired_config[client_vpn_secret]')[1].split('\" />')[0].split('value=\"')[1]
-            print(self.psk)
-            self.primary_wan_ip = 0
-        else:
+        self.psk = client_vpn_soup.find("input", {"id": "wired_config_client_vpn_secret", "value": True})['value']
+        # Found in html as    ,"client_vpn_enabled":true
+        client_vpn_value_index = client_vpn_text.find(",\"client_vpn_enabled\"")
+
+        print(client_vpn_text[client_vpn_value_index:client_vpn_value_index+27])
+        if client_vpn_text[client_vpn_text.find(",\"client_vpn_enabled\"")+22] == 'f':
+
             # Error message popup that will take control and that the user will need to acknowledge
             error_message = QMessageBox()
-            error_message.setIcon(QMessageBox.Critical)
+            error_message.setIcon(QMessageBox.Question)
             error_message.setWindowTitle("Error!")
-            error_message.setText('ERROR: Client VPN is not enabled.'
-                                  '\nPlease fix this and then reselect a network.')
-            error_message.exec_()
+            error_message.setText('Client VPN is not enabled in Dashboard.'
+                                  '\nWould you like this program to enable it for you?')
+            error_message.setStandardButtons(QMessageBox.No | QMessageBox.Yes)
+            error_message.setDefaultButton(QMessageBox.Yes)
+            ret = error_message.exec_()
+            if ret == QMessageBox.Yes:
+                self.enable_client_vpn()
+
+        self.primary_wan_ip = 0
         print("in scrape client vpn info")
+
+    def enable_client_vpn(self):
+
+        pass
 
     def main_init_ui(self):
         # Set the Window Icon
