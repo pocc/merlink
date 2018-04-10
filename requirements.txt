@@ -1,3 +1,5 @@
 PyQt5
 mechanicalsoup
 requests
+bs4
+cx_freeze
