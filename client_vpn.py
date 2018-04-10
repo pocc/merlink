@@ -161,6 +161,7 @@ class MainWindow(QMainWindow):
         # Initialize organization dictionary {Name: Link} and list for easier access. org_list is org_links.keys()
         self.org_links = {}
         self.org_list = []
+        self.base_urls = []
 
         # QMainWindow requires that a central widget be set
         self.cw = QWidget(self)
@@ -215,10 +216,11 @@ class MainWindow(QMainWindow):
             current_url = self.org_links[self.current_org]
             self.browser.open(current_url)
         current_url = self.browser.get_url()
-        # base_url is up to '/manage/'
+        # base url is up to '/manage/'
         base_url_index = current_url.find('/manage')
-        self.base_url = current_url[:base_url_index + 7]  # Add 7 for '/manage'
-        administered_orgs = self.base_url + '/organization/administered_orgs'
+        current_base_url = current_url[:base_url_index + 7]  # Add 7 for '/manage'
+        self.base_urls.append(current_base_url)
+        administered_orgs = current_base_url + '/organization/administered_orgs'
         self.browser.open(administered_orgs)
         if DEBUG:
             print(administered_orgs)
@@ -304,7 +306,7 @@ class MainWindow(QMainWindow):
             * Pre-shared key
         """
 
-        client_vpn_url = self.base_url + '/configure/client_vpn_settings'
+        client_vpn_url = self.base_urls[self.current_org_index] + '/configure/client_vpn_settings'
         print(client_vpn_url)
         client_vpn_text = self.browser.get(client_vpn_url).text
         client_vpn_soup = bs4.BeautifulSoup(client_vpn_text, 'lxml')
