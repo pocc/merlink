@@ -393,7 +393,10 @@ class MainWindow(QMainWindow):
         self.hline.setFrameShadow(QFrame.Sunken)
 
         self.status = QStatusBar()
-        self.status.showMessage("Ready")
+        self.status_label = QLabel('Ready')
+        self.status_label.setFrameShape(QFrame.StyledPanel)
+        self.status_label.setFrameShadow(QFrame.Sunken)
+        self.status.addWidget(self.status_label)
 
         self.setWindowTitle('Meraki Client VPN: Main')
         self.org_dropdown = QComboBox()
@@ -420,7 +423,10 @@ class MainWindow(QMainWindow):
         vert_layout.addWidget(self.connect_btn)
         vert_layout.addWidget(self.hline)
         vert_layout.addWidget(self.status)
-        self.cw.setLayout(vert_layout)
+        horiz_layout = QHBoxLayout()
+        horiz_layout.addLayout(vert_layout)
+        horiz_layout.addStretch()
+        self.cw.setLayout(horiz_layout)
 
         self.get_networks()
         # For network admins, we get org information from administered_orgs json blob
