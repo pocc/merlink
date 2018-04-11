@@ -8,8 +8,8 @@ import webbrowser
 # Qt5
 from PyQt5.QtWidgets import (QApplication, QLineEdit, QWidget, QPushButton, QLabel, QSystemTrayIcon, QTextEdit,
                              QVBoxLayout, QHBoxLayout, QComboBox, QMainWindow, QAction, QDialog, QMessageBox,
-                             QStatusBar, QFrame)
-from PyQt5.QtGui import QPixmap, QIcon, QPalette, QColor
+                             QStatusBar, QFrame, QListWidget)
+from PyQt5.QtGui import QPixmap, QIcon
 
 # Web Scraping
 import mechanicalsoup
@@ -170,6 +170,7 @@ class MainWindow(QMainWindow):
         self.org_links = {}
         self.org_list = []
         self.base_urls = []
+        self.validation_list = QListWidget()
 
         # QMainWindow requires that a central widget be set
         self.cw = QWidget(self)
@@ -321,33 +322,17 @@ class MainWindow(QMainWindow):
 
         client_vpn_url = self.base_urls[self.current_org_index] + '/configure/client_vpn_settings'
         print(client_vpn_url)
-        client_vpn_text = self.browser.get(client_vpn_url).text
-        client_vpn_soup = bs4.BeautifulSoup(client_vpn_text, 'lxml')
+        self.client_vpn_text = self.browser.get(client_vpn_url).text
+        client_vpn_soup = bs4.BeautifulSoup(self.client_vpn_text, 'lxml')
 
         self.psk = client_vpn_soup.find("input", {"id": "wired_config_client_vpn_secret", "value": True})['value']
         # Found in html as    ,"client_vpn_enabled":true
-        client_vpn_value_index = client_vpn_text.find(",\"client_vpn_enabled\"")
+        client_vpn_value_index = self.client_vpn_text.find(",\"client_vpn_enabled\"")
 
-        print(client_vpn_text[client_vpn_value_index:client_vpn_value_index+27])
-        if client_vpn_text[client_vpn_text.find(",\"client_vpn_enabled\"")+22] == 'f':
-
-            # Error message popup that will take control and that the user will need to acknowledge
-            error_message = QMessageBox()
-            error_message.setIcon(QMessageBox.Question)
-            error_message.setWindowTitle("Error!")
-            error_message.setText('Client VPN is not enabled in Dashboard for this network.'
-                                  '\nWould you like this program to enable it for you?')
-            error_message.setStandardButtons(QMessageBox.No | QMessageBox.Yes)
-            error_message.setDefaultButton(QMessageBox.Yes)
-            ret = error_message.exec_()
-            if ret == QMessageBox.Yes:
-                self.enable_client_vpn()
+        print(self.client_vpn_text[client_vpn_value_index:client_vpn_value_index+27])
 
         self.scrape_ddns_and_ip()
-
-    def enable_client_vpn(self):
-        self.feature_in_development()
-        pass
+        self.validate_data()
 
     def scrape_ddns_and_ip(self):
         """ ASSERTS
@@ -358,8 +343,6 @@ class MainWindow(QMainWindow):
         - Get DDNS name (if enabled)
         - Get primary interface's IP address
         - Verify that virtual_ip == {"public_ip":
-        TODO verify that this method of getting IP address works on all combinations of warm spares and virtual ips
-        TODO Find out whether it would be faster to add a json blob object and search that vis-a-vis this solution
         :return:
         """
         fw_status_url = self.base_urls[self.current_org_index] + '/nodes/new_wired_status'
@@ -375,6 +358,51 @@ class MainWindow(QMainWindow):
         ip_start = fw_status_text.find("{\"public_ip\":")+14
         ip_end = fw_status_text[ip_start:].find('\"') + ip_start
         self.current_primary_ip=fw_status_text[ip_start: ip_end]
+
+    def validate_data(self):
+        validation_checklist = \
+            ["Is the MX online?",
+             "Can the client ping the firewall's public IP?",
+             "Is the user behind the firewall?",
+             "Is Client VPN enabled?",
+             "Is the user authorized for Client VPN?",
+             "Is authentication type Meraki Auth?",
+             "Are UDP ports 500/4500 port forwarded through firewall?"]
+        self.validation_list.addItems(validation_checklist)
+
+        # Is the MX online?
+            # Identify problem
+        # Can the client ping the firewall if ICMP is enabled
+            # program can enable ICMP allowed on firewall
+            # If ICMP can't make it through, ISP issue
+        # Is the user behind the firewall?
+            # HTML on appliance status page has IP that user is connecting from as well as MX IP
+            # Identify and alert user
+        # Is Client VPN enabled?
+        if self.client_vpn_text[self.client_vpn_text.find(",\"client_vpn_enabled\"") + 22] == 'f':
+            # Error message popup that will take control and that the user will need to acknowledge
+            error_message = QMessageBox()
+            error_message.setIcon(QMessageBox.Question)
+            error_message.setWindowTitle("Error!")
+            error_message.setText('Client VPN is not enabled in Dashboard for this network.'
+                                  '\nWould you like this program to enable it for you?')
+            error_message.setStandardButtons(QMessageBox.No | QMessageBox.Yes)
+            error_message.setDefaultButton(QMessageBox.Yes)
+            ret = error_message.exec_()
+            if ret == QMessageBox.Yes:
+                self.enable_client_vpn()
+        # Is user authorized for Client VPN?
+            # Program can enable
+        # Authentication type is Meraki Auth?
+            # User fixes (for now)
+        # Are either UDP ports 500/4500 being port forwarded through the MX firewall?
+            # Program can fix
+        pass
+
+    def enable_client_vpn(self):
+        self.feature_in_development()
+        pass
+
 
     def feature_in_development(self):
         dev_message = QMessageBox()
@@ -421,6 +449,7 @@ class MainWindow(QMainWindow):
         vert_layout.addWidget(self.org_dropdown)
         vert_layout.addWidget(self.network_dropdown)
         vert_layout.addStretch()
+        vert_layout.addWidget(self.validation_list)
         vert_layout.addWidget(self.connect_btn)
         vert_layout.addWidget(self.hline)
         vert_layout.addWidget(self.status)
@@ -571,7 +600,7 @@ class MainWindow(QMainWindow):
         popup_layout.addWidget(about_program)
         popup_layout.addWidget(licenses)
         about_popup.setLayout(popup_layout)
-        about_popup.setMinimumSize(400, 200)
+        about_popup.setMinimumSize(500, 200)
         about_popup.exec_()
 
     def attempt_connection(self):
@@ -606,13 +635,11 @@ class MainWindow(QMainWindow):
                     self.status.showMessage('Status: Connection Failed')
 
             elif sys.platform == 'darwin':
-                # TODO applescript integration and vpn setup untested
                 args = [self.current_primary_ip, self.username, self.password]
                 result = subprocess.Popen(['osascript', '-'] + args, stdout=subprocess.PIPE)
 
             elif sys.platform.startswith('linux'):  # linux, linux2 are both valid
                 # bash integration has been verified as working, vpn setup is still work in progress
-                # TODO vpn setup untested
                 result = subprocess.Popen(["./connect_linux.sh", self.current_primary_ip, self.username, self.password])
 
         else:  # They haven't selected an item in one of the message boxes
