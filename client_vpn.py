@@ -312,7 +312,7 @@ class MainWindow(QMainWindow):
     def scrape_vars(self):
         """
         This method will scrape two things
-            - Primary WAN IP address
+            + Primary WAN IP address
             + Pre-shared key
         This method will check these things
             + Is client VPN enabled in dashboard?
@@ -335,7 +335,7 @@ class MainWindow(QMainWindow):
             error_message = QMessageBox()
             error_message.setIcon(QMessageBox.Question)
             error_message.setWindowTitle("Error!")
-            error_message.setText('Client VPN is not enabled in Dashboard.'
+            error_message.setText('Client VPN is not enabled in Dashboard for this network.'
                                   '\nWould you like this program to enable it for you?')
             error_message.setStandardButtons(QMessageBox.No | QMessageBox.Yes)
             error_message.setDefaultButton(QMessageBox.Yes)
@@ -572,7 +572,7 @@ class MainWindow(QMainWindow):
         popup_layout.addWidget(about_program)
         popup_layout.addWidget(licenses)
         about_popup.setLayout(popup_layout)
-        about_popup.setMinimumSize(680, 400)
+        about_popup.setMinimumSize(400, 200)
         about_popup.exec_()
 
     def attempt_connection(self):
@@ -617,12 +617,7 @@ class MainWindow(QMainWindow):
                 result = subprocess.Popen(["./connect_linux.sh", self.current_primary_ip, self.username, self.password])
 
         else:  # They haven't selected an item in one of the message boxes
-            error_message = QMessageBox()
-            error_message.setIcon(QMessageBox.Critical)
-            error_message.setWindowTitle("Error!")
-            error_message.setText('You must select BOTH an organization AND network before connecting!')
-            error_message.exec_()
-            pass
+            self.error_message('You must select BOTH an organization AND network before connecting!')
 
         if DEBUG:
             print("Attempting connection...")
@@ -634,7 +629,14 @@ class MainWindow(QMainWindow):
             self.troubleshoot_connection()
 
     def troubleshoot_connection(self):
-        print("failed conneciton")
+        self.error_message('VPN Connection Failed!')
+
+    def error_message(self, message):
+        error_message = QMessageBox()
+        error_message.setIcon(QMessageBox.Critical)
+        error_message.setWindowTitle("Error!")
+        error_message.setText(message)
+        error_message.exec_()
 
 DEBUG = False
 app = None
