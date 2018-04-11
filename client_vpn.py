@@ -308,7 +308,7 @@ class MainWindow(QMainWindow):
         self.network_dropdown.addItems(["-- Select a Network --"])
         self.network_dropdown.addItems(self.network_list[self.current_org_index])
 
-    def scrape_psk(self):
+    def scrape_vars(self):
         """
         This method will scrape two things
             - Primary WAN IP address
@@ -341,6 +341,8 @@ class MainWindow(QMainWindow):
             ret = error_message.exec_()
             if ret == QMessageBox.Yes:
                 self.enable_client_vpn()
+
+        self.scrape_ddns_and_ip()
 
     def enable_client_vpn(self):
         self.feature_in_development()
@@ -443,7 +445,7 @@ class MainWindow(QMainWindow):
         # When the user changes the organization dropdown, call the scrap networks method
         # Only change organization when there are more than 1 organization to change
         self.org_dropdown.currentIndexChanged.connect(self.change_organization)
-        self.network_dropdown.activated.connect(self.scrape_psk)
+        self.network_dropdown.activated.connect(self.scrape_vars)
         self.connect_btn.clicked.connect(self.attempt_connection)
 
     def menu_bars(self):
@@ -578,20 +580,27 @@ class MainWindow(QMainWindow):
 
     def attempt_connection(self):
         if 'Select' not in self.org_dropdown.currentText() and 'Select' not in self.network_dropdown.currentText():
-            self.scrape_ddns_and_ip()
+            # Making vpn_name have no spcaes because I haven't figured out how to pass a string with spaces to PS
+            network_name = self.network_dropdown.currentText()
+            vpn_name = network_name.replace(' ', '_') + '_VPN'
             if sys.platform == 'win32':
-                # TODO untested
                 arch = platform.architecture()
                 if arch == '64bit':
                     powershell_path = 'C:\\Windows\\SysWOW64\\WindowsPowerShell\\v1.0\\powershell.exe'
                 else:  # arch MUST be 32bit if not 64bit
                     powershell_path = 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe'
 
+                # Sanitize variables for powershell input: '$' -> '`$'
+                vpn_name = vpn_name.replace('$', '`$')
+                self.psk = self.psk.replace('$', '`$')
+                self.username = self.username.replace('$', '`$')
+                self.password = self.password.replace('$', '`$')
+                print(self.password)
                 # Setting execution policy to unrestricted is necessary so that we can access VPN functions
                 # Sending DDNS and IP so if DDNS fails, windows can try IP as well
                 result = subprocess.Popen(
                     [powershell_path, '-ExecutionPolicy', 'Unrestricted', './connect_windows.ps1',
-                     self.current_ddns, self.current_primary_ip, self.username, self.password]
+                     vpn_name, self.psk, self.current_ddns, self.current_primary_ip, self.username, self.password]
                 )
 
             elif sys.platform == 'darwin':
