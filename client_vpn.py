@@ -96,7 +96,7 @@ class LoginWindow(QDialog):
         layout_login.addStretch()
         layout_login.addWidget(self.about_lbl)
 
-        self.meraki_img.setPixmap(QPixmap('meraki_connections.png'))
+        self.meraki_img.setPixmap(QPixmap('./media/meraki_connections.png'))
         # Background for program will be #Meraki green = #78be20
         self.setStyleSheet("background-color:#eee")
         layout_main = QHBoxLayout()
@@ -385,10 +385,9 @@ class MainWindow(QMainWindow):
 
     def main_init_ui(self):
 
-        # Set the Window Icon
-        self.setWindowIcon(QIcon('miles_meraki.png'))
-        # Set the tray icon and show it
-        tray_icon = QSystemTrayIcon(QIcon('miles_meraki.png'))
+        # Set the Window and Tray Icons
+        self.setWindowIcon(QIcon('./media/miles_meraki.png'))
+        tray_icon = QSystemTrayIcon(QIcon('./media/miles_meraki.png'))
         tray_icon.show()
 
         # Create a horizontal line above the status bar to highlight it
@@ -629,6 +628,13 @@ class MainWindow(QMainWindow):
             self.troubleshoot_connection()
 
     def troubleshoot_connection(self):
+        """ Things to check:
+        * Basic
+            * Is MX online now?
+            * Is the client vpn user authorized?
+            *
+        """
+
         self.error_message('VPN Connection Failed!')
 
     def error_message(self, message):
