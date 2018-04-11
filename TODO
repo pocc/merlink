@@ -1,6 +1,10 @@
 Edge Cases
     Verify whether you are getting correct IP address in case of virtual IP/multiple uplinks/WAN2 as primary
 
+Bugs
+    You can have no organization selected, but still select networks
+    You can't close the login window
+
 Windows script
     Working
 macos script

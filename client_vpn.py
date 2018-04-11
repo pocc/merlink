@@ -8,8 +8,8 @@ import webbrowser
 # Qt5
 from PyQt5.QtWidgets import (QApplication, QLineEdit, QWidget, QPushButton, QLabel, QSystemTrayIcon, QTextEdit,
                              QVBoxLayout, QHBoxLayout, QComboBox, QMainWindow, QAction, QDialog, QMessageBox,
-                             QStatusBar, QFrame, QListWidget)
-from PyQt5.QtGui import QPixmap, QIcon
+                             QStatusBar, QFrame, QListWidget, QListWidgetItem, QCheckBox)
+from PyQt5.QtGui import QPixmap, QIcon, QStandardItem
 
 # Web Scraping
 import mechanicalsoup
@@ -307,7 +307,7 @@ class MainWindow(QMainWindow):
     def refresh_network_dropdown(self):
         # Remove previous contents of Networks QComboBox and add new ones according to chosen organization
         self.network_dropdown.clear()
-        # self.network_dropdown.addItems(["-- Select a Network --"])
+        self.network_dropdown.addItems(["-- Select a Network --"])
         self.network_dropdown.addItems(self.network_list[self.current_org_index])
 
     def scrape_vars(self):
@@ -360,15 +360,18 @@ class MainWindow(QMainWindow):
         self.current_primary_ip=fw_status_text[ip_start: ip_end]
 
     def validate_data(self):
-        validation_checklist = \
-            ["Is the MX online?",
-             "Can the client ping the firewall's public IP?",
-             "Is the user behind the firewall?",
-             "Is Client VPN enabled?",
-             "Is the user authorized for Client VPN?",
-             "Is authentication type Meraki Auth?",
-             "Are UDP ports 500/4500 port forwarded through firewall?"]
-        self.validation_list.addItems(validation_checklist)
+        self.validation_list.clear()
+        validation_textlist = [
+            "Is the MX online?",
+            "Can the client ping the firewall's public IP?",
+            "Is the user behind the firewall?",
+            "Is Client VPN enabled?",
+            "Is the user authorized for Client VPN?",
+            "Is authentication type Meraki Auth?",
+            "Are UDP ports 500/4500 port forwarded through firewall?"]
+        for i in range(len(validation_textlist)):
+            item = QListWidgetItem(validation_textlist[i])
+            self.validation_list.addItem(item)
 
         # Is the MX online?
             # Identify problem
@@ -378,8 +381,15 @@ class MainWindow(QMainWindow):
         # Is the user behind the firewall?
             # HTML on appliance status page has IP that user is connecting from as well as MX IP
             # Identify and alert user
+        # As you add more functionality, add more exceptions to this for loop
+        for i in range(len(validation_textlist)):
+            if i != 3:
+                self.validation_list.item(i).setIcon(QIcon('./media/checkmark-16.png'))
         # Is Client VPN enabled?
-        if self.client_vpn_text[self.client_vpn_text.find(",\"client_vpn_enabled\"") + 22] == 'f':
+        if self.client_vpn_text[self.client_vpn_text.find(",\"client_vpn_enabled\"") + 22] == 't':
+            self.validation_list.item(3).setIcon(QIcon('./media/checkmark-16.png'))
+        else:
+            self.validation_list.item(3).setIcon(QIcon('./media/x-mark-16.png'))
             # Error message popup that will take control and that the user will need to acknowledge
             error_message = QMessageBox()
             error_message.setIcon(QMessageBox.Question)
@@ -391,6 +401,7 @@ class MainWindow(QMainWindow):
             ret = error_message.exec_()
             if ret == QMessageBox.Yes:
                 self.enable_client_vpn()
+
         # Is user authorized for Client VPN?
             # Program can enable
         # Authentication type is Meraki Auth?
@@ -429,7 +440,7 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle('Meraki Client VPN: Main')
         self.org_dropdown = QComboBox()
-        # self.org_dropdown.addItems(["-- Select an Organzation --"])
+        self.org_dropdown.addItems(["-- Select an Organzation --"])
         self.network_dropdown = QComboBox()
         if self.org_qty > 0:
             # Autochoose first organization
@@ -471,6 +482,7 @@ class MainWindow(QMainWindow):
         # Only change organization when there are more than 1 organization to change
         self.org_dropdown.currentIndexChanged.connect(self.change_organization)
         self.network_dropdown.activated.connect(self.scrape_vars)
+
         self.connect_btn.clicked.connect(self.attempt_connection)
 
     def menu_bars(self):
@@ -600,7 +612,7 @@ class MainWindow(QMainWindow):
         popup_layout.addWidget(about_program)
         popup_layout.addWidget(licenses)
         about_popup.setLayout(popup_layout)
-        about_popup.setMinimumSize(500, 200)
+        about_popup.setMinimumSize(600, 200)
         about_popup.exec_()
 
     def attempt_connection(self):
