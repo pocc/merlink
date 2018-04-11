@@ -80,15 +80,15 @@ graph TD
 	T0[T0. Get rasdial console error]
 	T1[T1. Get Windows Event Log entry]
 	T2[T2. Take pcap]
-	T3{T3. USER: Select Interface}
+	T3{T3. Get default Interface}
 	T4[T4. Collect pcap on port 500/4500]
-	T5[Present error and pcap data to user]
+	T5[T5. Present error and pcap data to user]
 
-	T0 -> T1
-	T1 -> T2
-	T2 -> T3
-	T3 -> T4
-	T4 -> T5
+	T0 --> T1
+	T1 --> T2
+	T2 --> T3
+	T3 --> T4
+	T4 --> T5
 
 %	NOTES: failed psk fails at key exchange, ISAKMP Phase 1
 %		Phase 1

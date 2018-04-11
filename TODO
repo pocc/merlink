@@ -1,0 +1,50 @@
+Edge Cases
+    Verify whether you are getting correct IP address in case of virtual IP/multiple uplinks/WAN2 as primary
+
+Windows script
+    Working
+macos script
+    * Integration with script not tested
+    * Script not tested as functional
+linux script
+    * script not written
+    * Script not tested as functional
+
+Validation Checks
+    Is the MX Online in dashboard/ is the an MX?
+        User fixes
+    Can the client ping the firewall if ICMP is enabled
+        program can enable ICMP allowed on firewall
+        If ICMP can't make it through, ISP issue
+    Is the user behind the firewall?
+        User fixes
+    Is Client VPN enabled?
+        Program can enable
+    Is user authorized for Client VPN?
+        Program can enable
+    Authentication type is Meraki Auth?
+        User fixes (for now)
+    Are either UDP ports 500/4500 being port forwarded through the MX firewall?
+        Program can fix
+
+Local Storage
+    Create a local store for settings/logs
+        Windows
+            AD Roaming
+                Example:	MyAppSettings.xml
+                Windows 7:	%USERPROFILE%\AppData\Roaming\<MyCompany>\<MyApp>
+                Vista:	%USERPROFILE%\AppData\Roaming\<MyCompany>\<MyApp>
+                XP:	%USERPROFILE%\Application Data\<MyCompany>\<MyApp>
+                Environment Variable:	%APPDATA%
+            per user configuration
+                Example:	MyMachineSpecificData.xml
+                Windows 7:	%USERPROFILE%\AppData\Local\<MyCompany>\<MyApp>
+                Vista:	%USERPROFILE%\AppData\Local\<MyCompany>\<MyApp>
+                XP:	%USERPROFILE%\Local Settings\Application Data\<MyCompany>\<MyApp>
+                Environment Variable:	%LOCALAPPDATA%  Note: Does not exist on XP
+        macos
+
+Executable
+    Windows
+    macos
+    linux
