@@ -9,7 +9,7 @@ import webbrowser
 from PyQt5.QtWidgets import (QApplication, QLineEdit, QWidget, QPushButton, QLabel, QSystemTrayIcon, QTextEdit,
                              QVBoxLayout, QHBoxLayout, QComboBox, QMainWindow, QAction, QDialog, QMessageBox,
                              QStatusBar, QFrame)
-from PyQt5.QtGui import QPixmap, QIcon
+from PyQt5.QtGui import QPixmap, QIcon, QPalette, QColor
 
 # Web Scraping
 import mechanicalsoup
@@ -205,9 +205,6 @@ class MainWindow(QMainWindow):
             self.org_list.append(org_str[39:-4])
             print(org_str[39:-4] + self.org_links[org_str[39:-4]])
 
-    def select_org(self):
-        pass
-
     def get_networks(self):
         """ ASSERTS
         * get_networks should only be called on initial startup or if a different organization has been chosen
@@ -216,6 +213,8 @@ class MainWindow(QMainWindow):
         """
         if DEBUG:
             print("In get_networks")
+
+        self.status.showMessage("Status: Fetching networks in " + self.current_org + "...")
 
         # If we're dealing with org admins
         if not self.network_admin_only:
@@ -285,6 +284,7 @@ class MainWindow(QMainWindow):
         self.refresh_network_dropdown()
 
     def change_organization(self):
+        self.status.showMessage("Status: Fetching organizations...")
         # Change primary organization
         self.current_org = self.org_dropdown.currentText()
         # If the organization index of network_list is empty (i.e. this network list for this org has never been
@@ -301,11 +301,12 @@ class MainWindow(QMainWindow):
             # If we already have the network list, remove the current entries in the network combobox
             # And add the ones corresponding to the selected organization
             self.refresh_network_dropdown()
+        self.status.showMessage("Status: Select network")
 
     def refresh_network_dropdown(self):
         # Remove previous contents of Networks QComboBox and add new ones according to chosen organization
         self.network_dropdown.clear()
-        self.network_dropdown.addItems(["-- Select a Network --"])
+        # self.network_dropdown.addItems(["-- Select a Network --"])
         self.network_dropdown.addItems(self.network_list[self.current_org_index])
 
     def scrape_vars(self):
@@ -383,6 +384,7 @@ class MainWindow(QMainWindow):
         dev_message.exec_()
 
     def main_init_ui(self):
+
         # Set the Window Icon
         self.setWindowIcon(QIcon('miles_meraki.png'))
         # Set the tray icon and show it
@@ -395,14 +397,12 @@ class MainWindow(QMainWindow):
         self.hline.setFrameShadow(QFrame.Sunken)
 
         self.status = QStatusBar()
-        self.status_label = QLabel('Ready')
-        self.status_label.setFrameShape(QFrame.StyledPanel)
-        self.status_label.setFrameShadow(QFrame.Sunken)
-        self.status.addWidget(self.status_label)
+        self.status.showMessage("Status: Select organization")
+        self.status.setStyleSheet("Background: white")
 
         self.setWindowTitle('Meraki Client VPN: Main')
         self.org_dropdown = QComboBox()
-        self.org_dropdown.addItems(["-- Select an Organzation --"])
+        # self.org_dropdown.addItems(["-- Select an Organzation --"])
         self.network_dropdown = QComboBox()
         if self.org_qty > 0:
             # Autochoose first organization
@@ -425,10 +425,7 @@ class MainWindow(QMainWindow):
         vert_layout.addWidget(self.connect_btn)
         vert_layout.addWidget(self.hline)
         vert_layout.addWidget(self.status)
-        horiz_layout = QHBoxLayout()
-        horiz_layout.addLayout(vert_layout)
-        horiz_layout.addStretch()
-        self.cw.setLayout(horiz_layout)
+        self.cw.setLayout(vert_layout)
 
         self.get_networks()
         # For network admins, we get org information from administered_orgs json blob
@@ -580,6 +577,9 @@ class MainWindow(QMainWindow):
 
     def attempt_connection(self):
         if 'Select' not in self.org_dropdown.currentText() and 'Select' not in self.network_dropdown.currentText():
+            # Change status to reflect we're connecting. For fast connections, you might not see this message
+            self.status.showMessage('Status: Connecting...')
+
             # Making vpn_name have no spcaes because I haven't figured out how to pass a string with spaces to PS
             network_name = self.network_dropdown.currentText()
             vpn_name = network_name.replace(' ', '_') + '_VPN'
@@ -595,28 +595,32 @@ class MainWindow(QMainWindow):
                 self.psk = self.psk.replace('$', '`$')
                 self.username = self.username.replace('$', '`$')
                 self.password = self.password.replace('$', '`$')
-                print(self.password)
                 # Setting execution policy to unrestricted is necessary so that we can access VPN functions
                 # Sending DDNS and IP so if DDNS fails, windows can try IP as well
                 result = subprocess.Popen(
                     [powershell_path, '-ExecutionPolicy', 'Unrestricted', './connect_windows.ps1',
                      vpn_name, self.psk, self.current_ddns, self.current_primary_ip, self.username, self.password]
                 )
+                if result:
+                    self.status.showMessage('Status: Connected')
+                else:
+                    self.status.showMessage('Status: Connection Failed')
 
             elif sys.platform == 'darwin':
-                # TODO untested
+                # TODO applescript integration and vpn setup untested
                 args = [self.current_primary_ip, self.username, self.password]
                 result = subprocess.Popen(['osascript', '-'] + args, stdout=subprocess.PIPE)
 
             elif sys.platform.startswith('linux'):  # linux, linux2 are both valid
                 # bash integration has been verified as working, vpn setup is still work in progress
+                # TODO vpn setup untested
                 result = subprocess.Popen(["./connect_linux.sh", self.current_primary_ip, self.username, self.password])
 
         else:  # They haven't selected an item in one of the message boxes
             error_message = QMessageBox()
             error_message.setIcon(QMessageBox.Critical)
             error_message.setWindowTitle("Error!")
-            error_message.setText('You must select an organization and network before connecting!')
+            error_message.setText('You must select BOTH an organization AND network before connecting!')
             error_message.exec_()
             pass
 
@@ -626,8 +630,13 @@ class MainWindow(QMainWindow):
         throwaway_stream = result.communicate()[0]
         print("The return code is " + str(result.returncode))
 
+        if result:
+            self.troubleshoot_connection()
 
-DEBUG = True
+    def troubleshoot_connection(self):
+        print("failed conneciton")
+
+DEBUG = False
 app = None
 
 
