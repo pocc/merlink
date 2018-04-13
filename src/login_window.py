@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (QLineEdit, QWidget, QPushButton, QLabel,
                              QVBoxLayout, QHBoxLayout, QDialog, QMessageBox)
 from PyQt5.QtGui import QPixmap
 import mechanicalsoup
+from webbrowser import open_new
 
 
 class LoginWindow(QDialog):
@@ -12,7 +13,11 @@ class LoginWindow(QDialog):
 
         super(LoginWindow, self).__init__()
 
-        self.meraki_img = QLabel()
+        self.meraki_img = QLabel('<a href=https://meraki.cisco.com/products/wireless#mr-new>MR advertisement</a>')
+        self.meraki_img.setOpenExternalLinks(True)
+        # self.meraki_img.l label.connect(open_new("https://meraki.cisco.com/products/wireless#mr-new")
+        # mx-new: https://meraki.cisco.com/products/appliance#mx-new
+        # sm-new: https://meraki.cisco.com/products/systems-manager#sm-new
 
         # Copying style from Dashboard Login (https://account.meraki.com/login/dashboard_login)
         self.heading_style = "font-family: verdana, sans-serif; font-style: normal; " \
@@ -78,7 +83,8 @@ class LoginWindow(QDialog):
         layout_login.addStretch()
         layout_login.addWidget(self.about_lbl)
 
-        self.meraki_img.setPixmap(QPixmap('./src/media/meraki_connections.png'))
+        self.meraki_img.setPixmap(QPixmap('./src/media/mr-new.jpg'))
+
         # Background for program will be #Meraki green = #78be20
         self.setStyleSheet("background-color:#eee")
         layout_main = QHBoxLayout()
