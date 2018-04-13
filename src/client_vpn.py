@@ -96,7 +96,7 @@ class LoginWindow(QDialog):
         layout_login.addStretch()
         layout_login.addWidget(self.about_lbl)
 
-        self.meraki_img.setPixmap(QPixmap('./media/meraki_connections.png'))
+        self.meraki_img.setPixmap(QPixmap('./src/media/meraki_connections.png'))
         # Background for program will be #Meraki green = #78be20
         self.setStyleSheet("background-color:#eee")
         layout_main = QHBoxLayout()
@@ -286,6 +286,9 @@ class MainWindow(QMainWindow):
 
     def change_organization(self):
         self.status.showMessage("Status: Fetching organizations...")
+        # Show the network dropdown now that organization has been chosen
+        self.network_dropdown.setEnabled(True)
+        
         # Change primary organization
         self.current_org = self.org_dropdown.currentText()
         # If the organization index of network_list is empty (i.e. this network list for this org has never been
@@ -302,6 +305,7 @@ class MainWindow(QMainWindow):
             # If we already have the network list, remove the current entries in the network combobox
             # And add the ones corresponding to the selected organization
             self.refresh_network_dropdown()
+
         self.status.showMessage("Status: Select network")
 
     def refresh_network_dropdown(self):
@@ -384,12 +388,12 @@ class MainWindow(QMainWindow):
         # As you add more functionality, add more exceptions to this for loop
         for i in range(len(validation_textlist)):
             if i != 3:
-                self.validation_list.item(i).setIcon(QIcon('./media/checkmark-16.png'))
+                self.validation_list.item(i).setIcon(QIcon('./src/media/checkmark-16.png'))
         # Is Client VPN enabled?
         if self.client_vpn_text[self.client_vpn_text.find(",\"client_vpn_enabled\"") + 22] == 't':
-            self.validation_list.item(3).setIcon(QIcon('./media/checkmark-16.png'))
+            self.validation_list.item(3).setIcon(QIcon('./src/media/checkmark-16.png'))
         else:
-            self.validation_list.item(3).setIcon(QIcon('./media/x-mark-16.png'))
+            self.validation_list.item(3).setIcon(QIcon('./src/media/x-mark-16.png'))
             # Error message popup that will take control and that the user will need to acknowledge
             error_message = QMessageBox()
             error_message.setIcon(QMessageBox.Question)
@@ -423,10 +427,9 @@ class MainWindow(QMainWindow):
         dev_message.exec_()
 
     def main_init_ui(self):
-
         # Set the Window and Tray Icons
-        self.setWindowIcon(QIcon('./media/miles_meraki.png'))
-        tray_icon = QSystemTrayIcon(QIcon('./media/miles_meraki.png'))
+        self.setWindowIcon(QIcon('./src/media/miles_meraki.png'))
+        tray_icon = QSystemTrayIcon(QIcon('./src/media/miles_meraki.png'))
         tray_icon.show()
 
         # Create a horizontal line above the status bar to highlight it
@@ -442,6 +445,7 @@ class MainWindow(QMainWindow):
         self.org_dropdown = QComboBox()
         self.org_dropdown.addItems(["-- Select an Organzation --"])
         self.network_dropdown = QComboBox()
+        self.network_dropdown.setEnabled(False)  # Initially hide network dropdown until organization has been chosen
         if self.org_qty > 0:
             # Autochoose first organization
             self.current_org = self.org_list[0]
@@ -703,8 +707,8 @@ def main():  # Syntax per PyQt recommendations: http://pyqt.sourceforge.net/Docs
     if login_window.exec_() == QDialog.Accepted:
         main_window = MainWindow(login_window.get_browser(), login_window.username, login_window.password)
         main_window.show()
-    sys.exit(app.exec_())
 
+    sys.exit(app.exec_())
 
 if __name__ == '__main__':
     main()
