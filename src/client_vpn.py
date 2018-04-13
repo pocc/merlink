@@ -285,6 +285,7 @@ class MainWindow(QMainWindow):
         self.refresh_network_dropdown()
 
     def change_organization(self):
+        self.network_dropdown.setEnabled(True)
         self.status.showMessage("Status: Fetching organizations...")
         # Change primary organization
         self.current_org = self.org_dropdown.currentText()
@@ -308,7 +309,7 @@ class MainWindow(QMainWindow):
     def refresh_network_dropdown(self):
         # Remove previous contents of Networks QComboBox and add new ones according to chosen organization
         self.network_dropdown.clear()
-        # self.network_dropdown.addItems(["-- Select a Network --"])
+        self.network_dropdown.addItems(["-- Select a Network --"])
         self.network_dropdown.addItems(self.network_list[self.current_org_index])
 
     def scrape_vars(self):
@@ -320,12 +321,12 @@ class MainWindow(QMainWindow):
             + Is client VPN enabled in dashboard?
             - Is this a security appliance that is online?
         """
-        self.current_network_index = self.network_dropdown.currentIndex() - 1
-        self.current_network = str(self.network_list[self.current_org_index][self.current_network_index])
+        if DEBUG:
+            print("network dropdown index: " + str(self.network_dropdown.currentIndex()-1))
+        self.current_network = str(self.network_list[self.current_org_index][self.network_dropdown.currentIndex()-1])
         self.status.showMessage("Status: Fetching network data for " + self.current_network + "...")
 
         client_vpn_url = self.base_urls[self.current_org_index] + '/configure/client_vpn_settings'
-        print(client_vpn_url)
         self.client_vpn_text = self.browser.get(client_vpn_url).text
         client_vpn_soup = bs4.BeautifulSoup(self.client_vpn_text, 'lxml')
 
@@ -414,7 +415,7 @@ class MainWindow(QMainWindow):
         # Are either UDP ports 500/4500 being port forwarded through the MX firewall?
             # Program can fix
 
-        self.status.showMessage("Status: Ready to connect to" + self.current_network + ".")
+        self.status.showMessage("Status: Ready to connect to " + self.current_network + ".")
 
     def enable_client_vpn(self):
         self.feature_in_development()
@@ -447,6 +448,7 @@ class MainWindow(QMainWindow):
         self.org_dropdown = QComboBox()
         self.org_dropdown.addItems(["-- Select an Organzation --"])
         self.network_dropdown = QComboBox()
+        self.network_dropdown.setEnabled(False)
         if self.org_qty > 0:
             # Autochoose first organization
             self.current_org = self.org_list[0]
@@ -471,6 +473,9 @@ class MainWindow(QMainWindow):
         vert_layout.addWidget(self.status)
         self.cw.setLayout(vert_layout)
 
+        # Get the data we need and remove the cruft we don't
+        self.get_networks()
+        self.network_dropdown.clear()
         # For network admins, we get org information from administered_orgs json blob
         self.org_dropdown.addItems(self.org_list)
 
