@@ -147,8 +147,8 @@ class LoginWindow(QDialog):
                 self.username_field.setText('')'''
             self.password_field.setText('')
 
-            # Return 'Rejected' as value from QDialog object
-            self.reject()
+            # Don't return 'Rejected' as value from QDialog object as that will kill login window for auth fail
+            # self.reject()
 
     # Return browser with any username, password, and cookies with it
     def get_browser(self):
@@ -286,9 +286,6 @@ class MainWindow(QMainWindow):
 
     def change_organization(self):
         self.status.showMessage("Status: Fetching organizations...")
-        # Show the network dropdown now that organization has been chosen
-        self.network_dropdown.setEnabled(True)
-        
         # Change primary organization
         self.current_org = self.org_dropdown.currentText()
         # If the organization index of network_list is empty (i.e. this network list for this org has never been
@@ -311,7 +308,7 @@ class MainWindow(QMainWindow):
     def refresh_network_dropdown(self):
         # Remove previous contents of Networks QComboBox and add new ones according to chosen organization
         self.network_dropdown.clear()
-        self.network_dropdown.addItems(["-- Select a Network --"])
+        # self.network_dropdown.addItems(["-- Select a Network --"])
         self.network_dropdown.addItems(self.network_list[self.current_org_index])
 
     def scrape_vars(self):
@@ -323,6 +320,9 @@ class MainWindow(QMainWindow):
             + Is client VPN enabled in dashboard?
             - Is this a security appliance that is online?
         """
+        self.current_network_index = self.network_dropdown.currentIndex() - 1
+        self.current_network = str(self.network_list[self.current_org_index][self.current_network_index])
+        self.status.showMessage("Status: Fetching network data for " + self.current_network + "...")
 
         client_vpn_url = self.base_urls[self.current_org_index] + '/configure/client_vpn_settings'
         print(client_vpn_url)
@@ -364,6 +364,7 @@ class MainWindow(QMainWindow):
         self.current_primary_ip=fw_status_text[ip_start: ip_end]
 
     def validate_data(self):
+        self.status.showMessage("Status: Verifying configuration for " + self.current_network + "...")
         self.validation_list.clear()
         validation_textlist = [
             "Is the MX online?",
@@ -412,7 +413,8 @@ class MainWindow(QMainWindow):
             # User fixes (for now)
         # Are either UDP ports 500/4500 being port forwarded through the MX firewall?
             # Program can fix
-        pass
+
+        self.status.showMessage("Status: Ready to connect to" + self.current_network + ".")
 
     def enable_client_vpn(self):
         self.feature_in_development()
@@ -445,7 +447,6 @@ class MainWindow(QMainWindow):
         self.org_dropdown = QComboBox()
         self.org_dropdown.addItems(["-- Select an Organzation --"])
         self.network_dropdown = QComboBox()
-        self.network_dropdown.setEnabled(False)  # Initially hide network dropdown until organization has been chosen
         if self.org_qty > 0:
             # Autochoose first organization
             self.current_org = self.org_list[0]
@@ -470,16 +471,8 @@ class MainWindow(QMainWindow):
         vert_layout.addWidget(self.status)
         self.cw.setLayout(vert_layout)
 
-        self.get_networks()
         # For network admins, we get org information from administered_orgs json blob
         self.org_dropdown.addItems(self.org_list)
-
-        """# Gray out comboboxes if there's only one option for org or network
-        # Currently disabling this as it's not strictly necessary
-        if self.org_qty == 1:
-            self.org_dropdown.setEnabled(False)
-        if len(self.network_list[self.current_org_index]) == 1:
-            self.network_dropdown.setEnabled(False)"""
 
         # When we have the organization, we can scrape networks
         # When the user changes the organization dropdown, call the scrap networks method
@@ -695,7 +688,7 @@ class MainWindow(QMainWindow):
         error_message.setText(message)
         error_message.exec_()
 
-DEBUG = False
+DEBUG = True
 app = None
 
 
