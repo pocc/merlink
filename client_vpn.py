@@ -566,8 +566,14 @@ class MainWindow(QMainWindow):
 
     def edit_prefs_action(self):
         # Preferences should go here. How many settings are here will depend on the feature set
-        self.feature_in_development()
-        pass
+        self.prefs = QDialog()
+        layout = QVBoxLayout()
+        self.prefs_heading = QLabel('<h1>Preferences</h1>')
+        self.split_tunnel = QCheckBox("Split-Tunnel?")
+        layout.addWidget(self.prefs_heading)
+        layout.addWidget(self.split_tunnel)
+        self.prefs.setLayout(layout)
+        self.prefs.show()
 
     def view_interfaces_action(self):
         # If linux/macos > ifconfig
@@ -635,11 +641,12 @@ class MainWindow(QMainWindow):
                 self.psk = self.psk.replace('$', '`$')
                 self.username = self.username.replace('$', '`$')
                 self.password = self.password.replace('$', '`$')
+                self.split_tunnel = False
                 # Setting execution policy to unrestricted is necessary so that we can access VPN functions
                 # Sending DDNS and IP so if DDNS fails, windows can try IP as well
                 result = subprocess.Popen(
-                    [powershell_path, '-ExecutionPolicy', 'Unrestricted', './connect_windows.ps1',
-                     vpn_name, self.psk, self.current_ddns, self.current_primary_ip, self.username, self.password]
+                    [powershell_path, '-ExecutionPolicy', 'Unrestricted', './connect_windows.ps1', vpn_name, self.psk,
+                     self.current_ddns, self.current_primary_ip, self.username, self.password, self.split_tunnel]
                 )
                 if result:
                     self.status.showMessage('Status: Connected')
