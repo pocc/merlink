@@ -100,8 +100,8 @@ class LoginWindow(QDialog):
         # Background for program will be #Meraki green = #78be20
         self.setStyleSheet("background-color:#eee")
         layout_main = QHBoxLayout()
-        layout_main.addWidget(self.meraki_img)
         layout_main.addWidget(login_widget)
+        layout_main.addWidget(self.meraki_img)
         self.setLayout(layout_main)
         self.setWindowTitle('Meraki Client VPN')
 
@@ -570,6 +570,7 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout()
         self.prefs_heading = QLabel('<h1>Preferences</h1>')
         self.split_tunnel = QCheckBox("Split-Tunnel?")
+        self.split_tunnel.stateChanged.connect(self.split_tunnel.nextCheckState())
         layout.addWidget(self.prefs_heading)
         layout.addWidget(self.split_tunnel)
         self.prefs.setLayout(layout)
@@ -699,10 +700,9 @@ def main():  # Syntax per PyQt recommendations: http://pyqt.sourceforge.net/Docs
     login_window = LoginWindow()
     # QDialog has two return values: Accepted and Rejected
     # login_window.exec_() will execute while we keep on getting Rejected
-    while login_window.exec_() != QDialog.Accepted:
-        pass
-    main_window = MainWindow(login_window.get_browser(), login_window.username, login_window.password)
-    main_window.show()
+    if login_window.exec_() == QDialog.Accepted:
+        main_window = MainWindow(login_window.get_browser(), login_window.username, login_window.password)
+        main_window.show()
     sys.exit(app.exec_())
 
 
