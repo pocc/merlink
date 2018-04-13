@@ -3,16 +3,17 @@ Edge Cases
 
 Bugs
     You can have no organization selected, but still select networks
-    You can't close the login window
+    You can't close the login window unless you login
 
-Windows script
-    Working
-macos script
-    * Integration with script not tested
-    * Script not tested as functional
-linux script
-    * script not written
-    * Script not tested as functional
+localized scripts
+    Windows script
+        Working
+    macos script
+        * Integration with script not tested
+        * Script not tested as functional
+    linux script
+        * script not written
+        * Script not tested as functional
 
 Validation Checks
     Is the MX Online in dashboard/ is the an MX?
@@ -31,7 +32,16 @@ Validation Checks
     Are either UDP ports 500/4500 being port forwarded through the MX firewall?
         Program can fix
 
-Local Storage
+github structure https://github.com/kriasoft/Folder-Structure-Conventions
+
+
+Executable
+    Windows
+    macos
+    linux
+
+Data
+    Local Storage
     Create a local store for settings/logs
         Windows
             AD Roaming
@@ -47,8 +57,3 @@ Local Storage
                 XP:	%USERPROFILE%\Local Settings\Application Data\<MyCompany>\<MyApp>
                 Environment Variable:	%LOCALAPPDATA%  Note: Does not exist on XP
         macos
-
-Executable
-    Windows
-    macos
-    linux
