@@ -7,11 +7,9 @@
 
 ```git clone https://github.com/pocc/merlink```
 
-**2.** Go to Settings > Project > Project Interpreter and download the missing libraries
+**2.** Setup PyCharm
 
-This is what the initial screen looks like: 
-
-(Insert image here)
+For detailed instructions on how to do this, go to [ENV_SETUP](https://github.com/pocc/merlink/blob/merlink/ENV_SETUP.md)
 
 ### **Programming Resources**
 * Programming Resources: 
@@ -31,8 +29,8 @@ Qt's documentation of libraries is more extensive than PyQt's. If there is a lib
 
 ## Bugs
 ### **Did you find a bug?**
-* Ensure the bug was not already reported by searching on GitHub under [Issues](https://github.com/merlink/merlink/issues).
-* If you're unable to find an open issue addressing the problem, [open a new one](https://github.com/merlink/merlink/issues/new). 
+* Ensure the bug was not already reported by searching on GitHub under [Issues](https://github.com/pocc/merlink/issues).
+* If you're unable to find an open issue addressing the problem, [open a new one](https://github.com/pocc/merlink/issues/new). 
 
 ### **Did you write a patch that fixes a bug?**
 * Open a new GitHub pull request with the patch.
