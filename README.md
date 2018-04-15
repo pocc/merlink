@@ -54,14 +54,6 @@ Download the executables [here](https://github.com/pocc/merlink/tree/merlink/bin
 * language: python3 
 * libraries: pyqt5 bs4 mechanicalsoup cx_freeze
 
-## Running the tests
-### Break down into end to end tests
-
-After MVP
-
-### Coding style tests
-After MVP
-
 ## Built With
 
 * [PyCharm](https://www.jetbrains.com/pycharm/) - IDE
@@ -71,7 +63,8 @@ After MVP
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](https://github.com/pocc/merlink/blob/merlink/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests.
+Please read [CONTRIBUTING.md](https://github.com/pocc/merlink/blob/merlink/CONTRIBUTING.md) for the process for submitting pull requests.
+To set up your Windows environment, please read [ENV_SETUP.md](https://github.com/pocc/merlink/blob/merlink/ENV_SETUP.md)
 
 ## Versioning
 
