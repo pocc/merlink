@@ -7,6 +7,9 @@ from PyQt5.QtGui import QPixmap
 import mechanicalsoup
 from webbrowser import open_new
 
+# Startup in MS Windows. Other method is to add a launcher to the startup folder
+# RUN_PATH = "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run"
+
 
 class LoginWindow(QDialog):
     def __init__(self):

@@ -1,7 +1,7 @@
 # How to contribute to Merlink
 
 ## Contributing Code
-###**Getting Started (With PyCharm)**
+### **Getting Started (With PyCharm)**
 
 **1.** Clone the repository:
 
@@ -13,7 +13,7 @@ This is what the initial screen looks like:
 
 (Insert image here)
 
-###**Programming Resources**
+### **Programming Resources**
 * Programming Resources: 
     * [Python 3.5](https://docs.python.org/3.5/)
     * [Qt 5.10](https://doc.qt.io/qt-5.10/)
