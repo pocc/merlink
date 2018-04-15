@@ -1,14 +1,15 @@
 # Merlink
 This program will connect desktop clients to Meraki firewalls. These are the project's MVP featureset:
 * [ ] Functionality
-  * [x] Ability to create VPN connections (Windows)
-  * [ ] Executable (Windows)
-  * [ ] Autostart on Login
-  * [ ] Systray icon that is minimized when connected
-  * [ ] Split Tunnel
+  * [ ] Windows
+    * [x] Ability to create VPN connections
+    * [ ] Executable
+    * [ ] Autostart on Login
+    * [ ] Systray icon that is minimized when connected
+    * [ ] Split Tunnel
 * [ ] Network Troubleshooting
   * [ ] Basic validation tests prior to connection
-    * [ ] Is the MX online?",
+    * [ ] Is the MX online?
     * [ ] Can the client ping the firewall's public IP?
     * [ ] Is the user behind the firewall?
     * [x] Is Client VPN enabled?
@@ -23,6 +24,7 @@ This program will connect desktop clients to Meraki firewalls. These are the pro
   * [x] Skeleton UI
   * [x] Login dialog 
   * [x] Displays organizations/networks to connect to 
+  * [ ] TFA compatibility
   * [ ] Preferences dialog to catalog VPN options
   * [ ] Image advert + link on login page
   * [ ] "I'm feeling lucky" button that will get info for and connect you to a random security appliance
@@ -32,7 +34,7 @@ This project is still in active development.
 
 ## Getting Started
 ### Executables
-Download the executables [here](https://github.com/pocc/merlink/tree/master/bin).
+Download the executables [here](https://github.com/pocc/merlink/tree/merlink/bin).
 
 ### Building from Source
 **1.** Clone the repository:
@@ -69,7 +71,7 @@ After MVP
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](gist) for details on our code of conduct, and the process for submitting pull requests.
+Please read [CONTRIBUTING.md](https://github.com/pocc/merlink/blob/merlink/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests.
 
 ## Versioning
 

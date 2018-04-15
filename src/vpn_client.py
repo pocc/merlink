@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 # This program will connect desktop clients to Meraki firewalls
 
-# My files
-from login_window import LoginWindow
+# Build this with './venv/bin/python3 setup.py build' from project root
 
 # Utilities
 import sys
+import os
 import webbrowser
 
 # Qt5
@@ -23,6 +23,9 @@ import bs4
 # VPN creation
 import subprocess
 import platform
+
+# Import the login_window file
+from src.modules.login_window import LoginWindow
 
 
 class MainWindow(QMainWindow):
