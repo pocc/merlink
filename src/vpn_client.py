@@ -5,14 +5,13 @@
 
 # Utilities
 import sys
-import os
 import webbrowser
 
 # Qt5
 from PyQt5.QtWidgets import (QApplication, QWidget, QPushButton, QLabel, QSystemTrayIcon, QTextEdit,
-                             QVBoxLayout, QHBoxLayout, QComboBox, QMainWindow, QAction, QDialog, QMessageBox,
+                             QVBoxLayout, QComboBox, QMainWindow, QAction, QDialog, QMessageBox,
                              QStatusBar, QFrame, QListWidget, QListWidgetItem, QCheckBox)
-from PyQt5.QtGui import QPixmap, QIcon
+from PyQt5.QtGui import QIcon
 
 # Web Scraping
 import re
