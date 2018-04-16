@@ -253,6 +253,8 @@ class MainWindow(QMainWindow):
 
         # Is the MX online?
             # Identify problem
+        #firewall_soup = bs4.BeautifulSoup(self.fw_status_text, 'lxml')
+        #self.online = firewall_soup.find("status#")
         # Can the client ping the firewall if ICMP is enabled
             # program can enable ICMP allowed on firewall
             # If ICMP can't make it through, ISP issue

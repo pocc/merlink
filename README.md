@@ -1,5 +1,7 @@
 # Merlink
-This program will connect desktop clients to Meraki firewalls. These are the project's MVP featureset:
+This program will connect desktop clients to Meraki firewalls. This project is still in active development.
+
+## MVP Featureset
 * [ ] Functionality
   * [ ] Windows
     * [x] Ability to create VPN connections
@@ -19,7 +21,7 @@ This program will connect desktop clients to Meraki firewalls. These are the pro
 * [ ] Web scraping
   * [x] Fetch primary IP address and DDNS
   * [x] Fetch organization/network list
-  * [ ] Connect to VPN with only those Dashboard credentials
+  * [x] Connect to VPN with only those Dashboard credentials
 * [ ] UI
   * [x] Skeleton UI
   * [x] Login dialog 
@@ -29,9 +31,7 @@ This program will connect desktop clients to Meraki firewalls. These are the pro
   * [ ] Image advert + link on login page
   * [ ] "I'm feeling lucky" button that will get info for and connect you to a random security appliance
   * [ ] Gray out GUI options that MVP (on that platform) won't have access to)  
-
-This project is still in active development.
-
+  
 ## Getting Started
 ### Executables
 Download the executables [here](https://github.com/pocc/merlink/tree/merlink/bin).
@@ -68,7 +68,12 @@ To set up your Windows environment, please read [ENV_SETUP.md](https://github.co
 
 ## Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/pocc/merlink/tags). 
+[SemVer](http://semver.org/) is used for versioning: 
+* MAJOR version: Incompatible UI/CLI from a user's perspective
+* MINOR version: Functionality is added in a backwards-compatible manner
+* PATCH version: Backwards-compatible bug fixes
+
+For the versions available, see the [tags on this repository](https://github.com/pocc/merlink/tags). 
 
 ## Authors
 
