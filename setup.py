@@ -57,7 +57,7 @@ includes = ['login_window']
 base = 'Win32GUI' if sys.platform=='win32' else None
 
 executables = [
-    Executable('./src/vpn_client.py', base=base)
+    Executable('./src/merlink.py', base=base)
 ]
 
 setup(name='Merlink',
