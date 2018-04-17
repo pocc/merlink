@@ -5,7 +5,7 @@ This program will connect desktop clients to Meraki firewalls. This project is s
 * [ ] Functionality
   * [ ] Windows
     * [x] Ability to create VPN connections
-    * [ ] Executable
+    * [x] Executables
     * [ ] Autostart on Login
     * [ ] Systray icon that is minimized when connected
     * [ ] Split Tunnel
@@ -34,7 +34,7 @@ This program will connect desktop clients to Meraki firewalls. This project is s
   
 ## Getting Started
 ### Executables
-Download the executables [here](https://github.com/pocc/merlink/tree/merlink/bin).
+Download the executables [here](https://github.com/pocc/merlink/releases).
 
 ### Building from Source
 **1.** Clone the repository:
