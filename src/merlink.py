@@ -194,8 +194,8 @@ class MainWindow(QMainWindow):
             - Is this a security appliance that is online?
         """
         if DEBUG:
-            print("network dropdown index: " + str(self.network_dropdown.currentIndex()-1))
-        self.current_network = str(self.network_list[self.current_org_index][self.network_dropdown.currentIndex()-1])
+            print("network dropdown index: " + str(self.network_dropdown.currentIndex()))
+        self.current_network = str(self.network_list[self.current_org_index][self.network_dropdown.currentIndex()])
         self.status.showMessage("Status: Fetching network data for " + self.current_network + "...")
 
         client_vpn_url = self.base_urls[self.current_org_index] + '/configure/client_vpn_settings'
