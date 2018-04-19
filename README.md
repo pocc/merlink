@@ -69,8 +69,8 @@ To set up your Windows environment, please read [ENV_SETUP.md](https://github.co
 ## Versioning
 
 [SemVer](http://semver.org/) is used for versioning: 
-* MAJOR version: Incompatible UI/CLI from a user's perspective
-* MINOR version: Functionality is added in a backwards-compatible manner
+* MAJOR version: Incompatible UI from previous version from a user's perspective
+* MINOR version: Functionality is added to UI from a user's persective
 * PATCH version: Backwards-compatible bug fixes
 
 For the versions available, see the [tags on this repository](https://github.com/pocc/merlink/tags). 
