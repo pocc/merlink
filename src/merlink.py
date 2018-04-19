@@ -532,12 +532,13 @@ class MainWindow(QMainWindow):
                 self.psk = self.psk.replace('$', '`$')
                 self.username = self.username.replace('$', '`$')
                 self.password = self.password.replace('$', '`$')
-                self.split_tunnel = False
+                self.split_tunnel = '$False'
                 # Setting execution policy to unrestricted is necessary so that we can access VPN functions
                 # Sending DDNS and IP so if DDNS fails, windows can try IP as well
                 result = subprocess.Popen(
-                    [powershell_path, '-ExecutionPolicy', 'Unrestricted', './src/scripts/connect_windows.ps1', vpn_name, self.psk,
-                     self.current_ddns, self.current_primary_ip, self.username, self.password, self.split_tunnel]
+                    [powershell_path, '-ExecutionPolicy', 'Unrestricted',
+                     self.cwd + '\scripts\connect_windows.ps1', vpn_name, self.psk, self.current_ddns,
+                     self.current_primary_ip, self.username, self.password, self.split_tunnel]
                 )
                 if result:
                     self.status.showMessage('Status: Connected')
