@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (QLineEdit, QWidget, QPushButton, QLabel,
                              QVBoxLayout, QHBoxLayout, QDialog, QMessageBox)
 from PyQt5.QtGui import QPixmap
 import mechanicalsoup
+from os import getcwd
 from webbrowser import open_new
 
 # Startup in MS Windows. Other method is to add a launcher to the startup folder
@@ -86,7 +87,7 @@ class LoginWindow(QDialog):
         layout_login.addStretch()
         layout_login.addWidget(self.about_lbl)
 
-        self.meraki_img.setPixmap(QPixmap('./src/media/mr-new.jpg'))
+        self.meraki_img.setPixmap(QPixmap(getcwd() + '/media/mr-new.jpg'))
 
         # Background for program will be #Meraki green = #78be20
         self.setStyleSheet("background-color:#eee")
