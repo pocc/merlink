@@ -237,20 +237,26 @@ class MainWindow(QMainWindow):
         """
         fw_status_url = self.base_url_list[self.current_org_index][self.network_dropdown.currentIndex()-1] \
                         + '/nodes/new_wired_status'
-        fw_status_text = self.browser.get(fw_status_url).text
+        self.fw_status_text = self.browser.get(fw_status_url).text
 
         # ddns value can be found by searching for '"dynamic_dns_name"'
-        ddns_value_start = fw_status_text.find("dynamic_dns_name")+19
-        ddns_value_end = fw_status_text[ddns_value_start:].find('\"') + ddns_value_start
-        self.current_ddns=fw_status_text[ddns_value_start: ddns_value_end]
+        ddns_value_start = self.fw_status_text.find("dynamic_dns_name")+19
+        ddns_value_end = self.fw_status_text[ddns_value_start:].find('\"') + ddns_value_start
+        self.current_ddns=self.fw_status_text[ddns_value_start: ddns_value_end]
 
         # Primary will always come first, so using find should find it's IP address, even if there's a warm spare
         # Using unique '{"public_ip":' to find primary IP address
-        ip_start = fw_status_text.find("{\"public_ip\":")+14
-        ip_end = fw_status_text[ip_start:].find('\"') + ip_start
-        self.current_primary_ip=fw_status_text[ip_start: ip_end]
+        ip_start = self.fw_status_text.find("{\"public_ip\":")+14
+        ip_end = self.fw_status_text[ip_start:].find('\"') + ip_start
+        self.current_primary_ip=self.fw_status_text[ip_start: ip_end]
 
     def validate_data(self):
+        """
+        This method will check all of these values and show which are invalid
+        User should not be able to connect if there are any tests that fail (i.e grayed out button)
+        Each test should be clickable so that the user can find out more information
+        """
+
         self.status.showMessage("Status: Verifying configuration for " + self.current_network + "...")
         self.validation_list.clear()
         validation_textlist = [
@@ -261,28 +267,43 @@ class MainWindow(QMainWindow):
             "Is the user authorized for Client VPN?",
             "Is authentication type Meraki Auth?",
             "Are UDP ports 500/4500 port forwarded through firewall?"]
+        has_passed_validation = [False] * 7  # False for failed, True for passed
         for i in range(len(validation_textlist)):
             item = QListWidgetItem(validation_textlist[i])
             self.validation_list.addItem(item)
 
+        # *** TEST 0 ***
         # Is the MX online?
-            # Identify problem
-        #firewall_soup = bs4.BeautifulSoup(self.fw_status_text, 'lxml')
-        #self.online = firewall_soup.find("status#")
+        
+        firewall_soup = bs4.BeautifulSoup(self.fw_status_text, 'lxml')
+        try:
+            is_online_status_code = firewall_soup.find("status#")
+        except:  # If we can't find status, set status to "not 0" instead of crashing
+            is_online_status_code = 1
+        if is_online_status_code == 0:  # 0 is online, 2 is unreachable. Not sure about other statuses
+            has_passed_validation[0] = True456
         # Can the client ping the firewall if ICMP is enabled
             # program can enable ICMP allowed on firewall
             # If ICMP can't make it through, ISP issue
         # Is the user behind the firewall?
             # HTML on appliance status page has IP that user is connecting from as well as MX IP
             # Identify and alert user
-        # As you add more functionality, add more exceptions to this for loop
-        for i in range(len(validation_textlist)):
-            if i != 3:
-                self.validation_list.item(i).setIcon(QIcon(self.cwd + '/media/checkmark-16.png'))
+            # set all values to false if we didn't do anything with them.
+
+        # *** TEST 3 ***
         # Is Client VPN enabled?
         if self.client_vpn_text[self.client_vpn_text.find(",\"client_vpn_enabled\"") + 22] == 't':
-            self.validation_list.item(3).setIcon(QIcon(self.cwd + '/media/checkmark-16.png'))
-        else:
+            has_passed_validation[3] = True
+
+        for i in range(len(validation_textlist)):
+            if has_passed_validation[i]:
+                self.validation_list.item(i).setIcon(QIcon(self.cwd + '/media/checkmark.png'))
+            else:
+                self.validation_list.item(i).setIcon(QIcon(self.cwd + '/media/x-mark-16.png'))
+
+        # All the error messages! Once we know what the error dialog landscape looks like down here,
+        # we might want to turn this into an error method with params
+        if has_passed_validation[3]:
             self.validation_list.item(3).setIcon(QIcon(self.cwd + '/media/x-mark-16.png'))
             # Error message popup that will take control and that the user will need to acknowledge
             error_message = QMessageBox()
@@ -302,6 +323,7 @@ class MainWindow(QMainWindow):
             # User fixes (for now)
         # Are either UDP ports 500/4500 being port forwarded through the MX firewall?
             # Program can fix
+
 
         self.status.showMessage("Status: Ready to connect to " + self.current_network + ".")
 
