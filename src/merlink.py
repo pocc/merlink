@@ -68,7 +68,8 @@ class MainWindow(QMainWindow):
         # Get the number of orgs
         self.org_qty = len(org_hrefs)
         # Create as many network lists in the network list as there are orgs
-        self.network_list = self.base_url_list = [[]] * self.org_qty
+        self.network_list = [[]] * self.org_qty
+        self.base_url_list = [[]] * self.org_qty
         for i in range(self.org_qty):
             org_str = str(org_hrefs[i])
             # 39:-4 = Name, 9:37 = Link
@@ -94,12 +95,12 @@ class MainWindow(QMainWindow):
             self.browser.open(current_url)
         current_url = self.browser.get_url()
         # base url is up to '/manage/'
-        base_url_index = current_url.find('/manage')
-        current_base_url = current_url[:base_url_index + 7]  # Add 7 for '/manage'
-        eid_index = current_url.rfind('/', base_url_index)
-        current_eid = current_url[eid_index:base_url_index]
-        print("this is the eid" + current_eid + " between " + str(eid_index) + " and " + str(base_url_index))
-        administered_orgs = current_base_url + '/organization/administered_orgs'
+        upper_url_index = current_url.find('/manage')  # boundary between network string and webpage string
+        lower_url_index = current_url.find('.com/')  # boundary between domain string and network string
+        url_domain_part = current_url[:lower_url_index + 4]  # Add 4 for '.com'
+        url_network_part = current_url[lower_url_index + 4:upper_url_index + 7]  # Add 7 for '/manage'
+        # For this URL, it doesn't matter which network in an org we get it from because it will be the same
+        administered_orgs = url_domain_part + url_network_part + '/organization/administered_orgs'
         self.browser.open(administered_orgs)
         if DEBUG:
             print(administered_orgs)
@@ -123,7 +124,7 @@ class MainWindow(QMainWindow):
                 self.org_list.append(orgs_dict[org_id]['name'])
             # Duplicating this line here as we're ok with network admins running this code multiple times as it's
             # dependent on administerd_orgs json. For org admins, we keep it in scrape_orgs() so it runs once
-            self.network_list = [[]] * self.org_qty
+            self.network_list = self.base_url_list = [[]] * self.org_qty
         if DEBUG:
             print("org_qty " + str(self.org_qty))
         for i in range(self.org_qty):  # For every organization
@@ -133,8 +134,9 @@ class MainWindow(QMainWindow):
             node_groups = orgs_dict[this_org]['node_groups']
             # List of network ids in base64. These network ids are keys for network data dict that is the value
             network_base64_ids = list(node_groups.keys())
-            # Start out with no network names for each organization
+            # Start out with no network names or network base urls for each organization
             network_names = []
+            network_base_urls = []
             # For orgs that are not the current org, we will get the number of networks, but get node_groups of {}
             if node_groups == {}:
                 num_networks = 0
@@ -142,7 +144,9 @@ class MainWindow(QMainWindow):
                 node_group_data = node_groups[network_base64_ids[j]]
                 if node_group_data['network_type'] == 'wired' and not node_group_data['is_config_template']:
                     network_names.append(node_group_data['n'])
-                    #eid_names.append(node_group_data['eid'])
+                    # Reconstructing the base url. 't' is for network name as it appears in URL
+                    network_base_urls.append(url_domain_part + '/' + node_group_data['t'] +
+                                             '/n/' + node_group_data['eid'] + '/manage')
 
             # If that network list is empty, then fill it with the network names
             if DEBUG:
@@ -152,7 +156,7 @@ class MainWindow(QMainWindow):
                 if DEBUG:
                     print("Adding networks to list")
                 self.network_list[self.current_org_index] = network_names
-                #self.eid_list[self.current_org_index] = eid_names
+                self.base_url_list[self.current_org_index] = network_base_urls
 
             if DEBUG:
                 print(self.network_list[i])
@@ -197,11 +201,16 @@ class MainWindow(QMainWindow):
             - Is this a security appliance that is online?
         """
         if DEBUG:
-            print("network dropdown index: " + str(self.network_dropdown.currentIndex()))
-        self.current_network = str(self.network_list[self.current_org_index][self.network_dropdown.currentIndex()])
+            print("network dropdown index: " + str(self.network_dropdown.currentIndex()-1))
+        current_network_index = self.network_dropdown.currentIndex()-1  # Because dropdown has first option 'select'
+        self.current_network = str(self.network_list[self.current_org_index][current_network_index])
         self.status.showMessage("Status: Fetching network data for " + self.current_network + "...")
 
-        client_vpn_url = self.base_urls[self.current_org_index] + '/configure/client_vpn_settings'
+        # TODO This won't work because base_url in one network != one in another
+        client_vpn_url = self.base_url_list[self.current_org_index][current_network_index] \
+            + '/configure/client_vpn_settings'
+        print("Client VPN url " + client_vpn_url)
+
         self.client_vpn_text = self.browser.get(client_vpn_url).text
         client_vpn_soup = bs4.BeautifulSoup(self.client_vpn_text, 'lxml')
 
@@ -225,7 +234,8 @@ class MainWindow(QMainWindow):
         - Verify that virtual_ip == {"public_ip":
         :return:
         """
-        fw_status_url = self.base_urls[self.current_org_index] + '/nodes/new_wired_status'
+        fw_status_url = self.base_url_list[self.current_org_index][self.network_dropdown.currentIndex()-1] \
+                        + '/nodes/new_wired_status'
         fw_status_text = self.browser.get(fw_status_url).text
 
         # ddns value can be found by searching for '"dynamic_dns_name"'
