@@ -22,6 +22,7 @@ import bs4
 # VPN creation
 import subprocess
 import platform
+from os import getcwd
 
 # Import the login_window file
 from src.modules.login_window import LoginWindow
@@ -42,6 +43,7 @@ class MainWindow(QMainWindow):
         self.org_links = {}
         self.org_list = []
         self.validation_list = QListWidget()
+        self.cwd = getcwd()  # get current working directory. We use cwd in multiple places, so fetch it once
 
         # QMainWindow requires that a central widget be set
         self.cw = QWidget(self)
@@ -206,7 +208,6 @@ class MainWindow(QMainWindow):
         self.current_network = str(self.network_list[self.current_org_index][current_network_index])
         self.status.showMessage("Status: Fetching network data for " + self.current_network + "...")
 
-        # TODO This won't work because base_url in one network != one in another
         client_vpn_url = self.base_url_list[self.current_org_index][current_network_index] \
             + '/configure/client_vpn_settings'
         print("Client VPN url " + client_vpn_url)
@@ -277,12 +278,12 @@ class MainWindow(QMainWindow):
         # As you add more functionality, add more exceptions to this for loop
         for i in range(len(validation_textlist)):
             if i != 3:
-                self.validation_list.item(i).setIcon(QIcon('./src/media/checkmark-16.png'))
+                self.validation_list.item(i).setIcon(QIcon(self.cwd + '/media/checkmark-16.png'))
         # Is Client VPN enabled?
         if self.client_vpn_text[self.client_vpn_text.find(",\"client_vpn_enabled\"") + 22] == 't':
-            self.validation_list.item(3).setIcon(QIcon('./src/media/checkmark-16.png'))
+            self.validation_list.item(3).setIcon(QIcon(self.cwd + '/media/checkmark-16.png'))
         else:
-            self.validation_list.item(3).setIcon(QIcon('./src/media/x-mark-16.png'))
+            self.validation_list.item(3).setIcon(QIcon(self.cwd + '/media/x-mark-16.png'))
             # Error message popup that will take control and that the user will need to acknowledge
             error_message = QMessageBox()
             error_message.setIcon(QMessageBox.Question)
@@ -318,8 +319,8 @@ class MainWindow(QMainWindow):
 
     def main_init_ui(self):
         # Set the Window and Tray Icons
-        self.setWindowIcon(QIcon('./src/media/miles_meraki.png'))
-        tray_icon = QSystemTrayIcon(QIcon('./src/media/miles_meraki.png'))
+        self.setWindowIcon(QIcon(self.cwd + '/media/miles_meraki.png'))
+        tray_icon = QSystemTrayIcon(QIcon(self.cwd + '/media/miles_meraki.png'))
         tray_icon.show()
 
         # Create a horizontal line above the status bar to highlight it
