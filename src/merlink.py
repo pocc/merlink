@@ -41,7 +41,6 @@ class MainWindow(QMainWindow):
         # Initialize organization dictionary {Name: Link} and list for easier access. org_list is org_links.keys()
         self.org_links = {}
         self.org_list = []
-        self.base_urls = []
         self.validation_list = QListWidget()
 
         # QMainWindow requires that a central widget be set
@@ -69,8 +68,7 @@ class MainWindow(QMainWindow):
         # Get the number of orgs
         self.org_qty = len(org_hrefs)
         # Create as many network lists in the network list as there are orgs
-        self.network_list = [[]] * self.org_qty
-        print("init network_list" + str(self.network_list))
+        self.network_list = self.base_url_list = [[]] * self.org_qty
         for i in range(self.org_qty):
             org_str = str(org_hrefs[i])
             # 39:-4 = Name, 9:37 = Link
@@ -98,7 +96,9 @@ class MainWindow(QMainWindow):
         # base url is up to '/manage/'
         base_url_index = current_url.find('/manage')
         current_base_url = current_url[:base_url_index + 7]  # Add 7 for '/manage'
-        self.base_urls.append(current_base_url)
+        eid_index = current_url.rfind('/', base_url_index)
+        current_eid = current_url[eid_index:base_url_index]
+        print("this is the eid" + current_eid + " between " + str(eid_index) + " and " + str(base_url_index))
         administered_orgs = current_base_url + '/organization/administered_orgs'
         self.browser.open(administered_orgs)
         if DEBUG:
@@ -142,6 +142,7 @@ class MainWindow(QMainWindow):
                 node_group_data = node_groups[network_base64_ids[j]]
                 if node_group_data['network_type'] == 'wired' and not node_group_data['is_config_template']:
                     network_names.append(node_group_data['n'])
+                    #eid_names.append(node_group_data['eid'])
 
             # If that network list is empty, then fill it with the network names
             if DEBUG:
@@ -149,8 +150,10 @@ class MainWindow(QMainWindow):
                 print(self.network_list)
             if self.network_list[self.current_org_index] == []:
                 if DEBUG:
-                    print("Adding network to list")
+                    print("Adding networks to list")
                 self.network_list[self.current_org_index] = network_names
+                #self.eid_list[self.current_org_index] = eid_names
+
             if DEBUG:
                 print(self.network_list[i])
 
