@@ -305,7 +305,6 @@ class MainWindow(QMainWindow):
 
         # *** TEST 2 ***
         # Is the user behind the firewall?
-        print(self.fw_status_text)
         try:
             # This IP is the source public IP that the user is connecting with
             ip_start = self.fw_status_text.find("\"request_ip\":")+14  # Start of IP position
@@ -328,7 +327,7 @@ class MainWindow(QMainWindow):
 
         # Given a username, get the authorized <td> cell value
         # TODO Use requests instead of beautiful soup. We're not seeing the table in the HTML
-        print(self.client_vpn_soup)
+        # print(self.client_vpn_soup)
         get_user_row = self.client_vpn_soup.find("td", text=self.username)
         print("This is get_user_row " + str(get_user_row))
 
@@ -343,20 +342,28 @@ class MainWindow(QMainWindow):
             print("sample message")
         """
 
-
         # *** TEST 5 ***
-        # This HTML will be useful:
-        # <select id="wired_config_client_vpn_auth_type" name="wired_config[client_vpn_auth_type]"><option selected="selected" value="meraki">Meraki cloud</option>
         # Authentication type is Meraki Auth?
         # User fixes (for now)
+        """ When an auth type is selected, we get one of these in the client VPN HTML depending on user's auth choice:
+        Meraki cloud</option></select>
+        Active Directory</option></select>
+        RADIUS</option></select>
+        """
+        # String find returns -1 if the string isn't found
+        meraki_select_type1 = self.client_vpn_text.find('Meraki cloud</option></select>')
+        meraki_select_type2 = self.client_vpn_text.find('<option value="meraki" selected="selected">')
+        if meraki_select_type1 == -1 and meraki_select_type2 == -1:
+            has_passed_validation[5] = False
+            print("ERROR: Please select Meraki cloud authentication")
+            # TODO Error dialog goes here
 
         # *** TEST 6 ***
         """ 
-        If this text exists, they're port forwarding ports 500 or 4500:
+        If the following text exists, they're port forwarding ports 500 or 4500:
         "public_port":"500"
         "public_port":"4500"
         """
-        print(self.client_vpn_text)
         # -1 is returned by string find if a match is not found
         is_forwarding_500 = self.client_vpn_text.find('"public_port":"500"') != -1
         is_forwarding_4500 = self.client_vpn_text.find('"public_port":"4500"') != -1
@@ -370,6 +377,7 @@ class MainWindow(QMainWindow):
             print("ERROR: You are forwarding port 4500!")
             has_passed_validation[6] = False
 
+        # ----------------------------------------------
         # Add checkboxes/x-marks to each validation test
         for i in range(len(validation_textlist)):
             print("has passed" + str(i) + str(has_passed_validation[i]))
