@@ -277,8 +277,6 @@ class MainWindow(QMainWindow):
 
         # *** TEST 0 ***
         # Is the MX online?
-        firewall_soup = bs4.BeautifulSoup(self.fw_status_text, 'lxml')
-        print(firewall_soup)
         try:
             is_online_status_code = int(self.fw_status_text[self.fw_status_text.find("status#")+9])
             if is_online_status_code != 0:  # 0 is online, 2 is unreachable. There are probably other statuses
@@ -288,6 +286,7 @@ class MainWindow(QMainWindow):
             # TODO This error should reset org/network prompt after an error as there's no way to fix an empty network
             # Maybe redirect to adding devices to network
             print("There is no device in this network!")
+            # Failure error dialog and then return
 
         # *** TEST 1 ***
         # Can the client ping the firewall if ICMP is enabled
@@ -300,14 +299,22 @@ class MainWindow(QMainWindow):
         ping_response = system(ping_string)
         if ping_response != 0:  # Ping responses other than 0 mean failure. Error codes are OS-dependent
             has_passed_validation[1] = False
-            # Failure error message
+            # Failure error dialog and then return
             print("Cannot connect to device!")
 
         # *** TEST 2 ***
         # Is the user behind the firewall?
-            # HTML on appliance status page has IP that user is connecting from as well as MX IP
-            # Identify and alert user
-            # set all values to false if we didn't do anything with them.
+        print(self.fw_status_text)
+        try:
+            # This IP is the source public IP that the user is connecting with
+            ip_start = self.fw_status_text.find("\"request_ip\":")+14  # Start of IP position
+            ip_end = self.fw_status_text[ip_start:].find('\"') + ip_start  # Get the position of the IP end quote
+            src_public_ip = self.fw_status_text[ip_start:ip_end]
+            if src_public_ip == self.current_primary_ip:  # If public IP address of client == MX IP
+                has_passed_validation[2] = False  # Then the user is behind their firewall and client vpn won't work
+        except:
+            print("Exception during source public IP == MX IP test")
+            # TODO Raise exception of some type
 
         # *** TEST 3 ***
         # Is Client VPN enabled?
@@ -337,10 +344,15 @@ class MainWindow(QMainWindow):
             if ret == QMessageBox.Yes:
                 self.enable_client_vpn()
 
+        # *** TEST 4 ***
         # Is user authorized for Client VPN?
             # Program can enable
+
+        # *** TEST 5 ***
         # Authentication type is Meraki Auth?
             # User fixes (for now)
+
+        # *** TEST 6 ***
         # Are either UDP ports 500/4500 being port forwarded through the MX firewall?
             # Program can fix
 
