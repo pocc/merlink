@@ -274,14 +274,18 @@ class MainWindow(QMainWindow):
 
         # *** TEST 0 ***
         # Is the MX online?
-        
         firewall_soup = bs4.BeautifulSoup(self.fw_status_text, 'lxml')
+        print(firewall_soup)
         try:
-            is_online_status_code = firewall_soup.find("status#")
-        except:  # If we can't find status, set status to "not 0" instead of crashing
-            is_online_status_code = 1
-        if is_online_status_code == 0:  # 0 is online, 2 is unreachable. Not sure about other statuses
-            has_passed_validation[0] = True
+            is_online_status_code = int(self.fw_status_text[self.fw_status_text.find("status#")+9])
+            if is_online_status_code == 0:  # 0 is online, 2 is unreachable. There are probably other statuses
+                has_passed_validation[0] = True  # Default for has_passed_validation is false, so we don't need else
+        except:
+            # No 'status#' in HTML means there is no firewall in that network
+            # TODO This error should reset org/network prompt after an error as there's no way to fix an empty network
+            print("There is no device in this network!")
+        
+        # *** TEST 1 ***
         # Can the client ping the firewall if ICMP is enabled
             # program can enable ICMP allowed on firewall
             # If ICMP can't make it through, ISP issue
