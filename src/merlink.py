@@ -22,7 +22,7 @@ import bs4
 # VPN creation
 import subprocess
 import platform
-from os import getcwd
+from os import getcwd, system
 
 # Import the login_window file
 from src.modules.login_window import LoginWindow
@@ -30,12 +30,14 @@ from src.modules.login_window import LoginWindow
 
 class MainWindow(QMainWindow):
     # Pass in browser_session object from LoginWindow so that we can maintain the same session
+    # ASSERT: User has logged in and has a connection to Dashboard AND DNS is working
     def __init__(self, browser_session, username, password):
         super(MainWindow, self).__init__()
         if DEBUG:
             print("Main Window")
 
         # Variables
+        self.platform = sys.platform
         self.network_admin_only = False
         self.current_org_index = 0  # By default, we choose the first org to display
         self.org_qty = 0  # By default, you have access to 0 orgs
@@ -222,6 +224,7 @@ class MainWindow(QMainWindow):
         print(self.client_vpn_text[client_vpn_value_index:client_vpn_value_index+27])
 
         self.scrape_ddns_and_ip()
+        # validate_date() MUST come after scrape_ddns_and_ip() because it needs DDNS/IP address
         self.validate_data()
 
     def scrape_ddns_and_ip(self):
@@ -267,7 +270,7 @@ class MainWindow(QMainWindow):
             "Is the user authorized for Client VPN?",
             "Is authentication type Meraki Auth?",
             "Are UDP ports 500/4500 port forwarded through firewall?"]
-        has_passed_validation = [False] * 7  # False for failed, True for passed
+        has_passed_validation = [True] * 7  # False for failed, True for passed
         for i in range(len(validation_textlist)):
             item = QListWidgetItem(validation_textlist[i])
             self.validation_list.addItem(item)
@@ -278,17 +281,29 @@ class MainWindow(QMainWindow):
         print(firewall_soup)
         try:
             is_online_status_code = int(self.fw_status_text[self.fw_status_text.find("status#")+9])
-            if is_online_status_code == 0:  # 0 is online, 2 is unreachable. There are probably other statuses
-                has_passed_validation[0] = True  # Default for has_passed_validation is false, so we don't need else
+            if is_online_status_code != 0:  # 0 is online, 2 is unreachable. There are probably other statuses
+                has_passed_validation[0] = False  # Default for has_passed_validation is true, so we don't need else
         except:
             # No 'status#' in HTML means there is no firewall in that network
             # TODO This error should reset org/network prompt after an error as there's no way to fix an empty network
+            # Maybe redirect to adding devices to network
             print("There is no device in this network!")
-        
+
         # *** TEST 1 ***
         # Can the client ping the firewall if ICMP is enabled
-            # program can enable ICMP allowed on firewall
-            # If ICMP can't make it through, ISP issue
+        # TODO This test should become one of the troubleshooting tests after connection failure because it takes time
+        # Ping 4 times
+        if self.platform == 'win32':  # Identifies any form of Windows
+            ping_string = "ping" + self.current_ddns  # ping 4 times every 1000ms
+        else:  # *nix of some kind
+            ping_string = "ping -c 5 -i 0.2 " + self.current_primary_ip  # ping 4 times every 200ms
+        ping_response = system(ping_string)
+        if ping_response != 0:  # Ping responses other than 0 mean failure. Error codes are OS-dependent
+            has_passed_validation[1] = False
+            # Failure error message
+            print("Cannot connect to device!")
+
+        # *** TEST 2 ***
         # Is the user behind the firewall?
             # HTML on appliance status page has IP that user is connecting from as well as MX IP
             # Identify and alert user
@@ -296,8 +311,8 @@ class MainWindow(QMainWindow):
 
         # *** TEST 3 ***
         # Is Client VPN enabled?
-        if self.client_vpn_text[self.client_vpn_text.find(",\"client_vpn_enabled\"") + 22] == 't':
-            has_passed_validation[3] = True
+        if self.client_vpn_text[self.client_vpn_text.find(",\"client_vpn_enabled\"") + 22] != 't':
+            has_passed_validation[3] = False
 
         for i in range(len(validation_textlist)):
             print("has passed" + str(i) + str(has_passed_validation[i]))
@@ -547,7 +562,7 @@ class MainWindow(QMainWindow):
             # Making vpn_name have no spcaes because I haven't figured out how to pass a string with spaces to PS
             network_name = self.network_dropdown.currentText()
             vpn_name = network_name.replace(' ', '_') + '_VPN'
-            if sys.platform == 'win32':
+            if self.platform == 'win32':
                 arch = platform.architecture()
                 if arch == '64bit':
                     powershell_path = 'C:\\Windows\\SysWOW64\\WindowsPowerShell\\v1.0\\powershell.exe'
@@ -572,11 +587,11 @@ class MainWindow(QMainWindow):
                 else:
                     self.status.showMessage('Status: Connection Failed')
 
-            elif sys.platform == 'darwin':
+            elif self.platform == 'darwin':
                 args = [self.current_primary_ip, self.username, self.password]
                 result = subprocess.Popen(['osascript', '-'] + args, stdout=subprocess.PIPE)
 
-            elif sys.platform.startswith('linux'):  # linux, linux2 are both valid
+            elif self.platform.startswith('linux'):  # linux, linux2 are both valid
                 # bash integration has been verified as working, vpn setup is still work in progress
                 result = subprocess.Popen(["./src/scripts/connect_linux.sh", self.current_primary_ip, self.username, self.password])
 
