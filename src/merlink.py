@@ -281,7 +281,7 @@ class MainWindow(QMainWindow):
         except:  # If we can't find status, set status to "not 0" instead of crashing
             is_online_status_code = 1
         if is_online_status_code == 0:  # 0 is online, 2 is unreachable. Not sure about other statuses
-            has_passed_validation[0] = True456
+            has_passed_validation[0] = True
         # Can the client ping the firewall if ICMP is enabled
             # program can enable ICMP allowed on firewall
             # If ICMP can't make it through, ISP issue
@@ -296,14 +296,15 @@ class MainWindow(QMainWindow):
             has_passed_validation[3] = True
 
         for i in range(len(validation_textlist)):
+            print("has passed" + str(i) + str(has_passed_validation[i]))
             if has_passed_validation[i]:
-                self.validation_list.item(i).setIcon(QIcon(self.cwd + '/media/checkmark.png'))
+                self.validation_list.item(i).setIcon(QIcon(self.cwd + '/media/checkmark-16.png'))
             else:
                 self.validation_list.item(i).setIcon(QIcon(self.cwd + '/media/x-mark-16.png'))
 
         # All the error messages! Once we know what the error dialog landscape looks like down here,
         # we might want to turn this into an error method with params
-        if has_passed_validation[3]:
+        if not has_passed_validation[3]:
             self.validation_list.item(3).setIcon(QIcon(self.cwd + '/media/x-mark-16.png'))
             # Error message popup that will take control and that the user will need to acknowledge
             error_message = QMessageBox()
