@@ -204,20 +204,9 @@ class MainWindow(QMainWindow):
             + Is client VPN enabled in dashboard?
             - Is this a security appliance that is online?
         """
-        if DEBUG:
-            print("network dropdown index: " + str(self.network_dropdown.currentIndex()-1))
-        current_network_index = self.network_dropdown.currentIndex()-1  # Because dropdown has first option 'select'
-        self.current_network = str(self.network_list[self.current_org_index][current_network_index])
-        self.status.showMessage("Status: Fetching network data for " + self.current_network + "...")
+        self.get_client_vpn_text()
 
-        client_vpn_url = self.base_url_list[self.current_org_index][current_network_index] \
-            + '/configure/client_vpn_settings'
-        print("Client VPN url " + client_vpn_url)
-
-        self.client_vpn_text = self.browser.get(client_vpn_url).text
-        client_vpn_soup = bs4.BeautifulSoup(self.client_vpn_text, 'lxml')
-
-        self.psk = client_vpn_soup.find("input", {"id": "wired_config_client_vpn_secret", "value": True})['value']
+        self.psk = self.client_vpn_soup.find("input", {"id": "wired_config_client_vpn_secret", "value": True})['value']
         # Found in html as    ,"client_vpn_enabled":true
         client_vpn_value_index = self.client_vpn_text.find(",\"client_vpn_enabled\"")
 
@@ -226,6 +215,19 @@ class MainWindow(QMainWindow):
         self.scrape_ddns_and_ip()
         # validate_date() MUST come after scrape_ddns_and_ip() because it needs DDNS/IP address
         self.validate_data()
+
+    def get_client_vpn_text(self):
+        if DEBUG:
+            print("network dropdown index: " + str(self.network_dropdown.currentIndex()-1))
+        current_network_index = self.network_dropdown.currentIndex()-1  # Because dropdown has first option 'select'
+        self.current_network = str(self.network_list[self.current_org_index][current_network_index])
+        client_vpn_url = self.base_url_list[self.current_org_index][current_network_index] \
+            + '/configure/client_vpn_settings'
+        self.status.showMessage("Status: Fetching network data for " + self.current_network + "...")
+        print("Client VPN url " + client_vpn_url)
+
+        self.client_vpn_text = self.browser.get(client_vpn_url).text
+        self.client_vpn_soup = bs4.BeautifulSoup(self.client_vpn_text, 'lxml')
 
     def scrape_ddns_and_ip(self):
         """ ASSERTS
@@ -259,7 +261,6 @@ class MainWindow(QMainWindow):
         User should not be able to connect if there are any tests that fail (i.e grayed out button)
         Each test should be clickable so that the user can find out more information
         """
-
         self.status.showMessage("Status: Verifying configuration for " + self.current_network + "...")
         self.validation_list.clear()
         validation_textlist = [
@@ -321,6 +322,55 @@ class MainWindow(QMainWindow):
         if self.client_vpn_text[self.client_vpn_text.find(",\"client_vpn_enabled\"") + 22] != 't':
             has_passed_validation[3] = False
 
+        # *** TEST 4 ***
+        # Is user authorized for Client VPN?
+        # By definition, if you can log in as a user, you have a user in the Client VPN users page
+
+        # Given a username, get the authorized <td> cell value
+        # TODO Use requests instead of beautiful soup. We're not seeing the table in the HTML
+        print(self.client_vpn_soup)
+        get_user_row = self.client_vpn_soup.find("td", text=self.username)
+        print("This is get_user_row " + str(get_user_row))
+
+        """ CURRENTLY BROKEN 
+        get_user_cell = get_user_row.find_next_sibling("td").find_next_sibling("td")
+        print("This is get_user_cell " + str(get_user_cell))
+        is_user_authorized = get_user_cell.find("span", {"data-filter": True})
+        print("This is is_user_authorized " + str(is_user_authorized))
+        if is_user_authorized != 'true':
+            print("User " + self.username + " is not authorized!")
+        else:
+            print("sample message")
+        """
+
+
+        # *** TEST 5 ***
+        # This HTML will be useful:
+        # <select id="wired_config_client_vpn_auth_type" name="wired_config[client_vpn_auth_type]"><option selected="selected" value="meraki">Meraki cloud</option>
+        # Authentication type is Meraki Auth?
+        # User fixes (for now)
+
+        # *** TEST 6 ***
+        """ 
+        If this text exists, they're port forwarding ports 500 or 4500:
+        "public_port":"500"
+        "public_port":"4500"
+        """
+        print(self.client_vpn_text)
+        # -1 is returned by string find if a match is not found
+        is_forwarding_500 = self.client_vpn_text.find('"public_port":"500"') != -1
+        is_forwarding_4500 = self.client_vpn_text.find('"public_port":"4500"') != -1
+        if is_forwarding_500:
+            # TODO Error dialog goes here
+            print("ERROR: You are forwarding port 500!")
+            has_passed_validation[6] = False
+
+        if is_forwarding_4500:
+            # TODO Error dialog goes here
+            print("ERROR: You are forwarding port 4500!")
+            has_passed_validation[6] = False
+
+        # Add checkboxes/x-marks to each validation test
         for i in range(len(validation_textlist)):
             print("has passed" + str(i) + str(has_passed_validation[i]))
             if has_passed_validation[i]:
@@ -328,8 +378,8 @@ class MainWindow(QMainWindow):
             else:
                 self.validation_list.item(i).setIcon(QIcon(self.cwd + '/media/x-mark-16.png'))
 
-        # All the error messages! Once we know what the error dialog landscape looks like down here,
-        # we might want to turn this into an error method with params
+            # All the error messages! Once we know what the error dialog landscape looks like down here,
+            # we might want to turn this into an error method with params
         if not has_passed_validation[3]:
             self.validation_list.item(3).setIcon(QIcon(self.cwd + '/media/x-mark-16.png'))
             # Error message popup that will take control and that the user will need to acknowledge
@@ -343,18 +393,6 @@ class MainWindow(QMainWindow):
             ret = error_message.exec_()
             if ret == QMessageBox.Yes:
                 self.enable_client_vpn()
-
-        # *** TEST 4 ***
-        # Is user authorized for Client VPN?
-            # Program can enable
-
-        # *** TEST 5 ***
-        # Authentication type is Meraki Auth?
-            # User fixes (for now)
-
-        # *** TEST 6 ***
-        # Are either UDP ports 500/4500 being port forwarded through the MX firewall?
-            # Program can fix
 
 
         self.status.showMessage("Status: Ready to connect to " + self.current_network + ".")
