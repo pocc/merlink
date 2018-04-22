@@ -18,6 +18,7 @@ import re
 import json
 import requests
 import bs4
+from selenium import webdriver
 
 # VPN creation
 import subprocess
@@ -221,12 +222,12 @@ class MainWindow(QMainWindow):
             print("network dropdown index: " + str(self.network_dropdown.currentIndex()-1))
         current_network_index = self.network_dropdown.currentIndex()-1  # Because dropdown has first option 'select'
         self.current_network = str(self.network_list[self.current_org_index][current_network_index])
-        client_vpn_url = self.base_url_list[self.current_org_index][current_network_index] \
+        self.client_vpn_url = self.base_url_list[self.current_org_index][current_network_index] \
             + '/configure/client_vpn_settings'
         self.status.showMessage("Status: Fetching network data for " + self.current_network + "...")
-        print("Client VPN url " + client_vpn_url)
+        print("Client VPN url " + self.client_vpn_url)
 
-        self.client_vpn_text = self.browser.get(client_vpn_url).text
+        self.client_vpn_text = self.browser.get(self.client_vpn_url).text
         self.client_vpn_soup = bs4.BeautifulSoup(self.client_vpn_text, 'lxml')
 
     def scrape_ddns_and_ip(self):
@@ -268,10 +269,10 @@ class MainWindow(QMainWindow):
             "Can the client ping the firewall's public IP?",
             "Is the user behind the firewall?",
             "Is Client VPN enabled?",
-            "Is the user authorized for Client VPN?",
             "Is authentication type Meraki Auth?",
             "Are UDP ports 500/4500 port forwarded through firewall?"]
-        has_passed_validation = [True] * 7  # False for failed, True for passed
+            # "Is the user authorized for Client VPN?",
+        has_passed_validation = [True] * 6  # False for failed, True for passed
         for i in range(len(validation_textlist)):
             item = QListWidgetItem(validation_textlist[i])
             self.validation_list.addItem(item)
@@ -322,27 +323,6 @@ class MainWindow(QMainWindow):
             has_passed_validation[3] = False
 
         # *** TEST 4 ***
-        # Is user authorized for Client VPN?
-        # By definition, if you can log in as a user, you have a user in the Client VPN users page
-
-        # Given a username, get the authorized <td> cell value
-        # TODO Use requests instead of beautiful soup. We're not seeing the table in the HTML
-        # print(self.client_vpn_soup)
-        get_user_row = self.client_vpn_soup.find("td", text=self.username)
-        print("This is get_user_row " + str(get_user_row))
-
-        """ CURRENTLY BROKEN 
-        get_user_cell = get_user_row.find_next_sibling("td").find_next_sibling("td")
-        print("This is get_user_cell " + str(get_user_cell))
-        is_user_authorized = get_user_cell.find("span", {"data-filter": True})
-        print("This is is_user_authorized " + str(is_user_authorized))
-        if is_user_authorized != 'true':
-            print("User " + self.username + " is not authorized!")
-        else:
-            print("sample message")
-        """
-
-        # *** TEST 5 ***
         # Authentication type is Meraki Auth?
         # User fixes (for now)
         """ When an auth type is selected, we get one of these in the client VPN HTML depending on user's auth choice:
@@ -354,11 +334,11 @@ class MainWindow(QMainWindow):
         meraki_select_type1 = self.client_vpn_text.find('Meraki cloud</option></select>')
         meraki_select_type2 = self.client_vpn_text.find('<option value="meraki" selected="selected">')
         if meraki_select_type1 == -1 and meraki_select_type2 == -1:
-            has_passed_validation[5] = False
+            has_passed_validation[4] = False
             print("ERROR: Please select Meraki cloud authentication")
             # TODO Error dialog goes here
 
-        # *** TEST 6 ***
+        # *** TEST 5 ***
         """ 
         If the following text exists, they're port forwarding ports 500 or 4500:
         "public_port":"500"
@@ -370,12 +350,29 @@ class MainWindow(QMainWindow):
         if is_forwarding_500:
             # TODO Error dialog goes here
             print("ERROR: You are forwarding port 500!")
-            has_passed_validation[6] = False
+            has_passed_validation[5] = False
 
         if is_forwarding_4500:
             # TODO Error dialog goes here
             print("ERROR: You are forwarding port 4500!")
-            has_passed_validation[6] = False
+            has_passed_validation[5] = False
+
+        # *** TEST 6 *** : CURRENTLY ON HOLD
+        # Is user authorized for Client VPN?
+        # By definition, if you can log in as a user, you have a user in the Client VPN users page
+
+        # This is the only test which requires us to scrape data from a table. Tables in dashboard use javascript,
+        # So we need to scrape differently.
+        # https://stackoverflow.com/questions/8049520/web-scraping-javascript-page-with-python
+        """ from selenium import webdriver
+         from selenium.webdriver.chrome.options import Options
+         options = Options()
+         options.add_argument('--headless')
+         # options.add_argument('--disable-gpu')  # Last I checked this was necessary.
+         driver = webdriver.Chrome('/usr/bin/google-chrome', chrome_options=options)
+         driver.get(self.client_vpn_url)
+         print(driver.find_elements_by_css_selector('td.ft.notranslate.email'))
+        """
 
         # ----------------------------------------------
         # Add checkboxes/x-marks to each validation test
