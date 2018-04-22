@@ -9,16 +9,15 @@ This program will connect desktop clients to Meraki firewalls. This project is s
     * [ ] Autostart on Login
     * [ ] Systray icon that is minimized when connected
     * [ ] Split Tunnel
-* [ ] Network Troubleshooting
-  * [ ] Basic validation tests prior to connection
-    * [ ] Is the MX online?
-    * [ ] Can the client ping the firewall's public IP?
-    * [ ] Is the user behind the firewall?
+* [x] Network Troubleshooting
+  * [x] Basic validation tests prior to connection
+    * [x] Is the MX online?
+    * [x] Can the client ping the firewall's public IP?
+    * [x] Is the user behind the firewall?
     * [x] Is Client VPN enabled?
-    * [ ] Is the user authorized for Client VPN?
-    * [ ] Is authentication type Meraki Auth?
-    * [ ] Are UDP ports 500/4500 port forwarded through firewall?
-* [ ] Web scraping
+    * [x] Is authentication type Meraki Auth?
+    * [x] Are UDP ports 500/4500 port forwarded through firewall?
+* [x] Web scraping
   * [x] Fetch primary IP address and DDNS
   * [x] Fetch organization/network list
   * [x] Connect to VPN with only those Dashboard credentials
