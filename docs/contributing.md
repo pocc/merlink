@@ -27,14 +27,21 @@ Qt's documentation of libraries is more extensive than PyQt's. If there is a lib
 ## **Contributing Documentation**
 * Add content to the **doc** folder
 
-## Bugs
-### **Did you find a bug?**
+## Issues
+### I found a bug!
 * Ensure the bug was not already reported by searching on GitHub under [Issues](https://github.com/pocc/merlink/issues).
-* If you're unable to find an open issue addressing the problem, [open a new one](https://github.com/pocc/merlink/issues/new). 
+* If you're unable to find an open issue addressing the problem, [open a new one](https://github.com/pocc/merlink/issues/new), and tag as a bug. 
+### I have a question!
+* Usage questions can be filed as issues unless there are too many
+### I have a feature request!
+* Create the issue and tag it as a feature
 
-### **Did you write a patch that fixes a bug?**
-* Open a new GitHub pull request with the patch.
-* Ensure the PR description clearly describes the problem and solution.
+## Pull Requests
+Please verify the following before submitting:
+* Pull requests should resolve existing issues. If an issue does not exist for your pull request, create one. 
+* Put 'closes #\<issue num>' in your commit/PR to [auto-close the issue](https://help.github.com/articles/closing-issues-using-keywords/) that your PR fixes.
+* Code has comments where comments are needed
+* You can succesfully connect on supported platforms with your code.
 
 Thanks! 
 
