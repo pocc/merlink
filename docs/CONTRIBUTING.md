@@ -9,7 +9,7 @@
 
 **2.** Setup PyCharm
 
-For detailed instructions on how to do this, go to [ENV_SETUP](https://github.com/pocc/merlink/blob/merlink/ENV_SETUP.md)
+Detailed instructions on how to [seutp PyCharm](https://github.com/pocc/merlink/blob/merlink/docs/pycharm_setup.md).
 
 ### **Programming Resources**
 * Programming Resources: 
@@ -31,10 +31,6 @@ Qt's documentation of libraries is more extensive than PyQt's. If there is a lib
 ### I found a bug!
 * Ensure the bug was not already reported by searching on GitHub under [Issues](https://github.com/pocc/merlink/issues).
 * If you're unable to find an open issue addressing the problem, [open a new one](https://github.com/pocc/merlink/issues/new), and tag as a bug. 
-### I have a question!
-* Usage questions can be filed as issues unless there are too many
-### I have a feature request!
-* Create the issue and tag it as a feature
 
 ## Pull Requests
 Please verify the following before submitting:
