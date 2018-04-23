@@ -21,7 +21,7 @@ This setup guide should work for Windows 10. If you experience any problems with
     2. Once you click on its text, PyCharm should prompt you to install the missing libraries
     3. OK those installs
 7. Run application
-    1. Go to the /src folder and click on 'vpn_client.py'
-    2. Click on it and then go to Run > Run 'vpn_client'
+    1. Go to the /src folder and click on 'merlink.py'
+    2. Click on it and then go to Run > Run 'merlink'
     3. Verify that it loads correctly
-8. Setup a github account if you don't already have one
+8. If you don't have a github account, [set one up](https://github.com/join).
