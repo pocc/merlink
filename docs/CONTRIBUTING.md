@@ -9,7 +9,7 @@
 
 **2.** Setup PyCharm
 
-Detailed instructions on how to [seutp PyCharm](https://github.com/pocc/merlink/blob/merlink/docs/pycharm_setup.md).
+Detailed instructions on how to [seutp PyCharm](https://github.com/pocc/merlink/blob/master/docs/pycharm_setup.md).
 
 ### **Programming Resources**
 * Programming Resources: 
