@@ -18,7 +18,6 @@ import re
 import json
 import requests
 import bs4
-from selenium import webdriver
 
 # VPN creation
 import subprocess

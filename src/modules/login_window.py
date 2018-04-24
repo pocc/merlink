@@ -87,7 +87,7 @@ class LoginWindow(QDialog):
         layout_login.addStretch()
         layout_login.addWidget(self.about_lbl)
 
-        self.meraki_img.setPixmap(QPixmap(getcwd() + '/media/mr-new.jpg'))
+        self.meraki_img.setPixmap(QPixmap(getcwd() + '/media/new-mr.jpg'))
 
         # Background for program will be #Meraki green = #78be20
         self.setStyleSheet("background-color:#eee")
