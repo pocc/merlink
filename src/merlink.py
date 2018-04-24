@@ -46,6 +46,7 @@ class MainWindow(QMainWindow):
         self.org_list = []
         self.validation_list = QListWidget()
         self.cwd = getcwd()  # get current working directory. We use cwd in multiple places, so fetch it once
+        self.split_tunnel = False  # Expected behavior is to have full-tunnel by default
 
         # QMainWindow requires that a central widget be set
         self.cw = QWidget(self)
@@ -555,12 +556,17 @@ class MainWindow(QMainWindow):
         self.prefs = QDialog()
         layout = QVBoxLayout()
         self.prefs_heading = QLabel('<h1>Preferences</h1>')
-        self.split_tunnel = QCheckBox("Split-Tunnel?")
-        self.split_tunnel.stateChanged.connect(self.split_tunnel.nextCheckState())
+        split_tunneled_chkbox = QCheckBox("Split-Tunnel?")
+        split_tunneled_chkbox.setChecked(self.split_tunnel)  # By default, we want to full-tunnel
+        # This line of code causes merlink to crash
+        split_tunneled_chkbox.toggled.connect(self.invert_split_tunnel)
         layout.addWidget(self.prefs_heading)
-        layout.addWidget(self.split_tunnel)
+        layout.addWidget(split_tunneled_chkbox)
         self.prefs.setLayout(layout)
         self.prefs.show()
+
+    def invert_split_tunnel(self):
+        self.split_tunnel = not self.split_tunnel
 
     def view_interfaces_action(self):
         # If linux/macos > ifconfig
