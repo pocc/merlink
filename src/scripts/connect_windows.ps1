@@ -9,9 +9,20 @@ $mx_ip = $args[3]
 $username = $args[4]
 $password = $args[5]
 $is_split_tunnel = $args[6]
+$DEBUG = $args[7]
 
 # While debugging, following command will print all variables
-# invoke-expression 'write-host "vpn_name:" $vpn_name "| psk:" $psk "| ddns:" $ddns "| mx_ip:" $mx_ip "| username:" $username "| password:" $password "| split_tunnel:" $is_split_tunnel'
+if ($DEBUG -eq 'True') {
+    invoke-expression 'write-host "Debugging ~ vpn_name:" $vpn_name "| psk:" $psk "| ddns:" $ddns "| mx_ip:" $mx_ip "| username:" $username "| password:" $password "| split_tunnel:" $is_split_tunnel'
+}
+
+# Disconnect from any other VPNs first
+foreach ($connection in Get-VpnConnection) {
+    if (($connection | select -ExpandProperty ConnectionStatus) -eq 'Connected') {
+        $vpn_name = $connection | select -ExpandProperty Name
+        rasdial $vpn_name /Disconnect
+    }
+}
 
 # Add the VPN connection if it doesn't already exist, prevent add-vpnconnection from complaining about it
 $ErrorActionPreference = 'silentlycontinue'
@@ -26,10 +37,12 @@ $result = rasdial $vpn_name $username $password
 
 write-host $result
 # If we are successfully or already connected, return success, otherwise failure
-if (($result -match 'successfully connected') -Or ($result -match 'already connected')) {
+if (($result -match 'Successfully connected') -Or ($result -match 'already connected')) {
     Write-host "Connection success!"
-    $LASTEXITCODE=1
+    $EXIT_CODE=0
 } else {
     Write-host "Connection failed!"
-    $LASTEXITCODE=0
+    $EXIT_CODE=1
 }
+
+return $EXIT_CODE
