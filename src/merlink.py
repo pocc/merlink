@@ -295,7 +295,7 @@ class MainWindow(QMainWindow):
         # TODO This test should become one of the troubleshooting tests after connection failure because it takes time
         # Ping 4 times
         if self.platform == 'win32':  # Identifies any form of Windows
-            ping_string = "ping" + self.current_ddns  # ping 4 times every 1000ms
+            ping_string = "ping " + self.current_ddns  # ping 4 times every 1000ms
         else:  # *nix of some kind
             ping_string = "ping -c 5 -i 0.2 " + self.current_primary_ip  # ping 4 times every 200ms
         ping_response = system(ping_string)
@@ -613,6 +613,7 @@ class MainWindow(QMainWindow):
         if 'Select' not in self.org_dropdown.currentText() and 'Select' not in self.network_dropdown.currentText():
             # Change status to reflect we're connecting. For fast connections, you might not see this message
             self.status.showMessage('Status: Connecting...')
+            result = 1  # If result doesn't get assigned, we assume program to have failed
 
             # Making vpn_name have no spcaes because I haven't figured out how to pass a string with spaces to PS
             network_name = self.network_dropdown.currentText()
@@ -632,15 +633,22 @@ class MainWindow(QMainWindow):
                 self.split_tunnel = '$False'
                 # Setting execution policy to unrestricted is necessary so that we can access VPN functions
                 # Sending DDNS and IP so if DDNS fails, windows can try IP as well
-                result = subprocess.Popen(
+                result = subprocess.call(
                     [powershell_path, '-ExecutionPolicy', 'Unrestricted',
                      self.cwd + '\scripts\connect_windows.ps1', vpn_name, self.psk, self.current_ddns,
-                     self.current_primary_ip, self.username, self.password, self.split_tunnel]
+                     self.current_primary_ip, self.username, self.password, self.split_tunnel, str(DEBUG)]
                 )
-                if result:
+                print("MainWindow and the result is " + str(result) + str(type(result)))
+                if result == 0:
                     self.status.showMessage('Status: Connected')
+                    success_message = QMessageBox()
+                    success_message.setIcon(QMessageBox.Information)
+                    success_message.setWindowTitle("Success!")
+                    success_message.setText("Successfully Connected!")
+                    success_message.exec_()
                 else:
                     self.status.showMessage('Status: Connection Failed')
+                    self.error_message("Connection Failed")
 
             elif self.platform == 'darwin':
                 args = [self.current_primary_ip, self.username, self.password]
@@ -650,19 +658,14 @@ class MainWindow(QMainWindow):
                 # bash integration has been verified as working, vpn setup is still work in progress
                 result = subprocess.Popen(["./src/scripts/connect_linux.sh", self.current_primary_ip, self.username, self.password])
 
+            if result == 1:
+                self.troubleshoot_connection()
+
         else:  # They haven't selected an item in one of the message boxes
             self.error_message('You must select BOTH an organization AND network before connecting!')
 
-        if DEBUG:
-            print("Attempting connection...")
-        # We're setting up threads to read result's streams to force program to wait
-        throwaway_stream = result.communicate()[0]
-        print("The return code is " + str(result.returncode))
-
-        if result:
-            self.troubleshoot_connection()
-
     def troubleshoot_connection(self):
+        print("ACTIVELY troubleshooting connection")
         """ Things to check:
         * Basic
             * Is MX online now?
