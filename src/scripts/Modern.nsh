@@ -1,20 +1,23 @@
-; Script to build an installer/uninstaller that has an icon + startup menu item
+; NSIS Script to build an installer/uninstaller that has an icon + startup menu item
+; Download NSIS: https://sourceforge.net/projects/nsis/ (link works as of 2018-04-25)
 ;   Place this file in C:\Program Files (x86)\NSIS\contrib\zip2exe to create an
 ; installer with this configuration and a ZIP bundle of your program files.
 ;   Make sure to put your data files (icon file and license) in %APPDATA%\Local\Temp
 ; because that is where the NSIS Zip2Exe is expecting them
 ;
+; Read this documentation if you are trying to create your own NSIS script:
+; http://nsis.sourceforge.net/Docs/Modern%20UI%202/Readme.html
+;
 ; Using NSIS v3.03, Modern UI v2
 ; Written By Ross Jacobs
 ; TODO
-; * [ ] Installer has installer icon
-; * [ ] Uninstaller has installer icon with a red circle + diagonal strike through it
-; * [ ] Welcome to the Installer (Back grayed out, Next, Cancel)
+; * [x] Installer has installer icon
+; * [x] Uninstaller has installer icon with a red circle + diagonal strike through it
+; * [x] Welcome to the Installer
 ; * [ ] IF PROGRAM REG KEY: Change, repair, or remove installation (sections for change, repair, remove | back, next, cancel at bottom)
 ; * [ ] Uninstall option
 ;   * [ ] Uninstalling deletes the registry key
-; * [ ] Show license and terms
-;   * [ ] Contact Information - merlinkproject AT-sign gmail.com
+; * [x] Show license and terms
 ;   * [x] Show Apache license
 ; * [x] Dialog asking where to store them
 ;   * [ ] OPTION: Start at boot (set selected)
@@ -26,69 +29,120 @@
 ;
 ;
 
-;--------------------------------
+
+; ${PROGRAM_NAME} is defined as part of setup process
+; TODO 64bit vs 32bit
+
 ; Base settings
-  !include "MUI2.nsh"
-  !define MUI_ICON miles.ico
-  !insertmacro MUI_LANGUAGE "English"
+    !include "MUI2.nsh"
+    !define MUI_ICON miles.ico
+    !define MUI_UNICON unmiles.ico
+    !define VERSION '0.2.1'
+    BrandingText "Merlink v${VERSION}"
 
 ;--------------------------------
 ; Definitions
-  !define APPNAME "MerLink"
-  !define DESCRIPTION "A VPN client for Meraki firewalls"
+    !define NAME 'Merlink'
+    !define PRODUCT_WEBSITE 'https://pocc.github.io/merlink/'
+    !define DESCRIPTION 'A VPN client for Meraki firewalls'
+
+    ; Set output file for executable and destination for installation files
+    outfile '${NAME}.exe'
+	InstallDir '$PROGRAMFILES\${NAME}'
+
+    SetOverwrite ifnewer
+    CRCCheck on
 
 ;--------------------------------
 ;Interface Configuration
-  !define MUI_HEADERIMAGE
-  !define MUI_HEADERIMAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Header\nsis.bmp" ; optional
-  !define MUI_ABORTWARNING
+   ; !define MUI_HEADERIMAGE
+    ;!define MUI_HEADERIMAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Header\nsis.bmp" ; optional
+    ;!define MUI_ABORTWARNING
 
 ;--------------------------------
-; Main Pages
+; INSTALLER PAGES
+; Welcome Page
+	!define WELCOME_TITLE 'Welcome to Merlink ${VERSION} setup!'
+	!define MUI_WELCOMEPAGE_TITLE '${WELCOME_TITLE}'
+    !insertmacro MUI_PAGE_WELCOME
+
+    ; You can override the welcome page text and left-side bitmap; however, the default is best for most use cases
+    ;!define MUI_WELCOMEFINISHPAGE_BITMAP nsis3.bmp
+    ;!define MUI_WELCOMEPAGE_TEXT ""
+
 ; Shows license
-  !insertmacro MUI_PAGE_LICENSE LICENSE.txt
+    !insertmacro MUI_PAGE_LICENSE LICENSE.txt
+
 ; Asks user which folder to install in
-  !insertmacro MUI_PAGE_DIRECTORY
+    !insertmacro MUI_PAGE_DIRECTORY
 ; Puts files into install folder
-  !insertmacro MUI_PAGE_INSTFILES
+    !insertmacro MUI_PAGE_INSTFILES
+
+    !insertmacro MUI_UNPAGE_WELCOME
+	!insertmacro MUI_UNPAGE_CONFIRM
+	!insertmacro MUI_UNPAGE_DIRECTORY
+	!insertmacro MUI_UNPAGE_INSTFILES
+	!insertmacro MUI_UNPAGE_FINISH
+
+
+
+;--------------------------------
+; INSTALLATION REGEDITS
+Section "Install"
+	; Start on startup
+	; Uninstall Keys
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Merlink" "UninstallString" "$\"$INSTDIR\uninstall.exe$\""  ; Uninstall by UninstallString
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Merlink" "QuietUninstallString" "$\"$INSTDIR\uninstall.exe$\""  ; Uninstall by UninstallString, /S makes it silent installer
+SectionEnd
+
+;--------------------------------
+; UNINSTALLER PAGES
+; Uninstall page, confirmation, showing directory to remove, removing files, and finish should be sufficient
+
+Section "Uninstall"
+;Delete Files
+  RMDir /r "$INSTDIR\*.*"
+
+;Remove the installation directory
+  RMDir "$INSTDIR"
+
+;Delete Start Menu Shortcuts
+  Delete "$DESKTOP\${NAME}.lnk"
+  Delete "$SMPROGRAMS\${NAME}\*.*"
+  RmDir  "$SMPROGRAMS\${NAME}"
+
+;Delete Uninstaller And Unistall Registry Entries
+  DeleteRegKey HKEY_LOCAL_MACHINE "SOFTWARE\${NAME}"
+  DeleteRegKey HKEY_LOCAL_MACHINE "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
+SectionEnd
 
 ;--------------------------------
 ; Finish Page
-  !define MUI_FINISHPAGE_TITLE "You have successfully installed MerLink!"
-  !define MUI_FINISHPAGE_BUTTON "Finish"
-; On finish page, show README (redirect to github pages)
-  !define MUI_FINISHPAGE_SHOWREADME "https://pocc.github.io/merlink/"
-  !define MUI_FINISHPAGE_SHOWREADME_TEXT "Launch a browser to view the README"
-  !define MUI_FINISHPAGE_LINK "And here's a link to stack overflow just because."
-  !define MUI_FINISHPAGE_LINK_LOCATION "https://stackoverflow.com"
+    !define MUI_FINISHPAGE_TITLE "You have successfully installed MerLink!"
+    !define MUI_FINISHPAGE_BUTTON "Finish"
+    !define MUI_FINISHPAGE_RUN "$INSTDIR\Merlink.exe"
+	!define MUI_FINISHPAGE_SHOWREADME_TEXT "Create Desktop Shortcut"
+	!define MUI_FINISHPAGE_SHOWREADME_FUNCTION CreateDesktopShortcut
+    !define MUI_FINISHPAGE_LINK "View the source on GitHub!"
+    !define MUI_FINISHPAGE_LINK_LOCATION "${PRODUCT_WEBSITE}"
+    ; We shouldn't have to reboot after installation of this application, so don't show users that option
+    !define MUI_FINISHPAGE_NOREBOOTSUPPORT
 ; Actual Macro
-  !insertmacro MUI_PAGE_FINISH
+    !insertmacro MUI_PAGE_FINISH
 
-;--------------------------------
-;Installer Sections
-Section "Dummy Section" SecDummy
-  SetOutPath "$INSTDIR"
-  ;ADD YOUR OWN FILES HERE...
-  ;Store installation folder
-  WriteRegStr HKCU "Software\Modern UI Test" "" $INSTDIR
-  ;Create uninstaller
-  WriteUninstaller "$INSTDIR\Uninstall.exe"
-SectionEnd
+function CreateDesktopShortcut
+	; Create startup directory and Desktop icon
+	setShellVarContext all
+	createDirectory "$SMPROGRAMS\${NAME}"
+	createShortCut "$SMPROGRAMS\${NAME}.lnk" "$INSTDIR\${NAME}.exe" "$INSTDIR\src\media\miles.ico"
+	createShortcut "$DESKTOP\${NAME}.lnk" "$INSTDIR\${NAME}.exe" ""
+functionEnd
 
-;--------------------------------
-;Descriptions
-  ;Language strings
-  LangString DESC_SecDummy ${LANG_ENGLISH} "A test section."
-  ;Assign language strings to sections
-  !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-    !insertmacro MUI_DESCRIPTION_TEXT ${SecDummy} $(DESC_SecDummy)
-  !insertmacro MUI_FUNCTION_DESCRIPTION_END
+; ============================================================================
+; MUI Languages
+; ============================================================================
+; Language: PUT AT BOTTOM OR INSTALLER BREAKS!!!
+    !insertmacro MUI_LANGUAGE "English"
 
-;--------------------------------
-;Uninstaller Section
-Section "Uninstall"
-  ;ADD YOUR OWN FILES HERE...
-  Delete "$INSTDIR\Uninstall.exe"
-  RMDir "$INSTDIR"
-  DeleteRegKey /ifempty HKCU "Software\Modern UI Test"
-SectionEnd
+
+;---------------------------------------------------------------------------------------------------------------------

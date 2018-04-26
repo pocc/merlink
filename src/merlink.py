@@ -429,7 +429,8 @@ class MainWindow(QMainWindow):
         self.status.showMessage("Status: Select organization")
         self.status.setStyleSheet("Background: white")
 
-        self.setWindowTitle('Meraki Client VPN: Main')
+        # Title is an NSIS uninstall reference (see Modern.nsh)
+        self.setWindowTitle('Merlink - VPN Client for Meraki firewalls')
         self.org_dropdown = QComboBox()
         self.org_dropdown.addItems(["-- Select an Organzation --"])
         self.network_dropdown = QComboBox()
