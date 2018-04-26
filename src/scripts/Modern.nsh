@@ -6,6 +6,25 @@
 ;
 ; Using NSIS v3.03, Modern UI v2
 ; Written By Ross Jacobs
+; TODO
+; * [ ] Installer has installer icon
+; * [ ] Uninstaller has installer icon with a red circle + diagonal strike through it
+; * [ ] Welcome to the Installer (Back grayed out, Next, Cancel)
+; * [ ] IF PROGRAM REG KEY: Change, repair, or remove installation (sections for change, repair, remove | back, next, cancel at bottom)
+; * [ ] Uninstall option
+;   * [ ] Uninstalling deletes the registry key
+; * [ ] Show license and terms
+;   * [ ] Contact Information - merlinkproject AT-sign gmail.com
+;   * [x] Show Apache license
+; * [x] Dialog asking where to store them
+;   * [ ] OPTION: Start at boot (set selected)
+;   * [ ] OPTION: Have startup item (set selected)
+;   * [ ] OPTION: Desktop icon (set selected)
+; * [x] Install files to directory
+;   * [ ] Installing will create a registry key for this program
+; * [x] Finish Page "You have successfully installed Merlink!", with links to the github project and stack overflow
+;
+;
 
 ;--------------------------------
 ; Base settings
