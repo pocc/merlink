@@ -1,14 +1,46 @@
 # Windows Powershell
 # Given vpn name, PSK, DDNS, public IP, username and password, use powershell to create  a VPN connection
 
-# Set the local variables to external parameters
-$vpn_name = $args[0]
-$psk = $args[1]
-$ddns = $args[2]
-$mx_ip = $args[3]
-$username = $args[4]
-$password = $args[5]
-$split_tunnel_arg = $args[6]
+##### ADDITIONAL SET-VPNCONNECTION PARAMETERS THAT ARE NOT BEING USED #####
+
+### Switch paramaters ###
+# -AllUserConnection : All users on the PC have access to this VPN connection | Flag with no value required
+# -AsJob (we can make this option available, but it shouldn't actually do anything
+# -PassThru (we can make this optino available, but it shouldn't actually do anything
+
+### CimSession ###
+# -CimSession : Runs the cmdlet in a remote session or on a remote computer.
+
+### String (more) ###
+# -DnsSuffix : contoso.com for server.contoso.com
+# -IdleDisconnectSeconds : sec after which connection will die
+# -RememberCredential : Save the credential so you don't have to reenter (true/false as string)
+# -ServerList : Array of servers that can be connected to
+# -UseWinlogonCredential : Use your widows login
+
+### 3rd party parameters (may be useful later) ###
+# -CustomConfiguration : Requires XML file but will pass parametrs to set-vpnconnection
+# -PlugInApplicationID : Specifies the identifier for a third party application.
+# -ThirdPartyVpn :  Indicates that the cmdlet runs for a third party profile.
+
+### Extra options that may be irrelevant ###
+# -MachineCertificateEKUFilter
+# -MachineCertificateIssuerFilter
+# -ThrottleLimit
+# -EapConfigXmlStream
+# -Confirm
+# -WhatIf
+
+
+# Note that there is no limit on # of powershell ags, but around ~8192 characters on 64bit is a limit
+# Set the local variables to external parameters (all are coming in as string)
+$vpn_name = $args[0]    # String
+$psk = $args[1]                 # String
+$ddns = $args[2]                # String
+$mx_ip = $args[3]               # String
+$username = $args[4]            # String
+$password = $args[5]            # String
+$split_tunnel_arg = $args[6]    # True/False (String)
 $DEBUG = $args[7]
 
 # While debugging, following command will print all variables
