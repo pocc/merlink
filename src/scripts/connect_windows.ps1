@@ -8,13 +8,19 @@ $ddns = $args[2]
 $mx_ip = $args[3]
 $username = $args[4]
 $password = $args[5]
-$is_split_tunnel = $args[6]
+$split_tunnel_arg = $args[6]
 $DEBUG = $args[7]
 
 # While debugging, following command will print all variables
 if ($DEBUG -eq 'True') {
     invoke-expression 'write-host "Debugging ~ vpn_name:" $vpn_name "| psk:" $psk "| ddns:" $ddns "| mx_ip:" $mx_ip "| username:" $username "| password:" $password "| split_tunnel:" $is_split_tunnel'
 }
+
+# Manually assign boolean true for string true so we don't have to deal with it in parameter passing
+if ($split_tunnel_arg -eq 'True'){
+    $is_split_tunnel = $True
+}
+else {$is_split_tunnel = $False}
 
 # Disconnect from any other VPNs first
 foreach ($connection in Get-VpnConnection) {
