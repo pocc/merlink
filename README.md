@@ -10,7 +10,7 @@ This program will connect desktop clients to Meraki firewalls. This project is s
     * [x] Executables
     * [ ] Autostart on Login
     * [ ] Systray icon that is minimized when connected
-    * [ ] Split Tunnel
+    * [x] Split Tunnel
 * [x] Network Troubleshooting
   * [x] Basic validation tests prior to connection
     * [x] Is the MX online?
@@ -64,10 +64,10 @@ Download the executables [here](https://github.com/pocc/merlink/releases).
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](https://github.com/pocc/merlink/blob/merlink/CONTRIBUTING.md) for the process for submitting pull requests.
-To set up your Windows environment, please read [ENV_SETUP.md](https://github.com/pocc/merlink/blob/merlink/ENV_SETUP.md)
+Please read [CONTRIBUTING.md](https://github.com/pocc/merlink/blob/master/docs/CONTRIBUTING.md) for the process for submitting pull requests.
+To set up your Windows environment, please read [pycharm_setup.md](https://github.com/pocc/merlink/blob/master/docs/pycharm_setup.md)
 
-## Versioning
+## Versioninghttps://github.com/pocc/merlink/blob/master/docs/CONTRIBUTING.md
 
 [SemVer](http://semver.org/) is used for versioning: 
 * MAJOR version: Incompatible UI from previous version from a user's perspective
