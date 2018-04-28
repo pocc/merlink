@@ -638,10 +638,15 @@ class MainWindow(QMainWindow):
                 self.password = self.password.replace('$', '`$')
                 # Setting execution policy to unrestricted is necessary so that we can access VPN functions
                 # Sending DDNS and IP so if DDNS fails, windows can try IP as well
+
+                # Variables set to default:
+                self.remember_credential = False
+
                 result = subprocess.call(
                     [powershell_path, '-ExecutionPolicy', 'Unrestricted',
                      self.cwd + '\scripts\connect_windows.ps1', vpn_name, self.psk, self.current_ddns,
-                     self.current_primary_ip, self.username, self.password, str(self.split_tunnel), str(DEBUG)]
+                     self.current_primary_ip, self.username, self.password, str(self.split_tunnel), str(DEBUG),
+                     str(self.remember_credential)]
                 )
                 print("MainWindow and the result is " + str(result) + str(type(result)))
                 if result == 0:
