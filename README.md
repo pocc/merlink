@@ -31,9 +31,8 @@ This program will connect desktop clients to Meraki firewalls. This project is s
   * [ ] Preferences dialog to catalog VPN options
   * [ ] Image advert + link on login page
   * [ ] "I'm feeling lucky" button that will get info for and connect you to a random security appliance
-  * [ ] Gray out GUI options that MVP (on that platform) won't have access to)  
   
-## Getting Started
+## Installing Merlink
 ### Executables
 Download the executables [here](https://github.com/pocc/merlink/releases).
 
@@ -55,19 +54,14 @@ Download the executables [here](https://github.com/pocc/merlink/releases).
 * language: python3 
 * libraries: pyqt5 bs4 mechanicalsoup cx_freeze
 
-## Built With
-
-* [PyCharm](https://www.jetbrains.com/pycharm/) - IDE
-* [Python 3](https://www.python.org/) - Base language
-* [PyQt5](http://pyqt.sourceforge.net/Docs/PyQt5/) - Python GUI Toolkit
-* [Mechanical Soup](https://github.com/MechanicalSoup/MechanicalSoup) - Web scraper for Python 3
-
 ## Contributing
 
 Please read [CONTRIBUTING.md](https://github.com/pocc/merlink/blob/master/docs/CONTRIBUTING.md) for the process for submitting pull requests.
+
+### Setting up your environment
 To set up your Windows environment, please read [pycharm_setup.md](https://github.com/pocc/merlink/blob/master/docs/pycharm_setup.md)
 
-## Versioninghttps://github.com/pocc/merlink/blob/master/docs/CONTRIBUTING.md
+### Versioning
 
 [SemVer](http://semver.org/) is used for versioning: 
 * MAJOR version: Incompatible UI from previous version from a user's perspective
@@ -76,15 +70,24 @@ To set up your Windows environment, please read [pycharm_setup.md](https://githu
 
 For the versions available, see the [tags on this repository](https://github.com/pocc/merlink/tags). 
 
-## Authors
+## Addenda
+### Reference Material
+* [Qt5](https://doc.qt.io/qt-5/index.html) - Comprehensive Qt reference made by the Qt company. It is made for C++, but will supply the information you need about classes and functions.
+* [PyQt5](http://pyqt.sourceforge.net/Docs/PyQt5/) - Documentation for PyQt5. This is a copypaste of the Qt docs applied to Python, and generally contains less useful information  
+* [PyCharm](https://www.jetbrains.com/pycharm/) - IDE used
+* [Python 3](https://www.python.org/) - Base language
+* [Mechanical Soup](https://github.com/MechanicalSoup/MechanicalSoup) - Web scraper for Python 3
+* [Powershell VPN Client docs](https://docs.microsoft.com/en-us/powershell/module/vpnclient/?view=win10-ps) - Collection of manpages for VPN Client-specific powershell functions.
+
+### License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE.md](LICENSE.md) file for details.
+
+### Authors
 
 * **Ross Jacobs** - *Initial work* - [pocc](https://github.com/pocc)
 
 See also the list of [contributors](https://github.com/pocc/merlink/contributors) who participated in this project.
 
-## License
-
-This project is licensed under the Apache License 2.0 - see the [LICENSE.md](LICENSE.md) file for details.
-
-## Acknowledgments
+### Acknowledgments
 Praise be Stack Overflow!
