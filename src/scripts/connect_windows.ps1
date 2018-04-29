@@ -12,6 +12,9 @@
 ### CimSession ###
 # -CimSession : Runs the cmdlet in a remote session or on a remote computer.
 
+### CimInstance ###
+# -ServerList : CimInstance Array of servers that can be connected to
+
 ### String ###
 # +++ -Name : Name of the VPN connection
 # +++ -ServerAddress : Address of the Server
@@ -19,13 +22,12 @@
 # +++ -TunnelType : Type of the tunnel. For Meraki FWs, this is L2TP
 # +++ -L2tpPsk : Pre-Shared Key for L2TP
 # -DnsSuffix : contoso.com for server.contoso.com
-# -IdleDisconnectSeconds : sec after which connection will die
-# -ServerList : Array of servers that can be connected to
-# -UseWinlogonCredential : Use your widows login
+# -IdleDisconnectSeconds : seconds after which connection will die
+# -UseWinlogonCredential : Use your windows login credentials
 
 ### $True/$False is passed in as string parameter ###
 # +++ -SplitTunneling : Go to the internet via your local connection instead of through the remote FW
-# -RememberCredential : Save the credential so you don't have to reenter
+# +++ -RememberCredential : Save the credential so you don't have to reenter
 
 ### 3rd party parameters (may be useful later) ###
 # -CustomConfiguration : Requires XML file but will pass parametrs to set-vpnconnection
@@ -40,35 +42,28 @@
 # -Confirm
 # -WhatIf
 
+write-host "In powershell script"
 
 # Note that there is no limit on # of powershell ags, but around ~8192 characters on 64bit is a limit
 # Set the local variables to external parameters (all are coming in as string)
-$vpn_name = $args[0]            # String
-$psk = $args[1]                 # String
-$ddns = $args[2]                # String
-$mx_ip = $args[3]               # String
-$username = $args[4]            # String
-$password = $args[5]            # String
-$split_tunnel_arg = $args[6]    # True/False (String)
-$DEBUG = $args[7]               # If DEBUG var is set in python
-$remember_cred_arg = $args[8]   # True/False (String)
+$vpn_name = $args[0]                    # String
+$psk = $args[1]                         # String
+$ddns = $args[2]                        # String
+$mx_ip = $args[3]                       # String
+$username = $args[4]                    # String
+$password = $args[5]                    # String
+$DnsSuffix = $args[6]                   # String
+$IdleDisconnectSeconds = [int]$args[7]  # Integer (of seconds), converting to int
+$DEBUG = $args[8]                       # If DEBUG var is set in python
+$is_split_tunnel = [int]$args[9]        # 0/1 (String), converting to int
+$has_remember_credential=[int]$args[10] # 0/1 (String), converting to int
+$UseWinlogonCredential = [int]$args[11] # 0/1 (String), converting to int
 
 # While debugging, following command will print all variables
-if ($DEBUG -eq 'True') {
-    invoke-expression 'write-host "Debugging ~ vpn_name:" $vpn_name "| psk:" $psk "| ddns:" $ddns "| mx_ip:" $mx_ip "| username:" $username "| password:" $password "| split_tunnel:" $is_split_tunnel'
-}
 
-# Manually assign boolean true for string true so we don't have to deal with it in parameter passing
-
-# Set Split Tunnel var as PS bool
-if ($split_tunnel_arg -eq 'True') {
-        $is_split_tunnel = $True
-} else {$is_split_tunnel = $False}
-
-# Set RememberCredential var as PS bool
-if ($remember_cred_arg -eq 'True') {
-        $has_remember_credential = $True
-} else {$has_remember_credential = $False}
+invoke-expression 'write-host "Debugging ~ vpn_name:" $vpn_name "| psk:" $psk "| ddns:" $ddns "| mx_ip:" $mx_ip "| username:" $username "| password:" $password "| split_tunnel:" $is_split_tunnel'
+invoke-expression 'write-host "Debugging ~ remem_cred " $has_remember_credential "| dns suffix" $DnsSuffix'
+invoke-expression 'write-host "Debugging ~ idle_connect_sec " $args[10] "| usewinlogoncred" $args[11]'
 
 # Disconnect from any active VPNs first
 foreach ($connection in Get-VpnConnection) {
@@ -85,8 +80,9 @@ $ErrorActionPreference = 'Continue'
 
 # Add required settings for Meraki VPN
 Set-VpnConnection -name $vpn_name -ServerAddress $mx_ip -AuthenticationMethod PAP -L2tpPsk $psk -TunnelType L2tp `
--RememberCredential $has_remember_credential -SplitTunneling $is_split_tunnel -Force `
--WarningAction SilentlyContinue
+-DnsSuffix $DnsSuffix -IdleDisconnectSeconds $IdleDisconnectSeconds -RememberCredential $has_remember_credential `
+-SplitTunneling $is_split_tunnel -UseWinlogonCredential $UseWinlogonCredential `
+-Force -WarningAction SilentlyContinue
 # rasdial connects a VPN (and is really old - it connects using a phonebook!)
 $result = rasdial $vpn_name $username $password
 

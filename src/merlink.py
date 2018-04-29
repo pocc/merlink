@@ -641,13 +641,21 @@ class MainWindow(QMainWindow):
 
                 # Variables set to default:
                 self.remember_credential = False
-
+                self.DnsSuffix = 'contoso.com'
+                self.IdleDisconnectSeconds = 86400  # 86400 sec = 1 day, 4294967295 is max for this var (UINT32)
+                self.UseWinlogonCredential = False
+                if DEBUG:
+                    print("attempting to connect via powershell script")
+                # Arguments sent to powershell MUST BE STRINGS
+                # Last 3 ps params are bools converted to ints (0/1) converted to strings. It's easy to force convert
+                # '0' and '1' to ints on powershell side
                 result = subprocess.call(
-                    [powershell_path, '-ExecutionPolicy', 'Unrestricted',
-                     self.cwd + '\scripts\connect_windows.ps1', vpn_name, self.psk, self.current_ddns,
-                     self.current_primary_ip, self.username, self.password, str(self.split_tunnel), str(DEBUG),
-                     str(self.remember_credential)]
-                )
+                        [powershell_path, '-ExecutionPolicy', 'Unrestricted',
+                         self.cwd + '\scripts\connect_windows.ps1', vpn_name, self.psk, self.current_ddns,
+                         self.current_primary_ip, self.username, self.password, self.DnsSuffix,
+                         str(self.IdleDisconnectSeconds),  str(DEBUG), str(int(self.split_tunnel)),
+                         str(int(self.remember_credential)), str(int(self.UseWinlogonCredential))])
+                # subprocess.Popen([], creationflags=subprocess.CREATE_NEW_CONSOLE)  # open ps window
                 print("MainWindow and the result is " + str(result) + str(type(result)))
                 if result == 0:
                     self.status.showMessage('Status: Connected')
