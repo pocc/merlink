@@ -10,9 +10,8 @@ import webbrowser
 # Qt5
 from PyQt5.QtWidgets import (QApplication, QWidget, QPushButton, QLabel, QSystemTrayIcon, QTextEdit, QLineEdit,
                              QVBoxLayout, QComboBox, QMainWindow, QAction, QDialog, QMessageBox, QSpinBox,
-                             QStatusBar, QFrame, QListWidget, QListWidgetItem, QCheckBox, QHBoxLayout)
+                             QStatusBar, QFrame, QListWidget, QListWidgetItem, QCheckBox, QHBoxLayout, QMenu)
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import Qt
 
 # Web Scraping
 import re
@@ -47,6 +46,9 @@ class MainWindow(QMainWindow):
         self.org_list = []
         self.validation_list = QListWidget()
         self.cwd = getcwd()  # get current working directory. We use cwd in multiple places, so fetch it once
+
+        # Set the Window and Tray Icons
+        self.setWindowIcon(QIcon(self.cwd + '/media/miles.ico'))
 
         # Powershell Variables set to defaults
         self.split_tunnel = False  # Expected behavior is to have full-tunnel by default
@@ -420,12 +422,9 @@ class MainWindow(QMainWindow):
         dev_message.exec_()
 
     def main_init_ui(self):
-        # Set the Window and Tray Icons
-        self.setWindowIcon(QIcon(self.cwd + '/media/miles_meraki.png'))
-        tray_icon = QSystemTrayIcon(QIcon(self.cwd + '/media/miles_meraki.png'))
-        tray_icon.show()
-
         # Create a horizontal line above the status bar to highlight it
+
+
         self.hline = QFrame()
         self.hline.setFrameShape(QFrame.HLine)
         self.hline.setFrameShadow(QFrame.Sunken)
@@ -701,6 +700,11 @@ class MainWindow(QMainWindow):
                     success_message.setWindowTitle("Success!")
                     success_message.setText("Successfully Connected!")
                     success_message.exec_()
+
+                    # There's no such thing as "minimize to system tray". What we're doing is hiding the window and
+                    # then adding an icon to the system tray
+                    self.hide()
+
                 else:
                     self.status.showMessage('Status: Connection Failed')
                     self.error_message("Connection Failed")
@@ -739,7 +743,6 @@ class MainWindow(QMainWindow):
 
 
 DEBUG = True
-app = None
 
 
 def main():  # Syntax per PyQt recommendations: http://pyqt.sourceforge.net/Docs/PyQt5/gotchas.html
@@ -748,11 +751,12 @@ def main():  # Syntax per PyQt recommendations: http://pyqt.sourceforge.net/Docs
     # QDialog has two return values: Accepted and Rejected
     # login_window.exec_() will execute while we keep on getting Rejected
     if login_window.exec_() == QDialog.Accepted:
+        tray_icon = QSystemTrayIcon(QIcon(getcwd() + '/media/miles.ico'))
+        tray_icon.show()
         main_window = MainWindow(login_window.get_browser(), login_window.username, login_window.password)
         main_window.show()
 
     sys.exit(app.exec_())
-
 
 if __name__ == '__main__':
     main()
