@@ -8,9 +8,9 @@ import sys
 import webbrowser
 
 # Qt5
-from PyQt5.QtWidgets import (QApplication, QWidget, QPushButton, QLabel, QSystemTrayIcon, QTextEdit,
-                             QVBoxLayout, QComboBox, QMainWindow, QAction, QDialog, QMessageBox,
-                             QStatusBar, QFrame, QListWidget, QListWidgetItem, QCheckBox)
+from PyQt5.QtWidgets import (QApplication, QWidget, QPushButton, QLabel, QSystemTrayIcon, QTextEdit, QLineEdit,
+                             QVBoxLayout, QComboBox, QMainWindow, QAction, QDialog, QMessageBox, QSpinBox,
+                             QStatusBar, QFrame, QListWidget, QListWidgetItem, QCheckBox, QHBoxLayout)
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 
@@ -47,7 +47,13 @@ class MainWindow(QMainWindow):
         self.org_list = []
         self.validation_list = QListWidget()
         self.cwd = getcwd()  # get current working directory. We use cwd in multiple places, so fetch it once
+
+        # Powershell Variables set to defaults
         self.split_tunnel = False  # Expected behavior is to have full-tunnel by default
+        self.remember_credential = False
+        self.DnsSuffix = '-'  # If it's set to '', then powershell will skip reading that parameter.
+        self.IdleDisconnectSeconds = 0  # Powershell default indicating that we shouldn't disconnect after x seconds
+        self.UseWinlogonCredential = False
 
         # QMainWindow requires that a central widget be set
         self.cw = QWidget(self)
@@ -400,13 +406,11 @@ class MainWindow(QMainWindow):
             if ret == QMessageBox.Yes:
                 self.enable_client_vpn()
 
-
         self.status.showMessage("Status: Ready to connect to " + self.current_network + ".")
 
     def enable_client_vpn(self):
         self.feature_in_development()
         pass
-
 
     def feature_in_development(self):
         dev_message = QMessageBox()
@@ -448,27 +452,44 @@ class MainWindow(QMainWindow):
             if DEBUG:
                 print("org_qty <= 0")
 
-        self.connection_prefs = QListWidget()
-        self.connection_prefs.setFixedHeight(72)  # Each item is 18 pixels high, with 4 items
-        connection_prefs_list = [
-            "Remember Credentials?",
-            "DNS Suffix?",
-            "Idle Disconnect Seconds?",
-            "Use Windows Logon Credentials?"]
-        for i in range(len(connection_prefs_list)):
-            item = QListWidgetItem(connection_prefs_list[i])  # Initialize a QListWidgetItem out of a string
-            item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
-            item.setCheckState(Qt.Unchecked)
-            self.connection_prefs.addItem(item)
+        # Ask the user for int/str values if they want to enter them
+        self.idle_disconnect_layout = QHBoxLayout()
+        self.idle_disconnect_chkbox = QCheckBox("Idle disconnect seconds?")
+        self.idle_disconnect_spinbox = QSpinBox()
+        self.idle_disconnect_spinbox.setValue(0)
+        self.idle_disconnect_spinbox.setMinimum(0)  # Negative seconds aren't useful here
+        self.idle_disconnect_layout.addWidget(self.idle_disconnect_chkbox)
+        self.idle_disconnect_layout.addWidget(self.idle_disconnect_spinbox)
+
+        self.dns_suffix_layout = QHBoxLayout()
+        self.dns_suffix_chkbox = QCheckBox("DNS Suffix?")  # Add a textbox here
+        self.dns_suffix_txtbox = QLineEdit('-')
+        self.dns_suffix_layout.addWidget(self.dns_suffix_chkbox)
+        self.dns_suffix_layout.addWidget(self.dns_suffix_txtbox)
+
+        # Boolean asks of the user
+        self.split_tunneled_chkbox = QCheckBox("Split-Tunnel?")
+        self.remember_credential_chkbox = QCheckBox("Remember Credentials?")
+        self.use_winlogon_chkbox = QCheckBox("Use Windows Logon Credentials")
 
         self.connect_btn = QPushButton("Connect")
 
         vert_layout = QVBoxLayout()
+        # Add dropdowns
         vert_layout.addWidget(self.org_dropdown)
         vert_layout.addWidget(self.network_dropdown)
-        # vert_layout.addStretch()
         vert_layout.addWidget(self.validation_list)
-        vert_layout.addWidget(self.connection_prefs)
+
+        # Add layouts for specialized params
+        vert_layout.addLayout(self.idle_disconnect_layout)
+        vert_layout.addLayout(self.dns_suffix_layout)
+
+        # Add checkboxes
+        vert_layout.addWidget(self.split_tunneled_chkbox)
+        vert_layout.addWidget(self.remember_credential_chkbox)
+        vert_layout.addWidget(self.use_winlogon_chkbox)
+
+        # Add stuff at bottom
         vert_layout.addWidget(self.connect_btn)
         vert_layout.addWidget(self.hline)
         vert_layout.addWidget(self.status)
@@ -572,16 +593,12 @@ class MainWindow(QMainWindow):
         self.prefs = QDialog()
         layout = QVBoxLayout()
         self.prefs_heading = QLabel('<h1>Preferences</h1>')
-        split_tunneled_chkbox = QCheckBox("Split-Tunnel?")
-        split_tunneled_chkbox.setChecked(self.split_tunnel)  # By default, we want to full-tunnel
-        split_tunneled_chkbox.toggled.connect(self.invert_split_tunnel)
         layout.addWidget(self.prefs_heading)
-        layout.addWidget(split_tunneled_chkbox)
         self.prefs.setLayout(layout)
         self.prefs.show()
 
-    def invert_split_tunnel(self):
-        self.split_tunnel = not self.split_tunnel
+    def invert_bool(self, boolvar):
+        return not boolvar
 
     def view_interfaces_action(self):
         # If linux/macos > ifconfig
@@ -650,20 +667,25 @@ class MainWindow(QMainWindow):
                 self.psk = self.psk.replace('$', '`$')
                 self.username = self.username.replace('$', '`$')
                 self.password = self.password.replace('$', '`$')
-                # Setting execution policy to unrestricted is necessary so that we can access VPN functions
-                # Sending DDNS and IP so if DDNS fails, windows can try IP as well
 
-                # Powershell Variables set to whatever is checked
-                self.remember_credential = False
-                self.DnsSuffix = ''
-                self.IdleDisconnectSeconds = 86400
-                self.UseWinlogonCredential = False
+                # Get values from spinboxes/textfields
+                self.IdleDisconnectSeconds = self.idle_disconnect_spinbox.value()
+                self.DnsSuffix = self.dns_suffix_txtbox.text()
+                if self.DnsSuffix.isspace():  # If they've only submitted space, convert to '-' so PS will not break
+                    self.DnsSuffix = '-'
+
+                # Get values from checkboxes and text fields
+                self.split_tunnel = self.split_tunneled_chkbox.checkState()
+                self.remember_credential = self.remember_credential_chkbox.checkState()
+                self.UseWinlogonCredential = self.use_winlogon_chkbox.checkState()
 
                 if DEBUG:
                     print("attempting to connect via powershell script")
                 # Arguments sent to powershell MUST BE STRINGS
+                # Each argument cannot be the empty string or null or PS will think there's no param there!!!
                 # Last 3 ps params are bools converted to ints (0/1) converted to strings. It's easy to force convert
                 # '0' and '1' to ints on powershell side
+                # Setting execution policy to unrestricted is necessary so that we can access VPN functions
                 result = subprocess.call(
                         [powershell_path, '-ExecutionPolicy', 'Unrestricted',
                          self.cwd + '\scripts\connect_windows.ps1', vpn_name, self.psk, self.current_ddns,
