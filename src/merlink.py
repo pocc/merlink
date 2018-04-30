@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QPushButton, QLabel, QSystem
                              QVBoxLayout, QComboBox, QMainWindow, QAction, QDialog, QMessageBox,
                              QStatusBar, QFrame, QListWidget, QListWidgetItem, QCheckBox)
 from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import Qt
 
 # Web Scraping
 import re
@@ -52,7 +53,7 @@ class MainWindow(QMainWindow):
         self.cw = QWidget(self)
         self.setCentralWidget(self.cw)
         # CURRENT minimum width of Main Window - SUBJECT TO CHANGE as features are added
-        self.cw.setMinimumWidth(330)
+        # self.cw.setMinimumWidth(400)
 
         self.browser = browser_session
         self.username = username
@@ -273,9 +274,9 @@ class MainWindow(QMainWindow):
             "Are UDP ports 500/4500 port forwarded through firewall?"]
             # "Is the user authorized for Client VPN?",
         has_passed_validation = [True] * 6  # False for failed, True for passed
-        for i in range(len(validation_textlist)):
-            item = QListWidgetItem(validation_textlist[i])
-            self.validation_list.addItem(item)
+        for i in range(len(validation_textlist)):  # For as many times as there are items in the validation_textlist
+            item = QListWidgetItem(validation_textlist[i])  # Initialize a QListWidgetItem out of a string
+            self.validation_list.addItem(item)  # Add the item to the QListView
 
         # *** TEST 0 ***
         # Is the MX online?
@@ -447,13 +448,27 @@ class MainWindow(QMainWindow):
             if DEBUG:
                 print("org_qty <= 0")
 
+        self.connection_prefs = QListWidget()
+        self.connection_prefs.setFixedHeight(72)  # Each item is 18 pixels high, with 4 items
+        connection_prefs_list = [
+            "Remember Credentials?",
+            "DNS Suffix?",
+            "Idle Disconnect Seconds?",
+            "Use Windows Logon Credentials?"]
+        for i in range(len(connection_prefs_list)):
+            item = QListWidgetItem(connection_prefs_list[i])  # Initialize a QListWidgetItem out of a string
+            item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
+            item.setCheckState(Qt.Unchecked)
+            self.connection_prefs.addItem(item)
+
         self.connect_btn = QPushButton("Connect")
 
         vert_layout = QVBoxLayout()
         vert_layout.addWidget(self.org_dropdown)
         vert_layout.addWidget(self.network_dropdown)
-        vert_layout.addStretch()
+        # vert_layout.addStretch()
         vert_layout.addWidget(self.validation_list)
+        vert_layout.addWidget(self.connection_prefs)
         vert_layout.addWidget(self.connect_btn)
         vert_layout.addWidget(self.hline)
         vert_layout.addWidget(self.status)
@@ -559,7 +574,6 @@ class MainWindow(QMainWindow):
         self.prefs_heading = QLabel('<h1>Preferences</h1>')
         split_tunneled_chkbox = QCheckBox("Split-Tunnel?")
         split_tunneled_chkbox.setChecked(self.split_tunnel)  # By default, we want to full-tunnel
-        # This line of code causes merlink to crash
         split_tunneled_chkbox.toggled.connect(self.invert_split_tunnel)
         layout.addWidget(self.prefs_heading)
         layout.addWidget(split_tunneled_chkbox)
@@ -639,11 +653,12 @@ class MainWindow(QMainWindow):
                 # Setting execution policy to unrestricted is necessary so that we can access VPN functions
                 # Sending DDNS and IP so if DDNS fails, windows can try IP as well
 
-                # Variables set to default:
+                # Powershell Variables set to whatever is checked
                 self.remember_credential = False
-                self.DnsSuffix = 'contoso.com'
-                self.IdleDisconnectSeconds = 86400  # 86400 sec = 1 day, 4294967295 is max for this var (UINT32)
+                self.DnsSuffix = ''
+                self.IdleDisconnectSeconds = 86400
                 self.UseWinlogonCredential = False
+
                 if DEBUG:
                     print("attempting to connect via powershell script")
                 # Arguments sent to powershell MUST BE STRINGS
@@ -700,6 +715,7 @@ class MainWindow(QMainWindow):
         error_message.setText(message)
         error_message.exec_()
 
+
 DEBUG = True
 app = None
 
@@ -714,6 +730,7 @@ def main():  # Syntax per PyQt recommendations: http://pyqt.sourceforge.net/Docs
         main_window.show()
 
     sys.exit(app.exec_())
+
 
 if __name__ == '__main__':
     main()
