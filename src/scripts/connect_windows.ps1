@@ -42,7 +42,6 @@
 # -Confirm
 # -WhatIf
 
-write-host "In powershell script"
 
 # Note that there is no limit on # of powershell ags, but around ~8192 characters on 64bit is a limit
 # Set the local variables to external parameters (all are coming in as string)
@@ -60,10 +59,8 @@ $has_remember_credential=[int]$args[10] # 0/1 (String), converting to int
 $UseWinlogonCredential = [int]$args[11] # 0/1 (String), converting to int
 
 # While debugging, following command will print all variables
-
-invoke-expression 'write-host "Debugging ~ vpn_name:" $vpn_name "| psk:" $psk "| ddns:" $ddns "| mx_ip:" $mx_ip "| username:" $username "| password:" $password "| split_tunnel:" $is_split_tunnel'
-invoke-expression 'write-host "Debugging ~ remem_cred " $has_remember_credential "| dns suffix" $DnsSuffix'
-invoke-expression 'write-host "Debugging ~ idle_connect_sec " $args[10] "| usewinlogoncred" $args[11]'
+write-host "These are the parameters that powershell received:"
+for ($i=0; $i -lt 12; $i++) {write-host "$i th parameter is $($args[$i])"}
 
 # Disconnect from any active VPNs first
 foreach ($connection in Get-VpnConnection) {
@@ -80,9 +77,15 @@ $ErrorActionPreference = 'Continue'
 
 # Add required settings for Meraki VPN
 Set-VpnConnection -name $vpn_name -ServerAddress $mx_ip -AuthenticationMethod PAP -L2tpPsk $psk -TunnelType L2tp `
--DnsSuffix $DnsSuffix -IdleDisconnectSeconds $IdleDisconnectSeconds -RememberCredential $has_remember_credential `
+ -RememberCredential $has_remember_credential `
 -SplitTunneling $is_split_tunnel -UseWinlogonCredential $UseWinlogonCredential `
 -Force -WarningAction SilentlyContinue
+
+# Only set these variables if the user has set them
+if ($DnsSuffix -ne '-') {  # In python script, '-' is default
+    Set-VpnConnection -name $vpn_name -DnsSuffix $DnsSuffix
+}
+
 # rasdial connects a VPN (and is really old - it connects using a phonebook!)
 $result = rasdial $vpn_name $username $password
 
