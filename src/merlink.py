@@ -10,7 +10,8 @@ import webbrowser
 # Qt5
 from PyQt5.QtWidgets import (QApplication, QWidget, QPushButton, QLabel, QSystemTrayIcon, QTextEdit, QLineEdit,
                              QVBoxLayout, QComboBox, QMainWindow, QAction, QDialog, QMessageBox, QSpinBox,
-                             QStatusBar, QFrame, QListWidget, QListWidgetItem, QCheckBox, QHBoxLayout, QMenu)
+                             QStatusBar, QFrame, QListWidget, QListWidgetItem, QCheckBox, QHBoxLayout, QMenu,
+                             QTabWidget)
 from PyQt5.QtGui import QIcon
 
 # Web Scraping
@@ -451,6 +452,15 @@ class MainWindow(QMainWindow):
             if DEBUG:
                 print("org_qty <= 0")
 
+        # Add 2 tabs - one for using dashboard and one for adding information manually
+        self.data_entry_tabs = QTabWidget()
+        self.dashboard_tab = QWidget()
+        self.manual_tab = QWidget()
+        # self.tabs.resize(300, 200)
+        self.data_entry_tabs.addTab(self.dashboard_tab, "Dashboard Login")
+        self.data_entry_tabs.addTab(self.manual_tab, "Manual Entry")
+
+        # Add tabs
         # Ask the user for int/str values if they want to enter them
         self.idle_disconnect_layout = QHBoxLayout()
         self.idle_disconnect_chkbox = QCheckBox("Idle disconnect seconds?")
@@ -474,10 +484,14 @@ class MainWindow(QMainWindow):
         self.connect_btn = QPushButton("Connect")
 
         vert_layout = QVBoxLayout()
+        vert_layout.addWidget(self.data_entry_tabs)
+        self.dashboard_tab.layout = QVBoxLayout()
+        self.manual_tab.layout = QVBoxLayout()
+
         # Add dropdowns
-        vert_layout.addWidget(self.org_dropdown)
-        vert_layout.addWidget(self.network_dropdown)
-        vert_layout.addWidget(self.validation_list)
+        self.dashboard_tab.layout.addWidget(self.org_dropdown)
+        self.dashboard_tab.layout.addWidget(self.network_dropdown)
+        self.dashboard_tab.layout.addWidget(self.validation_list)
 
         # Add layouts for specialized params
         vert_layout.addLayout(self.idle_disconnect_layout)
@@ -492,6 +506,7 @@ class MainWindow(QMainWindow):
         vert_layout.addWidget(self.connect_btn)
         vert_layout.addWidget(self.hline)
         vert_layout.addWidget(self.status)
+        self.dashboard_tab.setLayout(self.dashboard_tab.layout)
         self.cw.setLayout(vert_layout)
 
         # Get the data we need and remove the cruft we don't
