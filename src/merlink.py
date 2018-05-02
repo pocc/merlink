@@ -488,10 +488,30 @@ class MainWindow(QMainWindow):
         self.dashboard_tab.layout = QVBoxLayout()
         self.manual_tab.layout = QVBoxLayout()
 
-        # Add dropdowns
+        # Add Dashboard Entry-only dropdowns
         self.dashboard_tab.layout.addWidget(self.org_dropdown)
         self.dashboard_tab.layout.addWidget(self.network_dropdown)
         self.dashboard_tab.layout.addWidget(self.validation_list)
+
+        # Add Manual Entry-only text fields
+        # Format for manual entry is label on one line and textfield on the line below
+        # Labels for fields are added inline when we add widgets
+        self.vpn_name_textfield = QLineEdit()
+        self.mx_ip_textfield = QLineEdit()
+        self.psk_textfield = QLineEdit()
+        self.username_textfield = QLineEdit()
+        self.password_textfield = QLineEdit()
+        self.password_textfield.setEchoMode(QLineEdit.Password)  # Make password appear as dots
+        self.manual_tab.layout.addWidget(QLabel("VPN Name"))
+        self.manual_tab.layout.addWidget(self.vpn_name_textfield)
+        self.manual_tab.layout.addWidget(QLabel("MX Primary Public IP"))
+        self.manual_tab.layout.addWidget(self.mx_ip_textfield)
+        self.manual_tab.layout.addWidget(QLabel("Preshared Key"))
+        self.manual_tab.layout.addWidget(self.psk_textfield)
+        self.manual_tab.layout.addWidget(QLabel("Email"))
+        self.manual_tab.layout.addWidget(self.username_textfield)
+        self.manual_tab.layout.addWidget(QLabel("Password"))
+        self.manual_tab.layout.addWidget(self.password_textfield)
 
         # Add layouts for specialized params
         vert_layout.addLayout(self.idle_disconnect_layout)
@@ -506,6 +526,7 @@ class MainWindow(QMainWindow):
         vert_layout.addWidget(self.connect_btn)
         vert_layout.addWidget(self.hline)
         vert_layout.addWidget(self.status)
+        self.manual_tab.setLayout(self.manual_tab.layout)
         self.dashboard_tab.setLayout(self.dashboard_tab.layout)
         self.cw.setLayout(vert_layout)
 
@@ -661,7 +682,9 @@ class MainWindow(QMainWindow):
         about_popup.exec_()
 
     def attempt_connection(self):
-        if 'Select' not in self.org_dropdown.currentText() and 'Select' not in self.network_dropdown.currentText():
+        # If they've selected organization and network OR they've entered everything manually
+        if ('Select' not in self.org_dropdown.currentText() and 'Select' not in self.network_dropdown.currentText()) \
+                or self.data_entry_tabs.currentIndex() == 1:
             # Change status to reflect we're connecting. For fast connections, you might not see this message
             self.status.showMessage('Status: Connecting...')
             result = 1  # If result doesn't get assigned, we assume program to have failed
@@ -675,6 +698,19 @@ class MainWindow(QMainWindow):
                     powershell_path = 'C:\\Windows\\SysWOW64\\WindowsPowerShell\\v1.0\\powershell.exe'
                 else:  # arch MUST be 32bit if not 64bit
                     powershell_path = 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe'
+
+                if self.data_entry_tabs.currentIndex() == 1:  # If this is the manual entry tab, set vars here
+                    vpn_name = self.vpn_name_textfield.text()
+                    self.psk = self.psk_textfield.text()
+                    self.current_primary_ip = self.mx_ip_textfield.text()
+                    self.username = self.username_textfield.text()
+                    self.password = self.password_textfield.text()
+                    print(vpn_name)
+                    print(self.psk)
+                    print(self.current_primary_ip)
+                    print(self.username)
+                    print(self.password)
+                    # self.current_ddns = (it's not certain that having DDNS is necessary here)
 
                 # Sanitize variables for powershell input: '$' -> '`$'
                 vpn_name = vpn_name.replace('$', '`$')
@@ -772,6 +808,7 @@ def main():  # Syntax per PyQt recommendations: http://pyqt.sourceforge.net/Docs
         main_window.show()
 
     sys.exit(app.exec_())
+
 
 if __name__ == '__main__':
     main()
