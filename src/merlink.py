@@ -52,6 +52,7 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(QIcon(self.cwd + '/media/miles.ico'))
 
         # Powershell Variables set to defaults
+        self.current_ddns = '-'  # set to default hyphen char as a failsafe
         self.split_tunnel = False  # Expected behavior is to have full-tunnel by default
         self.remember_credential = False
         self.DnsSuffix = '-'  # If it's set to '', then powershell will skip reading that parameter.
@@ -705,11 +706,6 @@ class MainWindow(QMainWindow):
                     self.current_primary_ip = self.mx_ip_textfield.text()
                     self.username = self.username_textfield.text()
                     self.password = self.password_textfield.text()
-                    print(vpn_name)
-                    print(self.psk)
-                    print(self.current_primary_ip)
-                    print(self.username)
-                    print(self.password)
                     # self.current_ddns = (it's not certain that having DDNS is necessary here)
 
                 # Sanitize variables for powershell input: '$' -> '`$'
@@ -736,6 +732,17 @@ class MainWindow(QMainWindow):
                 # Last 3 ps params are bools converted to ints (0/1) converted to strings. It's easy to force convert
                 # '0' and '1' to ints on powershell side
                 # Setting execution policy to unrestricted is necessary so that we can access VPN functions
+                print(vpn_name)
+                print(self.psk)
+                print(self.current_primary_ip)
+                print(self.username)
+                print(self.password)
+
+                print(self.DnsSuffix)
+                print(self.split_tunnel)
+                print(self.IdleDisconnectSeconds)
+                print(self.remember_credential)
+                print(self.UseWinlogonCredential)
                 result = subprocess.call(
                         [powershell_path, '-ExecutionPolicy', 'Unrestricted',
                          self.cwd + '\scripts\connect_windows.ps1', vpn_name, self.psk, self.current_ddns,
