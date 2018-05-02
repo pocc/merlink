@@ -81,8 +81,6 @@ class LoginWindow(QDialog):
         layout_login.addWidget(self.password_lbl)
         layout_login.addWidget(self.password_field)
         layout_login.addWidget(self.login_btn)
-        # Should prevent users from decreasing the size of the window past the minimum
-        # Add a stretch so that all elements are at the top, regardless of user resizes
         layout_login.addLayout(layout_login_options)
         layout_login.addStretch()
         layout_login.addWidget(self.about_lbl)
