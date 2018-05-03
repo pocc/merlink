@@ -11,7 +11,7 @@ import webbrowser
 from PyQt5.QtWidgets import (QApplication, QWidget, QPushButton, QLabel, QSystemTrayIcon, QTextEdit, QLineEdit,
                              QVBoxLayout, QComboBox, QMainWindow, QAction, QDialog, QMessageBox, QSpinBox,
                              QStatusBar, QFrame, QListWidget, QListWidgetItem, QCheckBox, QHBoxLayout, QMenu,
-                             QTabWidget)
+                             QTabWidget, QRadioButton)
 from PyQt5.QtGui import QIcon
 
 # Web Scraping
@@ -441,6 +441,14 @@ class MainWindow(QMainWindow):
         self.org_dropdown.addItems(["-- Select an Organzation --"])
         self.network_dropdown = QComboBox()
         self.network_dropdown.setEnabled(False)
+
+        self.radio_guest_user_layout = QHBoxLayout()
+        self.radio_dashboard_admin_user = QRadioButton("Dashboard Admin")
+        self.radio_dashboard_admin_user.setChecked(True)  # Default is to have dashboard user
+        self.radio_guest_user = QRadioButton("Guest User")
+        self.radio_guest_user_layout.addWidget(self.radio_dashboard_admin_user)
+        self.radio_guest_user_layout.addWidget(self.radio_guest_user)
+
         if self.org_qty > 0:
             # Autochoose first organization
             self.current_org = self.org_list[0]
@@ -453,15 +461,6 @@ class MainWindow(QMainWindow):
             if DEBUG:
                 print("org_qty <= 0")
 
-        # Add 2 tabs - one for using dashboard and one for adding information manually
-        self.data_entry_tabs = QTabWidget()
-        self.dashboard_tab = QWidget()
-        self.manual_tab = QWidget()
-        # self.tabs.resize(300, 200)
-        self.data_entry_tabs.addTab(self.dashboard_tab, "Dashboard Login")
-        self.data_entry_tabs.addTab(self.manual_tab, "Manual Entry")
-
-        # Add tabs
         # Ask the user for int/str values if they want to enter them
         self.idle_disconnect_layout = QHBoxLayout()
         self.idle_disconnect_chkbox = QCheckBox("Idle disconnect seconds?")
@@ -485,18 +484,18 @@ class MainWindow(QMainWindow):
         self.connect_btn = QPushButton("Connect")
 
         vert_layout = QVBoxLayout()
-        vert_layout.addWidget(self.data_entry_tabs)
-        self.dashboard_tab.layout = QVBoxLayout()
-        self.manual_tab.layout = QVBoxLayout()
 
         # Add Dashboard Entry-only dropdowns
-        self.dashboard_tab.layout.addWidget(self.org_dropdown)
-        self.dashboard_tab.layout.addWidget(self.network_dropdown)
-        self.dashboard_tab.layout.addWidget(self.validation_list)
+        vert_layout.addWidget(self.org_dropdown)
+        vert_layout.addWidget(self.network_dropdown)
+        vert_layout.addLayout(self.radio_guest_user_layout)
+        vert_layout.addWidget(self.validation_list)
 
         # Add Manual Entry-only text fields
         # Format for manual entry is label on one line and textfield on the line below
         # Labels for fields are added inline when we add widgets
+        '''
+        self.manual_tab.layout = QVBoxLayout()
         self.vpn_name_textfield = QLineEdit()
         self.mx_ip_textfield = QLineEdit()
         self.psk_textfield = QLineEdit()
@@ -513,6 +512,7 @@ class MainWindow(QMainWindow):
         self.manual_tab.layout.addWidget(self.username_textfield)
         self.manual_tab.layout.addWidget(QLabel("Password"))
         self.manual_tab.layout.addWidget(self.password_textfield)
+        '''
 
         # Add layouts for specialized params
         vert_layout.addLayout(self.idle_disconnect_layout)
@@ -527,8 +527,6 @@ class MainWindow(QMainWindow):
         vert_layout.addWidget(self.connect_btn)
         vert_layout.addWidget(self.hline)
         vert_layout.addWidget(self.status)
-        self.manual_tab.setLayout(self.manual_tab.layout)
-        self.dashboard_tab.setLayout(self.dashboard_tab.layout)
         self.cw.setLayout(vert_layout)
 
         # Get the data we need and remove the cruft we don't
