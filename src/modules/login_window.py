@@ -25,9 +25,9 @@ class LoginWindow(QDialog):
 
         # Copying style from Dashboard Login (https://account.meraki.com/login/dashboard_login)
         self.heading_style = "font-family: verdana, sans-serif; font-style: normal; " \
-                             "font-size: 28px; font-weight: 300; color:  #666;"
+                             "font-size: 28px; font-weight: 300; color:  #606060;"
         self.label_style = "font-family: verdana, sans-serif; font-style: normal; " \
-                           "font-size: 13px; color: #000;"
+                           "font-size: 13px; color: #606060;"
         # Get back to login button style when you can change the color when it's clicked
         # self.login_btn_style = "border-radius: 2px; color: #fff; background: #7ac043"
         self.link_style = "font-family: verdana, sans-serif; font-style: normal; font-size: 13px; color: #1795E6;"
