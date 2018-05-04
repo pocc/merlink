@@ -51,6 +51,15 @@ class MainWindow(QMainWindow):
         # Set the Window and Tray Icons
         self.setWindowIcon(QIcon(self.cwd + '/media/miles.ico'))
 
+        # Set initial vars for username/password fields for dasboard/guest user
+        self.radio_username_label = QLabel("Email")
+        self.radio_username_label.setStyleSheet("color: #606060")  # Gray
+        self.radio_username_textfield = QLineEdit()
+        self.radio_password_label = QLabel("Password")
+        self.radio_password_label.setStyleSheet("color: #606060")  # Gray
+        self.radio_password_textfield = QLineEdit()
+        self.radio_password_textfield.setEchoMode(QLineEdit.Password)
+
         # Powershell Variables set to defaults
         self.current_ddns = '-'  # set to default hyphen char as a failsafe
         self.split_tunnel = False  # Expected behavior is to have full-tunnel by default
@@ -442,12 +451,22 @@ class MainWindow(QMainWindow):
         self.network_dropdown = QComboBox()
         self.network_dropdown.setEnabled(False)
 
-        self.radio_guest_user_layout = QHBoxLayout()
+        self.user_auth_section = QVBoxLayout()
+        self.radio_user_layout = QHBoxLayout()
+        self.user_auth_section.addLayout(self.radio_user_layout)
         self.radio_dashboard_admin_user = QRadioButton("Dashboard Admin")
         self.radio_dashboard_admin_user.setChecked(True)  # Default is to have dashboard user
         self.radio_guest_user = QRadioButton("Guest User")
-        self.radio_guest_user_layout.addWidget(self.radio_dashboard_admin_user)
-        self.radio_guest_user_layout.addWidget(self.radio_guest_user)
+        self.radio_user_layout.addWidget(self.radio_dashboard_admin_user)
+        self.radio_user_layout.addWidget(self.radio_guest_user)
+        self.set_dashboard_user_layout()  # Default is to use dashboard user
+        self.radio_dashboard_admin_user.toggled.connect(self.set_dashboard_user_layout)
+        self.radio_guest_user.toggled.connect(self.set_guest_user_layout)
+
+        self.user_auth_section.addWidget(self.radio_username_label)
+        self.user_auth_section.addWidget(self.radio_username_textfield)
+        self.user_auth_section.addWidget(self.radio_password_label)
+        self.user_auth_section.addWidget(self.radio_password_textfield)
 
         if self.org_qty > 0:
             # Autochoose first organization
@@ -488,31 +507,8 @@ class MainWindow(QMainWindow):
         # Add Dashboard Entry-only dropdowns
         vert_layout.addWidget(self.org_dropdown)
         vert_layout.addWidget(self.network_dropdown)
-        vert_layout.addLayout(self.radio_guest_user_layout)
+        vert_layout.addLayout(self.user_auth_section)
         vert_layout.addWidget(self.validation_list)
-
-        # Add Manual Entry-only text fields
-        # Format for manual entry is label on one line and textfield on the line below
-        # Labels for fields are added inline when we add widgets
-        '''
-        self.manual_tab.layout = QVBoxLayout()
-        self.vpn_name_textfield = QLineEdit()
-        self.mx_ip_textfield = QLineEdit()
-        self.psk_textfield = QLineEdit()
-        self.username_textfield = QLineEdit()
-        self.password_textfield = QLineEdit()
-        self.password_textfield.setEchoMode(QLineEdit.Password)  # Make password appear as dots
-        self.manual_tab.layout.addWidget(QLabel("VPN Name"))
-        self.manual_tab.layout.addWidget(self.vpn_name_textfield)
-        self.manual_tab.layout.addWidget(QLabel("MX Primary Public IP"))
-        self.manual_tab.layout.addWidget(self.mx_ip_textfield)
-        self.manual_tab.layout.addWidget(QLabel("Preshared Key"))
-        self.manual_tab.layout.addWidget(self.psk_textfield)
-        self.manual_tab.layout.addWidget(QLabel("Email"))
-        self.manual_tab.layout.addWidget(self.username_textfield)
-        self.manual_tab.layout.addWidget(QLabel("Password"))
-        self.manual_tab.layout.addWidget(self.password_textfield)
-        '''
 
         # Add layouts for specialized params
         vert_layout.addLayout(self.idle_disconnect_layout)
@@ -542,6 +538,18 @@ class MainWindow(QMainWindow):
         self.network_dropdown.activated.connect(self.scrape_vars)
 
         self.connect_btn.clicked.connect(self.attempt_connection)
+
+    def set_dashboard_user_layout(self):
+        self.radio_username_textfield.setText(self.username)
+        self.radio_username_textfield.setReadOnly(True)
+        self.radio_password_textfield.setText(self.password)
+        self.radio_password_textfield.setReadOnly(True)
+
+    def set_guest_user_layout(self):
+        self.radio_username_textfield.clear()
+        self.radio_username_textfield.setReadOnly(False)
+        self.radio_password_textfield.clear()
+        self.radio_password_textfield.setReadOnly(False)
 
     def menu_bars(self):
         bar = self.menuBar()
@@ -681,6 +689,8 @@ class MainWindow(QMainWindow):
         about_popup.exec_()
 
     def attempt_connection(self):
+        if DEBUG:
+            print("entering attempt_connection function")
         # If they've selected organization and network OR they've entered everything manually
         if ('Select' not in self.org_dropdown.currentText() and 'Select' not in self.network_dropdown.currentText()) \
                 or self.data_entry_tabs.currentIndex() == 1:
@@ -690,7 +700,9 @@ class MainWindow(QMainWindow):
 
             # Making vpn_name have no spcaes because I haven't figured out how to pass a string with spaces to PS
             network_name = self.network_dropdown.currentText()
-            vpn_name = network_name.replace(' ', '_') + '_VPN'
+            # Set VPN name to the network name +/- cosmetic things
+            vpn_name = "\"" + network_name.replace('- appliance', '') + '- VPN' + "\""
+
             if self.platform == 'win32':
                 arch = platform.architecture()
                 if arch == '64bit':
@@ -698,19 +710,18 @@ class MainWindow(QMainWindow):
                 else:  # arch MUST be 32bit if not 64bit
                     powershell_path = 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe'
 
-                if self.data_entry_tabs.currentIndex() == 1:  # If this is the manual entry tab, set vars here
-                    vpn_name = self.vpn_name_textfield.text()
-                    self.psk = self.psk_textfield.text()
-                    self.current_primary_ip = self.mx_ip_textfield.text()
-                    self.username = self.username_textfield.text()
-                    self.password = self.password_textfield.text()
-                    # self.current_ddns = (it's not certain that having DDNS is necessary here)
+                if self.radio_dashboard_admin_user.isChecked() == 1:  # If the user is logging in as dashboard user
+                    self.param_username = self.username
+                    self.param_password = self.password
+                else:  # If the user is logging in with a guest user
+                    self.param_username = self.radio_username_textfield.text()
+                    self.param_password = self.radio_password_textfield.text()
 
                 # Sanitize variables for powershell input: '$' -> '`$'
                 vpn_name = vpn_name.replace('$', '`$')
                 self.psk = self.psk.replace('$', '`$')
-                self.username = self.username.replace('$', '`$')
-                self.password = self.password.replace('$', '`$')
+                self.param_username = self.username.replace('$', '`$')
+                self.param_password = self.password.replace('$', '`$')
 
                 # Get values from spinboxes/textfields
                 self.IdleDisconnectSeconds = self.idle_disconnect_spinbox.value()
@@ -725,26 +736,16 @@ class MainWindow(QMainWindow):
 
                 if DEBUG:
                     print("attempting to connect via powershell script")
+
                 # Arguments sent to powershell MUST BE STRINGS
                 # Each argument cannot be the empty string or null or PS will think there's no param there!!!
                 # Last 3 ps params are bools converted to ints (0/1) converted to strings. It's easy to force convert
                 # '0' and '1' to ints on powershell side
                 # Setting execution policy to unrestricted is necessary so that we can access VPN functions
-                print(vpn_name)
-                print(self.psk)
-                print(self.current_primary_ip)
-                print(self.username)
-                print(self.password)
-
-                print(self.DnsSuffix)
-                print(self.split_tunnel)
-                print(self.IdleDisconnectSeconds)
-                print(self.remember_credential)
-                print(self.UseWinlogonCredential)
                 result = subprocess.call(
                         [powershell_path, '-ExecutionPolicy', 'Unrestricted',
                          self.cwd + '\scripts\connect_windows.ps1', vpn_name, self.psk, self.current_ddns,
-                         self.current_primary_ip, self.username, self.password, self.DnsSuffix,
+                         self.current_primary_ip, self.param_username, self.param_password, self.DnsSuffix,
                          str(self.IdleDisconnectSeconds),  str(DEBUG), str(int(self.split_tunnel)),
                          str(int(self.remember_credential)), str(int(self.UseWinlogonCredential))])
                 # subprocess.Popen([], creationflags=subprocess.CREATE_NEW_CONSOLE)  # open ps window
