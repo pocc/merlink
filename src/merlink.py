@@ -6,6 +6,7 @@
 # Utilities
 import sys
 import webbrowser
+from random import randint  # Used for I'm feeling lucky functionality
 
 # Qt5
 from PyQt5.QtWidgets import (QApplication, QWidget, QPushButton, QLabel, QSystemTrayIcon, QTextEdit, QLineEdit,
@@ -32,7 +33,7 @@ from src.modules.login_window import LoginWindow
 class MainWindow(QMainWindow):
     # Pass in browser_session object from LoginWindow so that we can maintain the same session
     # ASSERT: User has logged in and has a connection to Dashboard AND DNS is working
-    def __init__(self, browser_session, username, password):
+    def __init__(self, browser_session, username, password, lucky):
         super(MainWindow, self).__init__()
         if DEBUG:
             print("Main Window")
@@ -77,8 +78,25 @@ class MainWindow(QMainWindow):
         self.browser = browser_session
         self.username = username
         self.password = password
+        self.lucky = lucky
         self.scrape_orgs()
-        self.main_init_ui()
+
+        # Click through org choosing splash page
+        if self.org_qty > 0:
+            # Autochoose first organization
+            self.current_org = self.org_list[0]
+            self.browser.open(list(self.org_links.values())[0])
+            if DEBUG:
+                print("org_qty > 0")
+        else:
+            self.current_org = 'Org Placeholder'  # Org name placeholder
+            if DEBUG:
+                print("org_qty <= 0")
+
+        if self.lucky:  # Skip main window if we're going to grab data and then connect with it
+            self.lucky_ui()
+        else:
+            self.main_init_ui()
         self.menu_bars()
 
     # This function will get the organizations and then save them as a dict of names and links
@@ -92,6 +110,7 @@ class MainWindow(QMainWindow):
         org_hrefs = page.findAll('a', href=re.compile('/login/org_choose\?eid=.{6}'))
         # Get the number of orgs
         self.org_qty = len(org_hrefs)
+        self.network_admin_only = self.org_qty > 0  # If user is network admin, then they have access to 0 orgs
         # Create as many network lists in the network list as there are orgs
         self.network_list = [[]] * self.org_qty
         self.base_url_list = [[]] * self.org_qty
@@ -111,7 +130,8 @@ class MainWindow(QMainWindow):
         if DEBUG:
             print("In get_networks")
 
-        self.status.showMessage("Status: Fetching networks in " + self.current_org + "...")
+        if not self.lucky:
+            self.status.showMessage("Status: Fetching networks in " + self.current_org + "...")
 
         # If we're dealing with org admins
         if not self.network_admin_only:
@@ -126,9 +146,9 @@ class MainWindow(QMainWindow):
         url_network_part = current_url[lower_url_index + 4:upper_url_index + 7]  # Add 7 for '/manage'
         # For this URL, it doesn't matter which network in an org we get it from because it will be the same
         administered_orgs = url_domain_part + url_network_part + '/organization/administered_orgs'
-        self.browser.open(administered_orgs)
         if DEBUG:
             print(administered_orgs)
+        self.browser.open(administered_orgs)
 
         cj = self.browser.get_cookiejar()
         if DEBUG:
@@ -186,7 +206,40 @@ class MainWindow(QMainWindow):
             if DEBUG:
                 print(self.network_list[i])
 
-        self.refresh_network_dropdown()
+        if not self.lucky:
+            self.refresh_network_dropdown()
+
+    def lucky_ui(self):
+        if DEBUG:
+            print("In merlink lucky fn")
+        if not self.lucky:  # ~ Assert lucky
+            self.error_message("ERROR: You do not feel lucky, but are pretending to be!")
+        self.get_all_org_data()  # Get all networks in all orgs
+        rand_org_index = randint(0, self.org_qty - int(self.network_admin_only))  # -1 for fencepost error if orgs > 0
+        self.current_org = self.org_list[rand_org_index]
+        if DEBUG:
+            print("rand org index " + str(rand_org_index) + " " + self.current_org)
+            print(self.network_list)
+        # Choose a random and valid int for network index
+        self.current_network_index = randint(0, len(self.network_list[rand_org_index]))
+
+        if DEBUG:
+            print("rand network index " + str(self.current_network_index))
+        self.current_network = self.network_list[rand_org_index]
+        self.scrape_vars()
+
+        self.attempt_connection()
+
+    def get_all_org_data(self):  # Should only be called if user clicked on "I'm feeling lucky" button
+        if len(self.org_list) <= 20:  # If they attempt with more than 20 orgs, they'll wait too long
+            for org_index in range(len(self.org_list)):
+                print("Getting data from organization " + str(org_index))
+                self.current_org_index = org_index
+                self.current_org = self.org_list[self.current_org_index]
+                self.get_networks()
+                print(str(self.network_list[self.current_org_index]))
+        else:
+            self.error_message("ERROR: You have too many organizations (>20) to be feeling lucky!")
 
     def change_organization(self):
         self.network_dropdown.setEnabled(True)
@@ -223,7 +276,7 @@ class MainWindow(QMainWindow):
             + Pre-shared key
         This method will check these things
             + Is client VPN enabled in dashboard?
-            - Is this a security appliance that is online?
+            + Is this a security appliance that is online?
         """
         self.get_client_vpn_text()
 
@@ -235,17 +288,21 @@ class MainWindow(QMainWindow):
 
         self.scrape_ddns_and_ip()
         # validate_date() MUST come after scrape_ddns_and_ip() because it needs DDNS/IP address
-        self.validate_data()
+        # Using kludgy not lucky test here because selecting network from dropdown in main window
+        #     HAS to trigger scrape_vars and we don't want to use it for lucky users as it would delay them further
+        if not self.lucky:
+            self.validate_data()
 
     def get_client_vpn_text(self):
-        if DEBUG:
-            print("network dropdown index: " + str(self.network_dropdown.currentIndex()-1))
-        current_network_index = self.network_dropdown.currentIndex()-1  # Because dropdown has first option 'select'
-        self.current_network = str(self.network_list[self.current_org_index][current_network_index])
-        self.client_vpn_url = self.base_url_list[self.current_org_index][current_network_index] \
-            + '/configure/client_vpn_settings'
-        self.status.showMessage("Status: Fetching network data for " + self.current_network + "...")
-        print("Client VPN url " + self.client_vpn_url)
+        if not self.lucky:
+            if DEBUG:
+                print("network dropdown index: " + str(self.network_dropdown.currentIndex()-1))
+            self.current_network_index = self.network_dropdown.currentIndex()-1  # Because dropdown has first option 'select'
+            self.current_network = str(self.network_list[self.current_org_index][self.current_network_index])
+            self.status.showMessage("Status: Fetching network data for " + self.current_network + "...")
+            print("Client VPN url " + self.client_vpn_url)
+        self.client_vpn_url = self.base_url_list[self.current_org_index][self.current_network_index] \
+                              + '/configure/client_vpn_settings'
 
         self.client_vpn_text = self.browser.get(self.client_vpn_url).text
         self.client_vpn_soup = bs4.BeautifulSoup(self.client_vpn_text, 'lxml')
@@ -261,7 +318,9 @@ class MainWindow(QMainWindow):
         - Verify that virtual_ip == {"public_ip":
         :return:
         """
-        fw_status_url = self.base_url_list[self.current_org_index][self.network_dropdown.currentIndex()-1] \
+        if not self.lucky:
+            self.current_network_index = self.network_dropdown.currentIndex()-1
+        fw_status_url = self.base_url_list[self.current_org_index][self.current_network_index] \
                         + '/nodes/new_wired_status'
         self.fw_status_text = self.browser.get(fw_status_url).text
 
@@ -467,18 +526,6 @@ class MainWindow(QMainWindow):
         self.user_auth_section.addWidget(self.radio_username_textfield)
         self.user_auth_section.addWidget(self.radio_password_label)
         self.user_auth_section.addWidget(self.radio_password_textfield)
-
-        if self.org_qty > 0:
-            # Autochoose first organization
-            self.current_org = self.org_list[0]
-            self.browser.open(list(self.org_links.values())[0])
-            if DEBUG:
-                print("org_qty > 0")
-        else:
-            self.current_org = 'Org Placeholder'  # Org name placeholder
-            self.network_admin_only = True
-            if DEBUG:
-                print("org_qty <= 0")
 
         # Ask the user for int/str values if they want to enter them
         self.idle_disconnect_layout = QHBoxLayout()
@@ -691,9 +738,9 @@ class MainWindow(QMainWindow):
     def attempt_connection(self):
         if DEBUG:
             print("entering attempt_connection function")
-        # If they've selected organization and network OR they've entered everything manually
-        if ('Select' not in self.org_dropdown.currentText() and 'Select' not in self.network_dropdown.currentText()) \
-                or self.data_entry_tabs.currentIndex() == 1:
+        # If they're lucky OR they've selected organization and network
+        if self.lucky or ('Select' not in self.org_dropdown.currentText()
+                          and 'Select' not in self.network_dropdown.currentText()):
             # Change status to reflect we're connecting. For fast connections, you might not see this message
             self.status.showMessage('Status: Connecting...')
             result = 1  # If result doesn't get assigned, we assume program to have failed
@@ -710,7 +757,8 @@ class MainWindow(QMainWindow):
                 else:  # arch MUST be 32bit if not 64bit
                     powershell_path = 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe'
 
-                if self.radio_dashboard_admin_user.isChecked() == 1:  # If the user is logging in as dashboard user
+                # If the user is logging in as dashboard user or is feeling lucky
+                if self.lucky or self.radio_dashboard_admin_user.isChecked() == 1:
                     self.param_username = self.username
                     self.param_password = self.password
                 else:  # If the user is logging in with a guest user
@@ -810,7 +858,8 @@ def main():  # Syntax per PyQt recommendations: http://pyqt.sourceforge.net/Docs
     if login_window.exec_() == QDialog.Accepted:
         tray_icon = QSystemTrayIcon(QIcon(getcwd() + '/media/miles.ico'))
         tray_icon.show()
-        main_window = MainWindow(login_window.get_browser(), login_window.username, login_window.password)
+        main_window = MainWindow(login_window.get_browser(), login_window.username, login_window.password,
+                                 login_window.FEELING_LUCKY)
         main_window.show()
 
     sys.exit(app.exec_())

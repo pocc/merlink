@@ -43,10 +43,15 @@ class LoginWindow(QDialog):
         # Set up username and password so these vars have values
         self.username = ''
         self.password = ''
-
         # Masks password as a series of dots instead of characters
         self.password_field.setEchoMode(QLineEdit.Password)
+
+        self.login_layout = QHBoxLayout()
+        self.im_feeling_lucky_btn = QPushButton("I'm Feeling Lucky")
+        self.FEELING_LUCKY = False  # Default is to use login
         self.login_btn = QPushButton("Log in")
+        self.login_layout.addWidget(self.im_feeling_lucky_btn)
+        self.login_layout.addWidget(self.login_btn)
 
         # self.login_btn.setStyleSheet(self.login_btn_style)
         self.forgot_password_lbl = QLabel("<a href=\"https://account.meraki.com/login/reset_password\" "
@@ -80,7 +85,7 @@ class LoginWindow(QDialog):
         layout_login.addWidget(self.username_field)
         layout_login.addWidget(self.password_lbl)
         layout_login.addWidget(self.password_field)
-        layout_login.addWidget(self.login_btn)
+        layout_login.addLayout(self.login_layout)  # Contains (I'm feeling lucky AND login) buttons
         layout_login.addLayout(layout_login_options)
         layout_login.addStretch()
         layout_login.addWidget(self.about_lbl)
@@ -95,8 +100,13 @@ class LoginWindow(QDialog):
         self.setLayout(layout_main)
         self.setWindowTitle('Meraki Client VPN')
 
-        # Test connection with a virtual browser
+        self.im_feeling_lucky_btn.clicked.connect(self.init_lucky)
         self.login_btn.clicked.connect(self.init_browser)
+
+    def init_lucky(self):
+        print("User has pressed 'Im feeling lucky' button")
+        self.FEELING_LUCKY = True
+        self.init_browser()
 
     def init_browser(self):
         self.username = self.username_field.text()
