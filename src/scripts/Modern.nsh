@@ -11,7 +11,11 @@
 ; Using NSIS v3.03, Modern UI v2
 ; Written By Ross Jacobs
 ;
+; Make sure to modify the following line below according to where you ran pyinstaller
+; !define SOURCE_FILES "PATH"
+;
 
+!define SOURCE_FILES "C:\path\to\source\files"
 !define PRODUCT_NAME "Merlink"
 !define PRODUCT_VERSION "0.3.0"
 !define PRODUCT_PUBLISHER "Merlink"
@@ -22,6 +26,7 @@
 !define PRODUCT_DESCRIPTION 'A VPN client for Meraki firewalls'
 BrandingText "Merlink v${PRODUCT_VERSION}"
 
+
 SetCompressor /SOLID lzma
 
 ; MUI 2 compatible ------
@@ -29,13 +34,13 @@ SetCompressor /SOLID lzma
 
 ; MUI Settings
 !define MUI_ABORTWARNING
-!define MUI_ICON "C:\Users\ross.jacobs\code\merlink\src\media\miles.ico"
-!define MUI_UNICON "C:\Users\ross.jacobs\code\merlink\src\media\unmiles.ico"
+!define MUI_ICON "${SOURCE_FILES}\media\miles.ico"
+!define MUI_UNICON "${SOURCE_FILES}\media\unmiles.ico"
 
 ; Welcome page
 !insertmacro MUI_PAGE_WELCOME
 ; License page
-!insertmacro MUI_PAGE_LICENSE "C:\Users\ross.jacobs\code\merlink\LICENSE.txt"
+!insertmacro MUI_PAGE_LICENSE "${SOURCE_FILES}\LICENSE.txt"
 ; Directory page
 !insertmacro MUI_PAGE_DIRECTORY
 ; Instfiles page
@@ -52,12 +57,11 @@ SetCompressor /SOLID lzma
 !define MUI_FINISHPAGE_NOREBOOTSUPPORT
 !insertmacro MUI_PAGE_FINISH
 
-;;;;; Uninstaller pages ;;;;;
-; Sane things you can add to uninstaller
-; !insertmacro MUI_UNPAGE_WELCOME
-; !insertmacro MUI_UNPAGE_CONFIRM
-; !insertmacro MUI_UNPAGE_FINISH
+; Uninstaller pages
+!insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
+!insertmacro MUI_UNPAGE_FINISH
+
 
 ; Language files
 !insertmacro MUI_LANGUAGE "English"
@@ -70,96 +74,88 @@ InstallDir "$PROGRAMFILES\Merlink"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
 ShowUnInstDetails show
-!define PROGRAM_BUNDLE_DIR "C:\PATH\TO\WHERE\YOU\CREATED\THE\PROGRAM\FILES\WITH\PYINSTALLER"
 
 Section "MainSection" SEC01
   SetOutPath "$INSTDIR"
   SetOverwrite try
-  File "${PROGRAM_BUNDLE_DIR}\base_library.zip"
+  File "${SOURCE_FILES}\base_library.zip"
   SetOutPath "$INSTDIR\certifi"
-  File "${PROGRAM_BUNDLE_DIR}\certifi\cacert.pem"
+  File "${SOURCE_FILES}\certifi\cacert.pem"
   SetOutPath "$INSTDIR"
-  File "${PROGRAM_BUNDLE_DIR}\lxml.etree.pyd"
-  File "${PROGRAM_BUNDLE_DIR}\lxml._elementpath.pyd"
+  File "${SOURCE_FILES}\lxml.etree.pyd"
+  File "${SOURCE_FILES}\lxml._elementpath.pyd"
   SetOutPath "$INSTDIR\media"
-  File "${PROGRAM_BUNDLE_DIR}\media\checkmark-16.png"
-  File "${PROGRAM_BUNDLE_DIR}\media\dark_miles.png"
-  File "${PROGRAM_BUNDLE_DIR}\media\meraki_connections.png"
-  File "${PROGRAM_BUNDLE_DIR}\media\miles.ico"
-  File "${PROGRAM_BUNDLE_DIR}\media\new-mr.jpg"
-  File "${PROGRAM_BUNDLE_DIR}\media\new_mx.jpg"
-  File "${PROGRAM_BUNDLE_DIR}\media\sm.jpg"
-  File "${PROGRAM_BUNDLE_DIR}\media\transparent_miles.png"
-  File "${PROGRAM_BUNDLE_DIR}\media\unmiles.ico"
-  File "${PROGRAM_BUNDLE_DIR}\media\x-mark-16.png"
+  File "${SOURCE_FILES}\media\checkmark-16.png"
+  File "${SOURCE_FILES}\media\dark_miles.png"
+  File "${SOURCE_FILES}\media\meraki_connections.png"
+  File "${SOURCE_FILES}\media\miles.ico"
+  File "${SOURCE_FILES}\media\new-mr.jpg"
+  File "${SOURCE_FILES}\media\new_mx.jpg"
+  File "${SOURCE_FILES}\media\sm.jpg"
+  File "${SOURCE_FILES}\media\transparent_miles.png"
+  File "${SOURCE_FILES}\media\unmiles.ico"
+  File "${SOURCE_FILES}\media\x-mark-16.png"
   SetOutPath "$INSTDIR"
-  File "${PROGRAM_BUNDLE_DIR}\merlink.exe"
-  CreateDirectory "$SMPROGRAMS\Merlink"
-  CreateShortCut "$SMPROGRAMS\Merlink\Merlink.lnk" "$INSTDIR\merlink.exe"
+  File "${SOURCE_FILES}\merlink.exe"
+  ;CreateDirectory "$SMPROGRAMS\Merlink" ; To use a directory (also see uninstall list)
+  CreateShortCut "$SMPROGRAMS\Merlink.lnk" "$INSTDIR\merlink.exe"
   CreateShortCut "$DESKTOP\Merlink.lnk" "$INSTDIR\merlink.exe"
   CreateShortCut "$STARTMENU.lnk" "$INSTDIR\merlink.exe"
-  CreateShortCut "$SMPROGRAMS.lnk" "$INSTDIR\merlink.exe"
   CreateShortCut "$QUICKLAUNCH.lnk" "$INSTDIR\merlink.exe"
-  File "${PROGRAM_BUNDLE_DIR}\merlink.exe.manifest"
-  File "${PROGRAM_BUNDLE_DIR}\MSVCP140.dll"
-  File "${PROGRAM_BUNDLE_DIR}\pyexpat.pyd"
+  File "${SOURCE_FILES}\merlink.exe.manifest"
+  File "${SOURCE_FILES}\MSVCP140.dll"
+  File "${SOURCE_FILES}\pyexpat.pyd"
   SetOutPath "$INSTDIR\PyQt5\Qt\bin"
-  File "${PROGRAM_BUNDLE_DIR}\PyQt5\Qt\bin\qt.conf"
+  File "${SOURCE_FILES}\PyQt5\Qt\bin\qt.conf"
   SetOutPath "$INSTDIR\PyQt5\Qt\plugins\iconengines"
-  File "${PROGRAM_BUNDLE_DIR}\PyQt5\Qt\plugins\iconengines\qsvgicon.dll"
+  File "${SOURCE_FILES}\PyQt5\Qt\plugins\iconengines\qsvgicon.dll"
   SetOutPath "$INSTDIR\PyQt5\Qt\plugins\imageformats"
-  File "${PROGRAM_BUNDLE_DIR}\PyQt5\Qt\plugins\imageformats\qgif.dll"
-  File "${PROGRAM_BUNDLE_DIR}\PyQt5\Qt\plugins\imageformats\qicns.dll"
-  File "${PROGRAM_BUNDLE_DIR}\PyQt5\Qt\plugins\imageformats\qico.dll"
-  File "${PROGRAM_BUNDLE_DIR}\PyQt5\Qt\plugins\imageformats\qjpeg.dll"
-  File "${PROGRAM_BUNDLE_DIR}\PyQt5\Qt\plugins\imageformats\qsvg.dll"
-  File "${PROGRAM_BUNDLE_DIR}\PyQt5\Qt\plugins\imageformats\qtga.dll"
-  File "${PROGRAM_BUNDLE_DIR}\PyQt5\Qt\plugins\imageformats\qtiff.dll"
-  File "${PROGRAM_BUNDLE_DIR}\PyQt5\Qt\plugins\imageformats\qwbmp.dll"
-  File "${PROGRAM_BUNDLE_DIR}\PyQt5\Qt\plugins\imageformats\qwebp.dll"
+  File "${SOURCE_FILES}\PyQt5\Qt\plugins\imageformats\qgif.dll"
+  File "${SOURCE_FILES}\PyQt5\Qt\plugins\imageformats\qicns.dll"
+  File "${SOURCE_FILES}\PyQt5\Qt\plugins\imageformats\qico.dll"
+  File "${SOURCE_FILES}\PyQt5\Qt\plugins\imageformats\qjpeg.dll"
+  File "${SOURCE_FILES}\PyQt5\Qt\plugins\imageformats\qsvg.dll"
+  File "${SOURCE_FILES}\PyQt5\Qt\plugins\imageformats\qtga.dll"
+  File "${SOURCE_FILES}\PyQt5\Qt\plugins\imageformats\qtiff.dll"
+  File "${SOURCE_FILES}\PyQt5\Qt\plugins\imageformats\qwbmp.dll"
+  File "${SOURCE_FILES}\PyQt5\Qt\plugins\imageformats\qwebp.dll"
   SetOutPath "$INSTDIR\PyQt5\Qt\plugins\platforms"
-  File "${PROGRAM_BUNDLE_DIR}\PyQt5\Qt\plugins\platforms\qminimal.dll"
-  File "${PROGRAM_BUNDLE_DIR}\PyQt5\Qt\plugins\platforms\qoffscreen.dll"
-  File "${PROGRAM_BUNDLE_DIR}\PyQt5\Qt\plugins\platforms\qwindows.dll"
+  File "${SOURCE_FILES}\PyQt5\Qt\plugins\platforms\qminimal.dll"
+  File "${SOURCE_FILES}\PyQt5\Qt\plugins\platforms\qoffscreen.dll"
+  File "${SOURCE_FILES}\PyQt5\Qt\plugins\platforms\qwindows.dll"
   SetOutPath "$INSTDIR\PyQt5\Qt\plugins\printsupport"
-  File "${PROGRAM_BUNDLE_DIR}\PyQt5\Qt\plugins\printsupport\windowsprintersupport.dll"
+  File "${SOURCE_FILES}\PyQt5\Qt\plugins\printsupport\windowsprintersupport.dll"
   SetOutPath "$INSTDIR"
-  File "${PROGRAM_BUNDLE_DIR}\PyQt5.Qt.pyd"
-  File "${PROGRAM_BUNDLE_DIR}\PyQt5.QtCore.pyd"
-  File "${PROGRAM_BUNDLE_DIR}\PyQt5.QtGui.pyd"
-  File "${PROGRAM_BUNDLE_DIR}\PyQt5.QtPrintSupport.pyd"
-  File "${PROGRAM_BUNDLE_DIR}\PyQt5.QtWidgets.pyd"
-  File "${PROGRAM_BUNDLE_DIR}\python3.dll"
-  File "${PROGRAM_BUNDLE_DIR}\python36.dll"
-  File "${PROGRAM_BUNDLE_DIR}\pywintypes36.dll"
-  File "${PROGRAM_BUNDLE_DIR}\Qt5Core.dll"
-  File "${PROGRAM_BUNDLE_DIR}\Qt5Gui.dll"
-  File "${PROGRAM_BUNDLE_DIR}\Qt5PrintSupport.dll"
-  File "${PROGRAM_BUNDLE_DIR}\Qt5Svg.dll"
-  File "${PROGRAM_BUNDLE_DIR}\Qt5Widgets.dll"
+  File "${SOURCE_FILES}\PyQt5.Qt.pyd"
+  File "${SOURCE_FILES}\PyQt5.QtCore.pyd"
+  File "${SOURCE_FILES}\PyQt5.QtGui.pyd"
+  File "${SOURCE_FILES}\PyQt5.QtPrintSupport.pyd"
+  File "${SOURCE_FILES}\PyQt5.QtWidgets.pyd"
+  File "${SOURCE_FILES}\python3.dll"
+  File "${SOURCE_FILES}\python36.dll"
+  File "${SOURCE_FILES}\pywintypes36.dll"
+  File "${SOURCE_FILES}\Qt5Core.dll"
+  File "${SOURCE_FILES}\Qt5Gui.dll"
+  File "${SOURCE_FILES}\Qt5PrintSupport.dll"
+  File "${SOURCE_FILES}\Qt5Svg.dll"
+  File "${SOURCE_FILES}\Qt5Widgets.dll"
   SetOutPath "$INSTDIR\scripts"
-  File "${PROGRAM_BUNDLE_DIR}\scripts\connect_linux.sh"
-  File "${PROGRAM_BUNDLE_DIR}\scripts\connect_macos.applescript"
-  File "${PROGRAM_BUNDLE_DIR}\scripts\connect_windows.ps1"
-  File "${PROGRAM_BUNDLE_DIR}\scripts\Modern.nsh"
+  File "${SOURCE_FILES}\scripts\connect_linux.sh"
+  File "${SOURCE_FILES}\scripts\connect_macos.applescript"
+  File "${SOURCE_FILES}\scripts\connect_windows.ps1"
+  File "${SOURCE_FILES}\scripts\Modern.nsh"
   SetOutPath "$INSTDIR"
-  File "${PROGRAM_BUNDLE_DIR}\select.pyd"
-  File "${PROGRAM_BUNDLE_DIR}\sip.pyd"
-  File "${PROGRAM_BUNDLE_DIR}\unicodedata.pyd"
-  File "${PROGRAM_BUNDLE_DIR}\VCRUNTIME140.dll"
-  File "${PROGRAM_BUNDLE_DIR}\win32wnet.pyd"
-  File "${PROGRAM_BUNDLE_DIR}\_bz2.pyd"
-  File "${PROGRAM_BUNDLE_DIR}\_ctypes.pyd"
-  File "${PROGRAM_BUNDLE_DIR}\_hashlib.pyd"
-  File "${PROGRAM_BUNDLE_DIR}\_lzma.pyd"
-  File "${PROGRAM_BUNDLE_DIR}\_socket.pyd"
-  File "${PROGRAM_BUNDLE_DIR}\_ssl.pyd"
-SectionEnd
-
-Section -AdditionalIcons
-  WriteIniStr "$INSTDIR\${PRODUCT_NAME}.url" "InternetShortcut" "URL" "${PRODUCT_WEBSITE}"
-  CreateShortCut "$SMPROGRAMS\Merlink.lnk" "$INSTDIR\merlink.exe"
-
+  File "${SOURCE_FILES}\select.pyd"
+  File "${SOURCE_FILES}\sip.pyd"
+  File "${SOURCE_FILES}\unicodedata.pyd"
+  File "${SOURCE_FILES}\VCRUNTIME140.dll"
+  File "${SOURCE_FILES}\win32wnet.pyd"
+  File "${SOURCE_FILES}\_bz2.pyd"
+  File "${SOURCE_FILES}\_ctypes.pyd"
+  File "${SOURCE_FILES}\_hashlib.pyd"
+  File "${SOURCE_FILES}\_lzma.pyd"
+  File "${SOURCE_FILES}\_socket.pyd"
+  File "${SOURCE_FILES}\_ssl.pyd"
 SectionEnd
 
 Section -Post
@@ -252,12 +248,11 @@ Section Uninstall
   Delete "$SMPROGRAMS\Merlink\Uninstall.lnk"
   Delete "$SMPROGRAMS\Merlink\Website.lnk"
   Delete "$QUICKLAUNCH.lnk"
-  Delete "$SMPROGRAMS.lnk"
   Delete "$STARTMENU.lnk"
   Delete "$DESKTOP\Merlink.lnk"
-  Delete "$SMPROGRAMS\Merlink\Merlink.lnk"
+  Delete "$SMPROGRAMS\Merlink.lnk"
 
-  RMDir "$SMPROGRAMS\Merlink"
+  ;RMDir "$SMPROGRAMS\Merlink" ; To use a directory (also see install list)
   RMDir "$INSTDIR\scripts"
   RMDir "$INSTDIR\PyQt5\Qt\plugins\printsupport"
   RMDir "$INSTDIR\PyQt5\Qt\plugins\platforms"
@@ -267,7 +262,6 @@ Section Uninstall
   RMDir "$INSTDIR\media"
   RMDir "$INSTDIR\certifi"
   RMDir "$INSTDIR"
-  RMDir ""
 
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
   DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
