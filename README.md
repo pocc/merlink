@@ -83,6 +83,8 @@ For the versions available, see the [tags on this repository](https://github.com
 * [Python 3](https://www.python.org/) - Base language
 * [Mechanical Soup](https://github.com/MechanicalSoup/MechanicalSoup) - Web scraper for Python 3
 * [Powershell VPN Client docs](https://docs.microsoft.com/en-us/powershell/module/vpnclient/?view=win10-ps) - Collection of manpages for VPN Client-specific powershell functions.
+* [NSIS](http://nsis.sourceforge.net/Docs/) - Program installer system
+    * [NSIS Sample Installers](http://nsis.sourceforge.net/Category:Real_World_Installers) - To learn how to build your own installer by example
 
 ### License
 
