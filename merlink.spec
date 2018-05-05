@@ -6,7 +6,7 @@ block_cipher = None
 a = Analysis(['src\\merlink.py'],
              pathex=['C:\\Users\\ross.jacobs\\code\\merlink'],
              binaries=[],
-             datas=[],
+             datas=[('src\\media\\', 'media'), ('src\\scripts', 'scripts'), ('LICENSE.txt', '.')],
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
@@ -23,7 +23,7 @@ exe = EXE(pyz,
           debug=False,
           strip=False,
           upx=True,
-          console=False )
+          console=False , icon='src\\media\\miles.ico')
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
