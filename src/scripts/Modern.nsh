@@ -11,13 +11,12 @@
 ; Using NSIS v3.03, Modern UI v2
 ; Written By Ross Jacobs
 ;
-; Make sure to modify the following line below according to where you ran pyinstaller
-; !define SOURCE_FILES "PATH"
-;
-
+; Make sure to modify the following line according to where you ran pyinstaller:
 !define SOURCE_FILES "C:\path\to\source\files"
+
+
 !define PRODUCT_NAME "Merlink"
-!define PRODUCT_VERSION "0.3.0"
+!define PRODUCT_VERSION "0.4.0"
 !define PRODUCT_PUBLISHER "Merlink"
 !define PRODUCT_WEBSITE "https://pocc.github.io/merlink"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\merlink.exe"
@@ -97,11 +96,6 @@ Section "MainSection" SEC01
   File "${SOURCE_FILES}\media\x-mark-16.png"
   SetOutPath "$INSTDIR"
   File "${SOURCE_FILES}\merlink.exe"
-  ;CreateDirectory "$SMPROGRAMS\Merlink" ; To use a directory (also see uninstall list)
-  CreateShortCut "$SMPROGRAMS\Merlink.lnk" "$INSTDIR\merlink.exe"
-  CreateShortCut "$DESKTOP\Merlink.lnk" "$INSTDIR\merlink.exe"
-  CreateShortCut "$STARTMENU.lnk" "$INSTDIR\merlink.exe"
-  CreateShortCut "$QUICKLAUNCH.lnk" "$INSTDIR\merlink.exe"
   File "${SOURCE_FILES}\merlink.exe.manifest"
   File "${SOURCE_FILES}\MSVCP140.dll"
   File "${SOURCE_FILES}\pyexpat.pyd"
@@ -156,6 +150,14 @@ Section "MainSection" SEC01
   File "${SOURCE_FILES}\_lzma.pyd"
   File "${SOURCE_FILES}\_socket.pyd"
   File "${SOURCE_FILES}\_ssl.pyd"
+
+  ; Shortcuts
+  ;CreateDirectory "$SMPROGRAMS\Merlink" ; To use a directory (also see uninstall list)
+  CreateShortCut "$SMPROGRAMS\Merlink.lnk" "$INSTDIR\merlink.exe"
+  CreateShortCut "$DESKTOP\Merlink.lnk" "$INSTDIR\merlink.exe"
+  CreateShortCut "$STARTMENU.lnk" "$INSTDIR\merlink.exe"
+  CreateShortCut "$QUICKLAUNCH.lnk" "$INSTDIR\merlink.exe"
+  CreateShortCut "$SMSTARTUP\Merlink.lnk" "$INSTDIR\Merlink.exe" ; Start on login by putting link in startup folder
 SectionEnd
 
 Section -Post
@@ -245,14 +247,6 @@ Section Uninstall
   Delete "$INSTDIR\certifi\cacert.pem"
   Delete "$INSTDIR\base_library.zip"
 
-  Delete "$SMPROGRAMS\Merlink\Uninstall.lnk"
-  Delete "$SMPROGRAMS\Merlink\Website.lnk"
-  Delete "$QUICKLAUNCH.lnk"
-  Delete "$STARTMENU.lnk"
-  Delete "$DESKTOP\Merlink.lnk"
-  Delete "$SMPROGRAMS\Merlink.lnk"
-
-  ;RMDir "$SMPROGRAMS\Merlink" ; To use a directory (also see install list)
   RMDir "$INSTDIR\scripts"
   RMDir "$INSTDIR\PyQt5\Qt\plugins\printsupport"
   RMDir "$INSTDIR\PyQt5\Qt\plugins\platforms"
@@ -262,6 +256,16 @@ Section Uninstall
   RMDir "$INSTDIR\media"
   RMDir "$INSTDIR\certifi"
   RMDir "$INSTDIR"
+
+  ; Shortcuts
+  ;RMDir "$SMPROGRAMS\Merlink" ; To use a directory (also see install list)
+  Delete "$SMPROGRAMS\Merlink\Uninstall.lnk"
+  Delete "$SMPROGRAMS\Merlink\Website.lnk"
+  Delete "$QUICKLAUNCH.lnk"
+  Delete "$STARTMENU.lnk"
+  Delete "$DESKTOP\Merlink.lnk"
+  Delete "$SMPROGRAMS\Merlink.lnk"
+  Delete "$SMSTARTUP\Merlink.lnk"
 
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
   DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
