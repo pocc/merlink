@@ -84,8 +84,11 @@ class MainWindow(QMainWindow):
     # This function will get the organizations and then save them as a dict of names and links
     def scrape_orgs(self):
         """ ASSERTS
-        * user is an org admin
         """
+
+        if DEBUG:
+            print("In fn [scrape_orgs()]")
+
         # NOTE: Until you choose an organization, Dashboard will not let you visit pages you should have access to
         page = self.browser.get_current_page()
         # Get a list of all org links
@@ -772,7 +775,7 @@ class MainWindow(QMainWindow):
 
             elif self.platform.startswith('linux'):  # linux, linux2 are both valid
                 # bash integration has been verified as working, vpn setup is still work in progress
-                result = subprocess.Popen(["./src/scripts/connect_linux.sh", self.current_primary_ip, self.username, self.password])
+                result = subprocess.Popen(["./scripts/connect_linux.sh", self.current_primary_ip, self.username, self.password])
 
             if result == 1:
                 self.troubleshoot_connection()
