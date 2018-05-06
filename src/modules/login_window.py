@@ -144,7 +144,9 @@ class LoginWindow(QDialog):
             twofactor_code_layout = QHBoxLayout()
             self.twofactor_code_label = QLabel("Enter verification code")
             self.get_twofactor_code = QLineEdit()
-            self.get_remember_choice = QCheckBox("Remember verification for this computer for 30 days.")
+
+            # Remember choice doesn't quite work yet
+            # self.get_remember_choice = QCheckBox("Remember verification for this computer for 30 days.")
 
             self.twofactor_dialog_yesno = QHBoxLayout()
             yesbutton = QPushButton("Verify")
@@ -158,15 +160,14 @@ class LoginWindow(QDialog):
             twofactor_code_layout.addWidget(self.twofactor_code_label)
             twofactor_code_layout.addWidget(self.get_twofactor_code)
             dialog_layout.addLayout(twofactor_code_layout)
-            dialog_layout.addWidget(self.get_remember_choice)
+            # dialog_layout.addWidget(self.get_remember_choice)
             dialog_layout.addLayout(self.twofactor_dialog_yesno)
             self.twofactor_dialog.setLayout(dialog_layout)
 
-            self.twofactor_dialog.setModal(True)  # Forces you to interact with the dialog (desired behavior)
-            self.twofactor_dialog.show()
-
-            yesbutton.clicked.connect(self.submit_twofactor_info)  # wait on user to submit information
-            nobutton.clicked.connect(self.close)  # wait on user to submit information
+            # self.twofactor_dialog.setModal(True)  # Forces you to interact with the dialog (desired behavior)
+            yesbutton.clicked.connect(self.submit_twofactor_info)  # wait on user to submit information to go here
+            nobutton.clicked.connect(self.quit_dialog)  # wait on user to submit information to go here
+            self.twofactor_dialog.exec_()
 
         else:
             self.accept()
@@ -174,15 +175,15 @@ class LoginWindow(QDialog):
     def submit_twofactor_info(self):
         form = self.browser.select_form()
         self.browser["code"] = self.get_twofactor_code.text()
-        if self.get_remember_choice.isChecked():
-            self.browser["remember"] = "1"  # Set remember to checked by default
+        # if self.get_remember_choice.isChecked():
+            # self.browser["remember"] = "1"  # Set remember to checked by default
         form.choose_submit('commit')  # Click 'Verify' button
         self.browser.submit_selected()
 
         current_page = self.browser.get_current_page().text
         twofactor_success = current_page.find("Invalid verification code")  # Will return -1 if it is not found
-        print(twofactor_success)
-        if twofactor_success != -1:  # if success
+        if twofactor_success == -1:  # if success
+            self.quit_dialog()  # Kill the dialog because we don't need it any longer
             self.accept()
         else:
             error_message = QMessageBox()
@@ -190,11 +191,11 @@ class LoginWindow(QDialog):
             error_message.setWindowTitle("Error!")
             error_message.setText('ERROR: Invalid verification code')
             error_message.exec_()
-            self.attempt_login()  # Try again. recursion risk here.
+            self.attempt_login()  # Try again. There is a recursion risk here.
 
     # Return browser with any username, password, and cookies with it
     def get_browser(self):
         return self.browser
 
-    def quit(self):
-        self.close()
+    def quit_dialog(self):
+        self.twofactor_dialog.close()
