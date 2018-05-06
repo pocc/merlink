@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 
 # Qt5
-from PyQt5.QtWidgets import (QLineEdit, QWidget, QPushButton, QLabel,
-                             QVBoxLayout, QHBoxLayout, QDialog, QMessageBox)
+from PyQt5.QtWidgets import (QLineEdit, QWidget, QPushButton, QLabel, QSpinBox, QCheckBox,
+                             QVBoxLayout, QHBoxLayout, QDialog, QMessageBox, QDialogButtonBox)
 from PyQt5.QtGui import QPixmap
 import mechanicalsoup
 from os import getcwd
@@ -121,10 +121,7 @@ class LoginWindow(QDialog):
         self.attempt_login()
 
     def attempt_login(self):
-        # URL contains /login/login if login failed
-        if '/login/login' not in self.result_url:
-            self.accept()
-        else:
+        if '/login/login' in self.result_url:  # URL contains /login/login if login failed
             # Error message popup that will take control and that the user will need to acknowledge
             error_message = QMessageBox()
             error_message.setIcon(QMessageBox.Critical)
@@ -139,7 +136,65 @@ class LoginWindow(QDialog):
 
             # Don't return 'Rejected' as value from QDialog object as that will kill login window for auth fail
             # self.reject()
+        elif 'sms_auth' in self.result_url:  # Two-Factor redirect: https://account.meraki.com/login/sms_auth?go=%2F
+            # QDialog that gets 6 digit two-factor code
+            self.twofactor_dialog = QDialog()
+            self.twofactor_dialog.setWindowTitle("Two-Factor Authentication")
+            dialog_layout = QVBoxLayout()
+            twofactor_code_layout = QHBoxLayout()
+            self.twofactor_code_label = QLabel("Enter verification code")
+            self.get_twofactor_code = QLineEdit()
+            self.get_remember_choice = QCheckBox("Remember verification for this computer for 30 days.")
+
+            self.twofactor_dialog_yesno = QHBoxLayout()
+            yesbutton = QPushButton("Verify")
+            yesbutton.setToolTip("Attempt connection with this two-factor code")
+            nobutton = QPushButton("Cancel")
+            yesbutton.setToolTip("Quit")
+            self.twofactor_dialog_yesno.addWidget(yesbutton)
+            self.twofactor_dialog_yesno.addWidget(nobutton)
+
+            # Layout code
+            twofactor_code_layout.addWidget(self.twofactor_code_label)
+            twofactor_code_layout.addWidget(self.get_twofactor_code)
+            dialog_layout.addLayout(twofactor_code_layout)
+            dialog_layout.addWidget(self.get_remember_choice)
+            dialog_layout.addLayout(self.twofactor_dialog_yesno)
+            self.twofactor_dialog.setLayout(dialog_layout)
+
+            self.twofactor_dialog.setModal(True)  # Forces you to interact with the dialog (desired behavior)
+            self.twofactor_dialog.show()
+
+            yesbutton.clicked.connect(self.submit_twofactor_info)  # wait on user to submit information
+            nobutton.clicked.connect(self.close)  # wait on user to submit information
+
+        else:
+            self.accept()
+
+    def submit_twofactor_info(self):
+        form = self.browser.select_form()
+        self.browser["code"] = self.get_twofactor_code.text()
+        if self.get_remember_choice.isChecked():
+            self.browser["remember"] = "1"  # Set remember to checked by default
+        form.choose_submit('commit')  # Click 'Verify' button
+        self.browser.submit_selected()
+
+        current_page = self.browser.get_current_page().text
+        twofactor_success = current_page.find("Invalid verification code")  # Will return -1 if it is not found
+        print(twofactor_success)
+        if twofactor_success != -1:  # if success
+            self.accept()
+        else:
+            error_message = QMessageBox()
+            error_message.setIcon(QMessageBox.Critical)
+            error_message.setWindowTitle("Error!")
+            error_message.setText('ERROR: Invalid verification code')
+            error_message.exec_()
+            self.attempt_login()  # Try again. recursion risk here.
 
     # Return browser with any username, password, and cookies with it
     def get_browser(self):
         return self.browser
+
+    def quit(self):
+        self.close()
