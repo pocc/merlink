@@ -83,6 +83,8 @@ class MainWindow(QMainWindow):
     # This function will get the organizations and then save them as a dict of names and links
     def scrape_orgs(self):
         """ ASSERTS
+        Don't set data for network-only admins as they don't have org-access.
+        Network-only admin data is added in get_networks().
         """
 
         if DEBUG:
@@ -92,36 +94,32 @@ class MainWindow(QMainWindow):
         page = self.browser.get_current_page()
         pagetext = page.text  # Use pagetext variable so we can have a string we can use slices with
         is_one_org_admin_index = pagetext.find("org_str")  # Found in HTML for administrators with access to only 1 org
-        if is_one_org_admin_index != -1:  # find will return -1 if nothing is found
+        if is_one_org_admin_index != -1:  # org_str is ONLY found for one org admins
             self.org_qty = 1
-            org_name_start = is_one_org_admin_index + 10  # Length of 'org_str":"'
-            org_name_end = org_name_start + pagetext[is_one_org_admin_index:].find('\"') - 1
-            print("is org admin index : " + str(pagetext[org_name_start: org_name_start + 20]))
-            print("org end " + str(org_name_end))
-            one_org_name = pagetext[org_name_start: org_name_end]
-            print("org names 0 : " + one_org_name)
-        else:
+        else: 
             # Get a list of all org links
             org_names = page.findAll('a', href=re.compile('/login/org_choose\?eid=.{6}'))
             # Get the number of orgs
             self.org_qty = len(org_names)
 
-        print("in scrape_ orgs and org qty = " + str(self.org_qty))
-        # Create as many network lists in the network list as there are orgs
-        self.network_list = [[]] * self.org_qty
-        self.base_url_list = [[]] * self.org_qty
-
-        for i in range(self.org_qty):
-            # TODO Make this code better by having a consistent way of getting org data
-            if self.org_qty == 1:
-                self.org_links[one_org_name] = self.browser.get_url()
-                self.org_list.append(one_org_name)
-            else:
+        if self.org_qty == 1:  # org admin with one org
+            org_name_start = pagetext.find("Mkiconf.org_name") + 20  # This should be present in EVERY dashboard page
+            org_name_end = org_name_start + pagetext[org_name_start:].find('\"')
+            one_org_name = pagetext[org_name_start: org_name_end]
+            self.org_links[one_org_name] = self.browser.get_url()
+            self.org_list.append(one_org_name)
+        elif self.org_qty > 1:  # 2+ Orgs admin
+            for i in range(self.org_qty):
                 org_str = str(org_names[i])
                 # 39:-4 = Name, 9:37 = Link
                 self.org_links[org_str[39:-4]] = 'https://account.meraki.com' + org_str[9:37]
                 self.org_list.append(org_str[39:-4])
                 print(org_str[39:-4] + self.org_links[org_str[39:-4]])
+
+        # Create as many network lists in the network list as there are orgs
+        self.network_list = [[]] * self.org_qty
+        self.base_url_list = [[]] * self.org_qty
+
 
     def get_networks(self):
         """ ASSERTS
@@ -159,8 +157,8 @@ class MainWindow(QMainWindow):
 
         orgs_dict = json.loads(administered_orgs_text)
         if DEBUG:
-            print(orgs_dict)
-            print(self.current_org)
+            print("orgs_dict " + str(orgs_dict))
+            print("current org " + str(self.current_org))
 
         # For network_only_admins, we first get org info from the administered_orgs page
         if self.network_admin_only:
@@ -170,7 +168,8 @@ class MainWindow(QMainWindow):
                 self.org_list.append(orgs_dict[org_id]['name'])
             # Duplicating this line here as we're ok with network admins running this code multiple times as it's
             # dependent on administerd_orgs json. For org admins, we keep it in scrape_orgs() so it runs once
-            self.network_list = self.base_url_list = [[]] * self.org_qty
+            self.network_list = [[]] * self.org_qty
+            self.base_url_list = [[]] * self.org_qty
         if DEBUG:
             print("org_qty " + str(self.org_qty))
         for i in range(self.org_qty):  # For every organization
@@ -493,13 +492,9 @@ class MainWindow(QMainWindow):
             # Autochoose first organization
             self.current_org = self.org_list[0]
             self.browser.open(list(self.org_links.values())[0])
-            if DEBUG:
-                print("org_qty > 0")
         else:
             self.current_org = 'Org Placeholder'  # Org name placeholder
             self.network_admin_only = True
-            if DEBUG:
-                print("org_qty <= 0")
 
         # Ask the user for int/str values if they want to enter them
         self.idle_disconnect_layout = QHBoxLayout()
@@ -550,6 +545,8 @@ class MainWindow(QMainWindow):
         self.get_networks()
         self.network_dropdown.clear()
         # For network admins, we get org information from administered_orgs json blob
+        for i in range(len(self.org_list)):
+            print(self.org_list[i])
         self.org_dropdown.addItems(self.org_list)
 
         # When we have the organization, we can scrape networks
