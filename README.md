@@ -6,13 +6,11 @@ This program will connect desktop clients to Meraki firewalls. This project is s
 ## Planned Releases
 ### v1.0.0 - MVP
 * [ ] **Set up a Client VPN connection using Meraki Auth**
-  * [ ] Dashboard login
-    * [ ] Login with a dashboard user's credentials to pull client vpn data AND (use the same credentials to connect XOR use a non-dashboard user's credentials)
-    * [ ] Support for TFA for dashboard logins
-  * [ ] Manually enter data
-    * [ ] Manually enter values for all vpn fields without using Dashboard
-* [ ] **Functionality**
-  * [ ] Ability to select and add values for powershell VPN options 
+  * [x] Dashboard login
+    * [x] Login with a dashboard user's credentials to pull client vpn data AND (use the same credentials to connect XOR use a non-dashboard user's credentials)
+    * [x] Support for TFA for dashboard logins
+* [x] **Functionality**
+  * [x] Ability to select and add values for powershell VPN options 
   * [x] Split Tunnel
 
 * [x] **Basic Diagnostics of Network Issues**
@@ -30,8 +28,8 @@ This program will connect desktop clients to Meraki firewalls. This project is s
 
 * [ ] **Windows Usability**
   * [ ] Autostart on Login
-  * [ ] Installer
-  * [ ] Icon for app window, app in taskbar, and start menu
+  * [x] Installer
+  * [x] Icon for app window, app in taskbar, and start menu
   * [ ] Icon for systray to indicate connected/disconnected
  
 ### v2.0.0+
