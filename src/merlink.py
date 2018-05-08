@@ -26,6 +26,7 @@ from os import getcwd, system
 
 # Import the login_window file
 from src.modules.login_window import LoginWindow
+from src.modules.is_online import is_online
 
 
 class MainWindow(QMainWindow):
@@ -822,6 +823,16 @@ DEBUG = True
 
 def main():  # Syntax per PyQt recommendations: http://pyqt.sourceforge.net/Docs/PyQt5/gotchas.html
     app = QApplication(sys.argv)
+    if not is_online():  # If it's not online, let the user know and quit the program so they don't waste time
+        # Error message popup that will take control and that the user will need to acknowledge
+        error_message = QMessageBox()
+        error_message.setIcon(QMessageBox.Critical)
+        error_message.setWindowTitle("Not Online!")
+        error_message.setText('ERROR: You do not have a valid connection to the internet! '
+                              '\nThis application will now close.')
+        error_message.exec_()
+        sys.exit(app.exec_())
+
     login_window = LoginWindow()
     # QDialog has two return values: Accepted and Rejected
     # login_window.exec_() will execute while we keep on getting Rejected
