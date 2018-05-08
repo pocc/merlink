@@ -10,8 +10,7 @@ import webbrowser
 # Qt5
 from PyQt5.QtWidgets import (QApplication, QWidget, QPushButton, QLabel, QSystemTrayIcon, QTextEdit, QLineEdit,
                              QVBoxLayout, QComboBox, QMainWindow, QAction, QDialog, QMessageBox, QSpinBox,
-                             QStatusBar, QFrame, QListWidget, QListWidgetItem, QCheckBox, QHBoxLayout, QMenu,
-                             QTabWidget, QRadioButton)
+                             QStatusBar, QFrame, QListWidget, QListWidgetItem, QCheckBox, QHBoxLayout, QRadioButton)
 from PyQt5.QtGui import QIcon
 
 # Web Scraping
@@ -91,19 +90,38 @@ class MainWindow(QMainWindow):
 
         # NOTE: Until you choose an organization, Dashboard will not let you visit pages you should have access to
         page = self.browser.get_current_page()
-        # Get a list of all org links
-        org_hrefs = page.findAll('a', href=re.compile('/login/org_choose\?eid=.{6}'))
-        # Get the number of orgs
-        self.org_qty = len(org_hrefs)
+        pagetext = page.text  # Use pagetext variable so we can have a string we can use slices with
+        is_one_org_admin_index = pagetext.find("org_str")  # Found in HTML for administrators with access to only 1 org
+        if is_one_org_admin_index != -1:  # find will return -1 if nothing is found
+            self.org_qty = 1
+            org_name_start = is_one_org_admin_index + 10  # Length of 'org_str":"'
+            org_name_end = org_name_start + pagetext[is_one_org_admin_index:].find('\"') - 1
+            print("is org admin index : " + str(pagetext[org_name_start: org_name_start + 20]))
+            print("org end " + str(org_name_end))
+            one_org_name = pagetext[org_name_start: org_name_end]
+            print("org names 0 : " + one_org_name)
+        else:
+            # Get a list of all org links
+            org_names = page.findAll('a', href=re.compile('/login/org_choose\?eid=.{6}'))
+            # Get the number of orgs
+            self.org_qty = len(org_names)
+
+        print("in scrape_ orgs and org qty = " + str(self.org_qty))
         # Create as many network lists in the network list as there are orgs
         self.network_list = [[]] * self.org_qty
         self.base_url_list = [[]] * self.org_qty
+
         for i in range(self.org_qty):
-            org_str = str(org_hrefs[i])
-            # 39:-4 = Name, 9:37 = Link
-            self.org_links[org_str[39:-4]] = 'https://account.meraki.com' + org_str[9:37]
-            self.org_list.append(org_str[39:-4])
-            print(org_str[39:-4] + self.org_links[org_str[39:-4]])
+            # TODO Make this code better by having a consistent way of getting org data
+            if self.org_qty == 1:
+                self.org_links[one_org_name] = self.browser.get_url()
+                self.org_list.append(one_org_name)
+            else:
+                org_str = str(org_names[i])
+                # 39:-4 = Name, 9:37 = Link
+                self.org_links[org_str[39:-4]] = 'https://account.meraki.com' + org_str[9:37]
+                self.org_list.append(org_str[39:-4])
+                print(org_str[39:-4] + self.org_links[org_str[39:-4]])
 
     def get_networks(self):
         """ ASSERTS
@@ -723,8 +741,8 @@ class MainWindow(QMainWindow):
                 # Sanitize variables for powershell input: '$' -> '`$'
                 vpn_name = vpn_name.replace('$', '`$')
                 self.psk = self.psk.replace('$', '`$')
-                self.param_username = self.username.replace('$', '`$')
-                self.param_password = self.password.replace('$', '`$')
+                self.param_username = self.param_username.replace('$', '`$')
+                self.param_password = self.param_password.replace('$', '`$')
 
                 # Get values from spinboxes/textfields
                 self.IdleDisconnectSeconds = self.idle_disconnect_spinbox.value()
