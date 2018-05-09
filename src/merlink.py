@@ -8,8 +8,8 @@ import sys
 import webbrowser
 
 # Qt5
-from PyQt5.QtWidgets import (QApplication, QWidget, QPushButton, QLabel, QSystemTrayIcon, QTextEdit, QLineEdit,
-                             QVBoxLayout, QComboBox, QMainWindow, QAction, QDialog, QMessageBox, QSpinBox,
+from PyQt5.QtWidgets import (QApplication, QWidget, QPushButton, QLabel, QSystemTrayIcon, QTextEdit, QLineEdit, qApp,
+                             QVBoxLayout, QComboBox, QMainWindow, QAction, QDialog, QMessageBox, QSpinBox, QMenu,
                              QStatusBar, QFrame, QListWidget, QListWidgetItem, QCheckBox, QHBoxLayout, QRadioButton)
 from PyQt5.QtGui import QIcon
 
@@ -553,10 +553,69 @@ class MainWindow(QMainWindow):
         # When we have the organization, we can scrape networks
         # When the user changes the organization dropdown, call the scrap networks method
         # Only change organization when there are more than 1 organization to change
+
+        self.systray_icon()
+
         self.org_dropdown.currentIndexChanged.connect(self.change_organization)
         self.network_dropdown.activated.connect(self.scrape_vars)
 
         self.connect_btn.clicked.connect(self.attempt_connection)
+
+    def close_window(self):
+        self.close()
+
+    def systray_icon(self):
+        # Init QSystemTrayIcon
+        self.tray_icon = QSystemTrayIcon(self)
+        self.tray_icon.setIcon(QIcon(self.cwd + '/media/miles.ico'))
+        connection_status = 'connected'
+        self.tray_icon.setToolTip("Merlink - " + connection_status)
+
+        show_action = QAction("Show", self)
+        quit_action = QAction("Exit", self)
+        hide_action = QAction("Hide", self)
+        show_action.triggered.connect(self.show)
+        hide_action.triggered.connect(self.hide)
+        quit_action.triggered.connect(qApp.quit)
+
+        tray_menu = QMenu()
+        tray_menu.addAction(show_action)
+        tray_menu.addAction(hide_action)
+        tray_menu.addAction(quit_action)
+        self.tray_icon.setContextMenu(tray_menu)
+        self.tray_icon.show()
+        
+        
+        # If they click on the connected message, show them the VPN connection
+        self.tray_icon.activated.connect(self.icon_activated)  # If systray icon is clicked
+
+    def open_vpn_settings(self):
+        # Opens Windows 10 Settings > Network & Internet > VPN
+        system('start ms-settings:network-vpn')
+
+    def icon_activated(self, reason):
+        if reason in (QSystemTrayIcon.Trigger, QSystemTrayIcon.DoubleClick):
+            self.show()  # So it will show up in taskbar
+            self.raise_()  # for macOS
+            self.activateWindow()  # for Windows
+
+        elif reason == QSystemTrayIcon.MiddleClick:
+            # Go to Security Appliance that we've connected to
+            # TODO This is going to need more legwork as we need to pass the cookie when we open the browser
+            webbrowser.open("https://meraki.cisco.com/")
+
+        # Override closeEvent, to intercept the window closing event
+        # The window will be closed only if there is no check mark in the check box
+
+    def closeEvent(self, event):
+        event.ignore()
+        self.tray_icon.showMessage(  # Show the user the message so they know where the program went
+            "Merlink",
+            "Merlink is now minimized",
+            QSystemTrayIcon.Information,
+            1000
+        )
+        self.hide()
 
     def set_dashboard_user_layout(self):
         self.radio_username_textfield.setText(self.username)
@@ -779,11 +838,24 @@ class MainWindow(QMainWindow):
 
                     # There's no such thing as "minimize to system tray". What we're doing is hiding the window and
                     # then adding an icon to the system tray
+
+                    # Show this when connected
+                    self.tray_icon.setIcon(QIcon(self.cwd + '/media/connected_miles.ico'))
+                    # If user wants to know more about connection, they can click on message and be redirected
+                    self.tray_icon.messageClicked.connect(self.open_vpn_settings)
+                    self.tray_icon.showMessage(  # Show the user the message so they know where the program went
+                        "Merlink",
+                        "Succesfully connected!",
+                        QSystemTrayIcon.Information,
+                        2000
+                    )
                     self.hide()
 
                 else:
                     self.status.showMessage('Status: Connection Failed')
                     self.error_message("Connection Failed")
+                    self.tray_icon.setIcon(QIcon(self.cwd + '/media/unmiles.ico'))
+
 
             elif self.platform == 'darwin':
                 args = [self.current_primary_ip, self.username, self.password]
@@ -823,6 +895,7 @@ DEBUG = True
 
 def main():  # Syntax per PyQt recommendations: http://pyqt.sourceforge.net/Docs/PyQt5/gotchas.html
     app = QApplication(sys.argv)
+    app.setQuitOnLastWindowClosed(False)  # We want to be able to be connected with VPN with systray icon
     if not is_online():  # If it's not online, let the user know and quit the program so they don't waste time
         # Error message popup that will take control and that the user will need to acknowledge
         error_message = QMessageBox()
@@ -837,8 +910,6 @@ def main():  # Syntax per PyQt recommendations: http://pyqt.sourceforge.net/Docs
     # QDialog has two return values: Accepted and Rejected
     # login_window.exec_() will execute while we keep on getting Rejected
     if login_window.exec_() == QDialog.Accepted:
-        tray_icon = QSystemTrayIcon(QIcon(getcwd() + '/media/miles.ico'))
-        tray_icon.show()
         main_window = MainWindow(login_window.get_browser(), login_window.username, login_window.password)
         main_window.show()
 
