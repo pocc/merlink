@@ -27,6 +27,7 @@ from os import getcwd, system
 # Import the login_window file
 from src.modules.login_window import LoginWindow
 from src.modules.is_online import is_online
+from src.modules.modal_dialogs import error_dialog, question_dialog
 
 
 class MainWindow(QMainWindow):
@@ -329,7 +330,7 @@ class MainWindow(QMainWindow):
             # No 'status#' in HTML means there is no firewall in that network
             # TODO This error should reset org/network prompt after an error as there's no way to fix an empty network
             # Maybe redirect to adding devices to network
-            print("There is no device in this network!")
+            error_dialog("There is no device in this network!")
             # Failure error dialog and then return
 
         # *** TEST 1 ***
@@ -344,7 +345,7 @@ class MainWindow(QMainWindow):
         if ping_response != 0:  # Ping responses other than 0 mean failure. Error codes are OS-dependent
             has_passed_validation[1] = False
             # Failure error dialog and then return
-            print("Cannot connect to device!")
+            error_dialog("Cannot connect to device!")
 
         # *** TEST 2 ***
         # Is the user behind the firewall?
@@ -430,15 +431,9 @@ class MainWindow(QMainWindow):
         if not has_passed_validation[3]:
             self.validation_list.item(3).setIcon(QIcon(self.cwd + '/media/x-mark-16.png'))
             # Error message popup that will take control and that the user will need to acknowledge
-            error_message = QMessageBox()
-            error_message.setIcon(QMessageBox.Question)
-            error_message.setWindowTitle("Error!")
-            error_message.setText('Client VPN is not enabled in Dashboard for this network.'
+            force_enable_client_vpn = error_dialog('Client VPN is not enabled in Dashboard for this network.'
                                   '\nWould you like this program to enable it for you?')
-            error_message.setStandardButtons(QMessageBox.No | QMessageBox.Yes)
-            error_message.setDefaultButton(QMessageBox.Yes)
-            ret = error_message.exec_()
-            if ret == QMessageBox.Yes:
+            if force_enable_client_vpn == QMessageBox.Yes:
                 self.enable_client_vpn()
 
         self.status.showMessage("Status: Ready to connect to " + self.current_network + ".")
@@ -871,7 +866,7 @@ class MainWindow(QMainWindow):
                 else:
                     self.is_connected = False
                     self.status.showMessage('Status: Connection Failed')
-                    self.error_message("Connection Failed")
+                    self.error_dialog("Connection Failed")
                     self.tray_icon.setIcon(QIcon(self.cwd + '/media/unmiles.ico'))
 
 
@@ -887,7 +882,7 @@ class MainWindow(QMainWindow):
                 self.troubleshoot_connection()
 
         else:  # They haven't selected an item in one of the message boxes
-            self.error_message('You must select BOTH an organization AND network before connecting!')
+            self.error_dialog('You must select BOTH an organization AND network before connecting!')
 
     def troubleshoot_connection(self):
         print("ACTIVELY troubleshooting connection")
@@ -898,20 +893,13 @@ class MainWindow(QMainWindow):
             *
         """
 
-        self.error_message('VPN Connection Failed!')
-
-    def error_message(self, message):
-        error_message = QMessageBox()
-        error_message.setIcon(QMessageBox.Critical)
-        error_message.setWindowTitle("Error!")
-        error_message.setText(message)
-        error_message.exec_()
+        self.error_dialog('VPN Connection Failed!')
 
     def disconnect(self):
         if self.is_vpn_connected():
             system('rasdial ' + self.vpn_name + ' /disconnect')
         else:
-            self.error_message("ERROR: You cannot disconnect if you are not connected!")
+            self.error_dialog("ERROR: You cannot disconnect if you are not connected!")
 
     def is_vpn_connected(self):
         rasdial_status = subprocess.Popen(['rasdial'], stdout=subprocess.PIPE).communicate()[0].decode('utf-8')
@@ -926,12 +914,8 @@ def main():  # Syntax per PyQt recommendations: http://pyqt.sourceforge.net/Docs
     app.setQuitOnLastWindowClosed(False)  # We want to be able to be connected with VPN with systray icon
     if not is_online():  # If it's not online, let the user know and quit the program so they don't waste time
         # Error message popup that will take control and that the user will need to acknowledge
-        error_message = QMessageBox()
-        error_message.setIcon(QMessageBox.Critical)
-        error_message.setWindowTitle("Not Online!")
-        error_message.setText('ERROR: You do not have a valid connection to the internet! '
+        error_dialog('ERROR: You do not have a valid connection to the internet! '
                               '\nThis application will now close.')
-        error_message.exec_()
         sys.exit(app.exec_())
 
     login_window = LoginWindow()

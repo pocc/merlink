@@ -6,11 +6,8 @@ from PyQt5.QtWidgets import (QLineEdit, QWidget, QPushButton, QLabel, QSpinBox, 
 from PyQt5.QtGui import QPixmap
 import mechanicalsoup
 from os import getcwd
-from webbrowser import open_new
 
-# Startup in MS Windows. Other method is to add a launcher to the startup folder
-# RUN_PATH = "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run"
-
+from src.modules.modal_dialogs import error_dialog
 
 class LoginWindow(QDialog):
     def __init__(self):
@@ -123,11 +120,7 @@ class LoginWindow(QDialog):
     def attempt_login(self):
         if '/login/login' in self.result_url:  # URL contains /login/login if login failed
             # Error message popup that will take control and that the user will need to acknowledge
-            error_message = QMessageBox()
-            error_message.setIcon(QMessageBox.Critical)
-            error_message.setWindowTitle("Error!")
-            error_message.setText('ERROR: Invalid username or password.')
-            error_message.exec_()
+            error_dialog('ERROR: Invalid username or password.')
 
             # Sanitize password field so they can reenter credentials
             ''' Design choice: Don't reset username as reentering can be annyoying if only password is wrong
@@ -186,11 +179,7 @@ class LoginWindow(QDialog):
             self.quit_dialog()  # Kill the dialog because we don't need it any longer
             self.accept()
         else:
-            error_message = QMessageBox()
-            error_message.setIcon(QMessageBox.Critical)
-            error_message.setWindowTitle("Error!")
-            error_message.setText('ERROR: Invalid verification code')
-            error_message.exec_()
+            error_dialog('ERROR: Invalid verification code')
             self.attempt_login()  # Try again. There is a recursion risk here.
 
     # Return browser with any username, password, and cookies with it
