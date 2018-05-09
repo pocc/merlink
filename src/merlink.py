@@ -11,7 +11,7 @@ import webbrowser
 from PyQt5.QtWidgets import (QApplication, QWidget, QPushButton, QLabel, QSystemTrayIcon, QTextEdit, QLineEdit, qApp,
                              QVBoxLayout, QComboBox, QMainWindow, QAction, QDialog, QMessageBox, QSpinBox, QMenu,
                              QStatusBar, QFrame, QListWidget, QListWidgetItem, QCheckBox, QHBoxLayout, QRadioButton)
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QFont
 
 # Web Scraping
 import re
@@ -67,6 +67,7 @@ class MainWindow(QMainWindow):
         self.DnsSuffix = '-'  # If it's set to '', then powershell will skip reading that parameter.
         self.IdleDisconnectSeconds = 0  # Powershell default indicating that we shouldn't disconnect after x seconds
         self.UseWinlogonCredential = False
+        self.is_connected = False
 
         # QMainWindow requires that a central widget be set
         self.cw = QWidget(self)
@@ -568,24 +569,39 @@ class MainWindow(QMainWindow):
         # Init QSystemTrayIcon
         self.tray_icon = QSystemTrayIcon(self)
         self.tray_icon.setIcon(QIcon(self.cwd + '/media/miles.ico'))
-        connection_status = 'connected'
+        if self.is_vpn_connected():
+            connection_status = 'VPN connected'
+        else:
+            connection_status = 'VPN disconnected'
         self.tray_icon.setToolTip("Merlink - " + connection_status)
 
+        # TODO this should be a drop down of saved connections
+        connect_action = QAction("Connect to ...", self)
+        # These 3 lines are to make "Connect to ..." bold
+        f = QFont()
+        f.setBold(True)
+        connect_action.setFont(f)
+
+        disconnect_action = QAction("Disconnect", self)
         show_action = QAction("Show", self)
         quit_action = QAction("Exit", self)
         hide_action = QAction("Hide", self)
+        connect_action.triggered.connect(self.attempt_connection)  # Allow this if we're not connected
+        disconnect_action.triggered.connect(self.disconnect)
         show_action.triggered.connect(self.show)
         hide_action.triggered.connect(self.hide)
         quit_action.triggered.connect(qApp.quit)
 
         tray_menu = QMenu()
+        tray_menu.addAction(connect_action)
+        tray_menu.addAction(disconnect_action)
+        tray_menu.addSeparator()
         tray_menu.addAction(show_action)
         tray_menu.addAction(hide_action)
         tray_menu.addAction(quit_action)
         self.tray_icon.setContextMenu(tray_menu)
         self.tray_icon.show()
-        
-        
+
         # If they click on the connected message, show them the VPN connection
         self.tray_icon.activated.connect(self.icon_activated)  # If systray icon is clicked
 
@@ -829,6 +845,7 @@ class MainWindow(QMainWindow):
                 # subprocess.Popen([], creationflags=subprocess.CREATE_NEW_CONSOLE)  # open ps window
                 print("MainWindow and the result is " + str(result) + str(type(result)))
                 if result == 0:
+                    self.is_connected = True
                     self.status.showMessage('Status: Connected')
                     success_message = QMessageBox()
                     success_message.setIcon(QMessageBox.Information)
@@ -852,6 +869,7 @@ class MainWindow(QMainWindow):
                     self.hide()
 
                 else:
+                    self.is_connected = False
                     self.status.showMessage('Status: Connection Failed')
                     self.error_message("Connection Failed")
                     self.tray_icon.setIcon(QIcon(self.cwd + '/media/unmiles.ico'))
@@ -888,6 +906,16 @@ class MainWindow(QMainWindow):
         error_message.setWindowTitle("Error!")
         error_message.setText(message)
         error_message.exec_()
+
+    def disconnect(self):
+        if self.is_vpn_connected():
+            system('rasdial ' + self.vpn_name + ' /disconnect')
+        else:
+            self.error_message("ERROR: You cannot disconnect if you are not connected!")
+
+    def is_vpn_connected(self):
+        rasdial_status = subprocess.Popen(['rasdial'], stdout=subprocess.PIPE).communicate()[0].decode('utf-8')
+        return 'Connected to' in rasdial_status
 
 
 DEBUG = True

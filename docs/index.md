@@ -5,7 +5,7 @@ This program will connect desktop clients to Meraki firewalls. This project is s
 
 ## Planned Releases
 ### v1.0.0 - MVP
-* [ ] **Set up a Client VPN connection using Meraki Auth**
+* [x] **Set up a Client VPN connection using Meraki Auth**
   * [x] Dashboard login
     * [x] Login with a dashboard user's credentials to pull client vpn data AND (use the same credentials to connect XOR use a non-dashboard user's credentials)
     * [x] Support for TFA for dashboard logins
@@ -23,14 +23,14 @@ This program will connect desktop clients to Meraki firewalls. This project is s
 
 * [ ] **UI**
   * [x] Show the user their organizations/networks in an org and network dropdown
-  * [ ] Error-quit if not connected to internet
+  * [x] Error-quit on app start if not connected to internet
   * [ ] I'm feeling lucky button that will connect you to a random firewall
 
-* [ ] **Windows Usability**
-  * [ ] Autostart on Login
+* [x] **Windows Usability**
+  * [x] Autostart on Login
   * [x] Installer
   * [x] Icon for app window, app in taskbar, and start menu
-  * [ ] Icon for systray to indicate connected/disconnected
+  * [x] Icon for systray to indicate connected/disconnected
  
 ### v2.0.0+
 The goals for future major versions can be found in the [Project list](https://github.com/pocc/merlink/projects).
@@ -50,7 +50,7 @@ Download the executables [here](https://github.com/pocc/merlink/releases).
 
 **3.** Execute the file
 
-```python3 vpn_client.py```
+```python3 merlink.py```
 
 ### Prerequisites
 
