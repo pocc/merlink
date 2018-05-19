@@ -902,8 +902,9 @@ class MainWindow(QMainWindow):
             self.error_dialog("ERROR: You cannot disconnect if you are not connected!")
 
     def is_vpn_connected(self):
-        rasdial_status = subprocess.Popen(['rasdial'], stdout=subprocess.PIPE).communicate()[0].decode('utf-8')
-        return 'Connected to' in rasdial_status
+        if self.platform == 'win32':
+            rasdial_status = subprocess.Popen(['rasdial'], stdout=subprocess.PIPE).communicate()[0].decode('utf-8')
+            return 'Connected to' in rasdial_status
 
 
 DEBUG = True
