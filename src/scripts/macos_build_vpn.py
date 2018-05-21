@@ -13,4 +13,11 @@ VARS
 * $SETID is a location in the location list in Network Settings
 """
 
+import xml.etree.ElementTree as ET
+import os
+
+os.system('cp /Library/Preferences/SystemConfiguration/preferences.plist')
+
+current_vpn_prefs = ET.parse('/Library/Preferences/SystemConfiguration/preferences.plist')
+
 
