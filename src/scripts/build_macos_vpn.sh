@@ -1,16 +1,19 @@
 #!/bin/bash
 # Generate a random UUID. 
 vpnUuid=$(uuidgen)
-# IP address of server
-serverAddress=$1
+echo $vpnUuid
+
 # The name of connection type displayed in GUI
-connectionName=$2
-# L2TP username 
-username=$3
-# L2TP password
-password=$4
+connectionName=$1
+# IP address of server
+serverAddress=$2
 # L2TP PSK
-sharedSecret=$5
+sharedSecret=$3
+# L2TP username
+username=$4
+# L2TP password
+password=$5
+
 
 # Setup Keychain shared secret granting appropriate access for the OS apps
 # To troubleshoot use the following command:
@@ -22,9 +25,11 @@ authorized_files="-T /usr/libexec/nehelper -T /System/Library/Frameworks/Network
 
 # Use the security command to add the IPSec Shared Secret and give authorized_files appropriate access
 # /Library/Keychains/System.keychain is required at the end
-sudo /usr/bin/security add-generic-password -a com.apple.ppp.l2tp -s $vpnUuid.SS -l $connectionName -D 'IPSec Shared Secret' -w $sharedSecret $authorized_files -U /Library/Keychains/System.keychain
-sudo /usr/bin/security add-generic-password -a $username -s $vpnUuid -l $connectionName -D 'VPN Password' -w $password $authorized_files -U /Library/Keychains/System.keychain
+/usr/bin/security add-generic-password -a com.apple.ppp.l2tp -s $vpnUuid.SS -l "$connectionName" -D "IPSec Shared Secret" -w "$sharedSecret" $authorized_files -U /Library/Keychains/System.keychain
+/usr/bin/security add-generic-password -a "$username" -s "$vpnUuid" -l "$connectionName" -D "VPN Password" -w "$password" $authorized_files -U /Library/Keychains/System.keychain
 
+
+# Add entries to preferences.plist
 /usr/libexec/PlistBuddy -c "Add :NetworkServices:$vpnUuid:DNS dict" /Library/Preferences/SystemConfiguration/preferences.plist
 
 /usr/libexec/PlistBuddy -c "Add :NetworkServices:$vpnUuid:IPSec:AuthenticationMethod string SharedSecret" /Library/Preferences/SystemConfiguration/preferences.plist
@@ -32,6 +37,7 @@ sudo /usr/bin/security add-generic-password -a $username -s $vpnUuid -l $connect
 /usr/libexec/PlistBuddy -c "Add :NetworkServices:$vpnUuid:IPSec:SharedSecretEncryption string Keychain" /Library/Preferences/SystemConfiguration/preferences.plist
 
 /usr/libexec/PlistBuddy -c "Add :NetworkServices:$vpnUuid:IPv4:ConfigMethod string PPP" /Library/Preferences/SystemConfiguration/preferences.plist
+/usr/libexec/PlistBuddy -c "Add :NetworkServices:$vpnUuid:IPv4:OverridePrimary integer 1" /Library/Preferences/SystemConfiguration/preferences.plist
 
 /usr/libexec/PlistBuddy -c "Add :NetworkServices:$vpnUuid:IPv6:ConfigMethod string Automatic" /Library/Preferences/SystemConfiguration/preferences.plist
 
@@ -74,3 +80,6 @@ locationUuid=`/usr/libexec/Plistbuddy -c "Print :Sets" /Library/Preferences/Syst
 /usr/libexec/PlistBuddy -c "Add :Sets:$locationUuid:Network:Service:$vpnUuid:__LINK__ string \/NetworkServices\/$vpnUuid" /Library/Preferences/SystemConfiguration/preferences.plist
 /usr/libexec/PlistBuddy -c "Add :Sets:$locationUuid:Network:Global:IPv4:ServiceOrder: string $vpnUuid" /Library/Preferences/SystemConfiguration/preferences.plist
 
+
+# It is required to add the VPN to the active set 
+scutil --nc select $connectionName
