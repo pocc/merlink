@@ -869,9 +869,12 @@ class MainWindow(QMainWindow):
                     self.error_dialog("Connection Failed")
                     self.tray_icon.setIcon(QIcon(self.cwd + '/media/unmiles.ico'))
 
-
             elif self.platform == 'darwin':
+                # Building connection
                 args = [self.current_primary_ip, self.username, self.password]
+                result = subprocess.Popen(['osascript', '-'] + args, stdout=subprocess.PIPE)
+
+                # Connecting
                 result = subprocess.Popen(['osascript', '-'] + args, stdout=subprocess.PIPE)
 
             elif self.platform.startswith('linux'):  # linux, linux2 are both valid
