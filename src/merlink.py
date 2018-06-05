@@ -790,7 +790,11 @@ class MainWindow(QMainWindow):
             # Making vpn_name have no spcaes because I haven't figured out how to pass a string with spaces to PS
             network_name = self.network_dropdown.currentText()
             # Set VPN name to the network name +/- cosmetic things
-            vpn_name = "\"" + network_name.replace('- appliance', '') + '- VPN' + "\""
+            vpn_name = network_name.replace('- appliance', '') + '- VPN'
+
+            if self.radio_dashboard_admin_user.isChecked() == 0:  # If the user is logging in as a guest user
+                self.username = self.radio_username_textfield.text()
+                self.password = self.radio_password_textfield.text()
 
             if self.platform == 'win32':
                 arch = platform.architecture()
@@ -799,18 +803,11 @@ class MainWindow(QMainWindow):
                 else:  # arch MUST be 32bit if not 64bit
                     powershell_path = 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe'
 
-                if self.radio_dashboard_admin_user.isChecked() == 1:  # If the user is logging in as dashboard user
-                    self.param_username = self.username
-                    self.param_password = self.password
-                else:  # If the user is logging in with a guest user
-                    self.param_username = self.radio_username_textfield.text()
-                    self.param_password = self.radio_password_textfield.text()
-
                 # Sanitize variables for powershell input: '$' -> '`$'
                 vpn_name = vpn_name.replace('$', '`$')
                 self.psk = self.psk.replace('$', '`$')
-                self.param_username = self.param_username.replace('$', '`$')
-                self.param_password = self.param_password.replace('$', '`$')
+                self.param_username = self.username.replace('$', '`$')
+                self.param_password = self.password.replace('$', '`$')
 
                 # Get values from spinboxes/textfields
                 self.IdleDisconnectSeconds = self.idle_disconnect_spinbox.value()
@@ -869,10 +866,34 @@ class MainWindow(QMainWindow):
                     self.error_dialog("Connection Failed")
                     self.tray_icon.setIcon(QIcon(self.cwd + '/media/unmiles.ico'))
 
-
             elif self.platform == 'darwin':
-                args = [self.current_primary_ip, self.username, self.password]
-                result = subprocess.Popen(['osascript', '-'] + args, stdout=subprocess.PIPE)
+                print("Creating macOS VPN")
+                # scutil is required to add the VPN to the active set. Without this, it is
+                #   not possible to connect, even if a VPN is listed in Network Services
+                # scutil --nc select <connection> throws '0:227: execution error: No service (1)'
+                #   if it's a part of the build script instead of here.
+                # This is why it's added directly to the osacript request.
+                # Connection name with forced quotes in case it has spaces.
+
+                scutil_string = 'scutil --nc select ' + '\'' + vpn_name + '\''
+                print(scutil_string)
+                # Create an applescript execution string so we don't need to bother with parsing arguments with Popen
+                command = 'do shell script \"/bin/sh ./scripts/build_macos_vpn.sh' + ' \'' + vpn_name + '\' \'' \
+                    + self.current_ddns + '\' \'' + self.psk + '\' \'' + self.username + '\' \'' + self.password \
+                    + '\'; ' + scutil_string + '\" with administrator privileges'
+                # Applescript will prompt the user for credentials in order to create the VPN connection
+                print(command)
+                result = subprocess.Popen(['/usr/bin/osascript', '-e', command], stdout=subprocess.PIPE)
+
+                # Get the result of VPN creation and print
+                output = result.stdout.read()
+                print(output.decode('utf-8'))
+
+                # Connect to VPN.
+                # Putting 'f' before a string allows you to insert vars in scope
+                print("Connecting to macOS VPN")
+                print(system('pwd'))
+                system(f"sh ./scripts/connect_macos.sh \'{vpn_name}\'")
 
             elif self.platform.startswith('linux'):  # linux, linux2 are both valid
                 # bash integration has been verified as working, vpn setup is still work in progress
@@ -886,13 +907,6 @@ class MainWindow(QMainWindow):
 
     def troubleshoot_connection(self):
         print("ACTIVELY troubleshooting connection")
-        """ Things to check:
-        * Basic
-            * Is MX online now?
-            * Is the client vpn user authorized?
-            *
-        """
-
         self.error_dialog('VPN Connection Failed!')
 
     def disconnect(self):
@@ -902,8 +916,9 @@ class MainWindow(QMainWindow):
             self.error_dialog("ERROR: You cannot disconnect if you are not connected!")
 
     def is_vpn_connected(self):
-        rasdial_status = subprocess.Popen(['rasdial'], stdout=subprocess.PIPE).communicate()[0].decode('utf-8')
-        return 'Connected to' in rasdial_status
+        if self.platform == 'win32':
+            rasdial_status = subprocess.Popen(['rasdial'], stdout=subprocess.PIPE).communicate()[0].decode('utf-8')
+            return 'Connected to' in rasdial_status
 
 
 DEBUG = True

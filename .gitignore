@@ -5,3 +5,8 @@
 /build
 /dist
 __pycache__/
+
+# no vim cruft
+*.swp
+*.swo
+*~
