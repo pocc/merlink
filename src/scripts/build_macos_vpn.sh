@@ -79,7 +79,3 @@ locationUuid=`/usr/libexec/Plistbuddy -c "Print :Sets" /Library/Preferences/Syst
 /usr/libexec/PlistBuddy -c "Add :Sets:$locationUuid:Network:Service:$vpnUuid dict" /Library/Preferences/SystemConfiguration/preferences.plist
 /usr/libexec/PlistBuddy -c "Add :Sets:$locationUuid:Network:Service:$vpnUuid:__LINK__ string \/NetworkServices\/$vpnUuid" /Library/Preferences/SystemConfiguration/preferences.plist
 /usr/libexec/PlistBuddy -c "Add :Sets:$locationUuid:Network:Global:IPv4:ServiceOrder: string $vpnUuid" /Library/Preferences/SystemConfiguration/preferences.plist
-
-
-# It is required to add the VPN to the active set 
-scutil --nc select $connectionName
