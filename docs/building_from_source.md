@@ -9,4 +9,5 @@
 * **--add-data="X;Y"**: put file/folder X into the executable as file/folder Y
 ## macOS
 ## Linux
-pyinstaller --windowed --icon=./src/media/miles.ico --clean --add-data="src/media/:media" --add-data="src/scripts:scripts" --add-data="LICENSE.txt:." ./src/merlink.py
+*Same as windows, but with : and / instead of ; and \*
+`pyinstaller --windowed --icon=./src/media/miles.ico --clean --add-data="src/media/:media" --add-data="src/scripts:scripts" --add-data="LICENSE.txt:." ./src/merlink.py`
