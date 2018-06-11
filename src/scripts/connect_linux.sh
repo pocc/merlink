@@ -1,31 +1,40 @@
 #!/bin/bash
 # This bash file will create and connect an L2TP VPN connection on linux
 
-# Verify that required nmcli (and by extension, network manager) is installed
-if [ -z $(which nmcli) ]; then
+# Verify that we have required packages
+# Verify that we have network-manager
+if [ $(which nmcli) != '/usr/bin/nmcli' ]; then
     echo "ERROR: nmcli is not installed!"
     echo "Please install Network Manager (https://wiki.gnome.org/Projects/NetworkManager)"
     exit 1 # Exit with nmcli failure   
 fi
+
+# Each OS will have a <OS type>-release file in /etc
+# Checking for deb and rpm because they come as prebuilt packages
+# https://github.com/nm-l2tp/network-manager-l2tp/wiki/Prebuilt-Packages
+# deb-based systems
+if [ -f /etc/debian-release ] && [ -z $(dpkg -l network-manager-l2tp 2>/dev/null) ]
+	echo "ERROR: network-manager-l2tp must be installed"
+	exit 2
+# rpm-based systems
+elif [ -f /etc/redhat-release ] && [ -z $(rpm -qa NetworkManager-l2tp 2>/dev/null) ]
+	echo "ERROR: network-manager-l2tp must be installed"
+	exit 2
+else 
+	# OS is not debian- or redhat-based
+	echo "ERROR: network-manager-l2tp is not installed"
+	echo "Exiting..."
+	exit 3
+fi
+ 
+# If there are too few arguments, exit
 if [ -z $1 ] || [ -z $2 ] || [ -z $3 ] || [ -z $4 ] || [ -z $5 ] ; then
     echo "Incorrect number of arguments, expecting 5"
     echo "Correct usage:\n  linux-vpn.sh 'MyVpnName' 'MyFirewallIp' 'MyPsk' 'MyUsername' 'MyPassword'"
-    exit 3 # Exit due to too few args
+    exit 4
 fi
 
 
-if [ -z $(which git) ]; then
-    sudo apt-get install -y git
-fi
-
-
-# If network-manager-l2tp is missing, install it
-dpkg_l2tp=$(sudo dpkg -l network-manager-l2tp 2>&1)
-if [[ $dpkg_l2tp = *"no packages found matching"* ]] ; then
-    sudo add-apt-repository ppa:nm-l2tp/network-manager-l2tp -y
-    sudo apt-get update
-    sudo apt-get install -y network-manager-l2tp network-manager-l2tp-gnome
-fi
 
 # Set variables from params
 vpn_name=$1
