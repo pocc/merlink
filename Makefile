@@ -1,14 +1,15 @@
 # maybe add targets to build wheel
-PYTHONPATH := "$(shell pwd)/vendor"
+VENDORPATH := $(shell pwd)/vendor
+PYTHONPATH := ".:$(VENDORPATH)"
 
 PYTHON := PYTHONPATH=$(PYTHONPATH) "$(shell which python3)"
-VENDOR := $(PYTHON) -m pip install --target $(PYTHONPATH)
+VENDOR := $(PYTHON) -m pip install --target "$(VENDORPATH)"
 
 default: vendor
 	$(PYTHON) ./src/merlink.py
 
 clean:
-	$(RM) -r $(PYTHONPATH)
+	$(RM) -r "$(VENDORPATH)"
 
 lint: vendor
 	# https://github.com/vintasoftware/python-linters-and-code-analysis
