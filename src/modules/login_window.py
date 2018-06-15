@@ -5,13 +5,13 @@ from PyQt5.QtWidgets import (QLineEdit, QWidget, QPushButton, QLabel, QSpinBox, 
                              QVBoxLayout, QHBoxLayout, QDialog, QMessageBox, QDialogButtonBox)
 from PyQt5.QtGui import QPixmap
 import mechanicalsoup
-from os import getcwd
 
+from src.modules.pyinstaller_path_helper import resource_path
 from src.modules.modal_dialogs import error_dialog
+
 
 class LoginWindow(QDialog):
     def __init__(self):
-
         super(LoginWindow, self).__init__()
 
         self.meraki_img = QLabel('<a href=https://meraki.cisco.com/products/wireless#mr-new>MR advertisement</a>')
@@ -82,7 +82,7 @@ class LoginWindow(QDialog):
         layout_login.addStretch()
         layout_login.addWidget(self.about_lbl)
 
-        self.meraki_img.setPixmap(QPixmap(getcwd() + '/media/new-mr.jpg'))
+        self.meraki_img.setPixmap(QPixmap(resource_path('media/new-mr.jpg')))
 
         # Background for program will be #Meraki green = #78be20
         self.setStyleSheet("background-color:#eee")

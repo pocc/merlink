@@ -1,12 +1,13 @@
 # -*- mode: python -*-
+# This spec file is used by pyinstaller on linux as a settings file
 
 block_cipher = None
 
 
-a = Analysis(['src\\merlink.py'],
-             pathex=['C:\\Users\\ross.jacobs\\code\\merlink'],
+a = Analysis(['merlink.py'],
+             pathex=['%USERPROFILE%\\code\\merlink'],
              binaries=[],
-             datas=[('src\\media\\', 'media'), ('src\\scripts', 'scripts'), ('LICENSE.txt', '.')],
+             datas=[('media\\', 'media'), ('scripts', 'scripts'), ('..\\LICENSE.txt', '.')],
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
@@ -23,7 +24,7 @@ exe = EXE(pyz,
           debug=False,
           strip=False,
           upx=True,
-          console=False , icon='src\\media\\miles.ico')
+          console=False , icon='media\\miles.ico')
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
