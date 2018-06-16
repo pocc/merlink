@@ -1,5 +1,4 @@
 # Building from Source
-*For either of these, first cd to the directory root*
 ## With spec file
 `pyinstaller src/pyinstaller.<OS>.spec`
 

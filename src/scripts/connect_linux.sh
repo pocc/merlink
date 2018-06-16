@@ -13,31 +13,29 @@ fi
 # Checking for deb and rpm because they come as prebuilt packages
 # https://github.com/nm-l2tp/network-manager-l2tp/wiki/Prebuilt-Packages
 # deb-based systems
-if [ -f /etc/debian-release ] && [ -z $(dpkg -l network-manager-l2tp 2>/dev/null) ]
-	echo "ERROR: network-manager-l2tp must be installed"
+if [ -f /etc/debian_version ] && [[ -z $(dpkg -l network-manager-l2tp 2>/dev/null) ]]; then
+	echo "ERROR: network-manager-l2tp must be installed on this debian-based system"
 	exit 2
 # rpm-based systems
-elif [ -f /etc/redhat-release ] && [ -z $(rpm -qa NetworkManager-l2tp 2>/dev/null) ]
-	echo "ERROR: network-manager-l2tp must be installed"
+elif [ -f /etc/redhat-release ] && [[ -z $(rpm -qa NetworkManager-l2tp 2>/dev/null) ]]; then
+	echo "ERROR: NetworkManager-l2tp must be installed on this redhat-based system"
 	exit 2
-else 
-	# OS is not debian- or redhat-based
-	echo "ERROR: network-manager-l2tp is not installed"
-	echo "Exiting..."
-	exit 3
 fi
  
 # If there are too few arguments, exit
-if [ -z $1 ] || [ -z $2 ] || [ -z $3 ] || [ -z $4 ] || [ -z $5 ] ; then
+if [[ -z $1 ]] || [[ -z $2 ]] || [[ -z $3 ]] || [[ -z $4 ]] || [[ -z $5 ]] ; then
     echo "Incorrect number of arguments, expecting 5"
-    echo "Correct usage:\n  linux-vpn.sh 'MyVpnName' 'MyFirewallIp' 'MyPsk' 'MyUsername' 'MyPassword'"
+    echo "Correct usage:\n  linux-vpn.sh 'MyVpnName' 'MyServerAddress' 'MyPsk' 'MyUsername' 'MyPassword'"
     exit 4
 fi
 
 
 
 # Set variables from params
-vpn_name=$1
+# vpn_name can only consist of letters so remove everything else
+vpn_name=$(echo $1 | sed 's/[^a-zA-Z]//g')
+# If the vpn_name is now empty due to these removals, name it l2tp
+if [[ -z vpn_name ]]; then vpn_name='l2tp'; fi
 firewall_ip=$2
 psk=$3
 username=$4
@@ -93,7 +91,7 @@ sudo nmcli con reload
 # REQUIRED for network-manager-l2tpd to work (see description 
 # for https://launchpad.net/~seriy-pr/+archive/ubuntu/network-manager-l2tp)
 sudo service xl2tpd stop
-sudo systemctl disable xl2tpd
+sudo systemctl disable xl2tpd 2>/dev/null
 
 # Connect
 # NOTE: If you start or enable either of these at any point, the connection will fail

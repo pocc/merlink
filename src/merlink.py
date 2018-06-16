@@ -899,8 +899,13 @@ class MainWindow(QMainWindow):
                 system("sh ./scripts/connect_macos.sh \'{vpn_name}\'")
 
             elif self.platform.startswith('linux'):  # linux, linux2 are both valid
-                # bash integration has been verified as working, vpn setup is still work in progress
-                result = subprocess.Popen(["./scripts/connect_linux.sh", self.current_primary_ip, self.username, self.password])
+                # sudo required to create a connection with nmcli
+                # pkexec is built into latest Fedora, Debian, Ubuntu.
+                # 'pkexec <cmd>' correctly asks in GUI on Debian, Ubuntu but in terminal on Fedora
+                # pkexec is PolicyKit, which is the preferred means of asking for permission on LSB
+                system('chmod a+x ' + resource_path('scripts/connect_linux.sh'))  # set execution bit on bash script
+                result = subprocess.Popen(['pkexec', resource_path('scripts/connect_linux.sh'), vpn_name,
+                                           self.current_ddns, self.psk, self.username, self.password])
 
             if result == 1:
                 self.troubleshoot_connection()
