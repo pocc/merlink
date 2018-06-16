@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QPushButton, QLabel, QSystem
                              QVBoxLayout, QComboBox, QMainWindow, QAction, QDialog, QMessageBox, QSpinBox, QMenu,
                              QStatusBar, QFrame, QListWidget, QListWidgetItem, QCheckBox, QHBoxLayout, QRadioButton)
 from PyQt5.QtGui import QIcon, QFont
+import qdarkstyle
 
 # Web Scraping
 import re
@@ -37,6 +38,7 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
         if DEBUG:
             print("Main Window")
+
 
         # Variables
         self.platform = sys.platform
@@ -70,9 +72,19 @@ class MainWindow(QMainWindow):
         self.UseWinlogonCredential = False
         self.is_connected = False
 
+        # Preferences
+        self.prefs = QDialog()
+        layout = QVBoxLayout()
+        self.prefs_heading = QLabel('<h1>Preferences</h1>')
+        self.dark_theme_checkbox = QCheckBox("Dark Theme")
+        layout.addWidget(self.prefs_heading)
+        layout.addWidget(self.dark_theme_checkbox)
+        self.prefs.setLayout(layout)
+
         # QMainWindow requires that a central widget be set
         self.cw = QWidget(self)
         self.setCentralWidget(self.cw)
+        self.default_style_sheet = self.styleSheet()
         # CURRENT minimum width of Main Window - SUBJECT TO CHANGE as features are added
         # self.cw.setMinimumWidth(400)
 
@@ -721,12 +733,12 @@ class MainWindow(QMainWindow):
 
     def edit_prefs_action(self):
         # Preferences should go here. How many settings are here will depend on the feature set
-        self.prefs = QDialog()
-        layout = QVBoxLayout()
-        self.prefs_heading = QLabel('<h1>Preferences</h1>')
-        layout.addWidget(self.prefs_heading)
-        self.prefs.setLayout(layout)
         self.prefs.show()
+
+        if self.dark_theme_checkbox.isChecked():
+            self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+        else:
+            self.setStyleSheet(self.default_style_sheet)
 
     def invert_bool(self, boolvar):
         return not boolvar
