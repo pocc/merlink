@@ -7,5 +7,5 @@ Build-Depends: debhelper (>= 9)
 
 Package: merlink
 Architecture: any
-Depends: ${network-manager:Depends}, ${network-manager-l2tp:Depends}
+Depends: ${network-manager:Depends}, ${network-manager-l2tp:Depends}, ${strongswan-plugin-openssl:Depends}
 Description: This program will create and modify L2TP VPN connections.
