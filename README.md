@@ -1,4 +1,5 @@
 [![BCH compliance](https://bettercodehub.com/edge/badge/pocc/merlink?branch=master)](https://bettercodehub.com/)
+[![Build Status](https://travis-ci.org/pocc/merlink.svg?branch=master)](https://travis-ci.org/pocc/merlink)
 
 # MerLink
 This program will connect desktop clients to Meraki firewalls. This project is still in active development.
