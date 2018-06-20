@@ -2,12 +2,11 @@ dist: trusty
 sudo: true
 language: python
 python:
-- '3.5'
-- pypy3.5
+- '3.5.5'
+- pypi
 branches:
   only:
   - master
-  - $TRAVIS_TAG
 install:
 - pip install -r requirements.txt
 - apt-get install ruby ruby-dev rubygems build-essential
