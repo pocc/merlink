@@ -1,0 +1,15 @@
+[Desktop Entry]
+Name=merlink
+Version=0.7.1
+# %u = one URL/file path | %U = multiple URLs/file paths 
+# Neither %u or %U require arguments. 
+# In future, multiple config files could be opened by merlink simultaneously
+# This would be equivalent to multiple import actions. 
+Exec=/opt/merlink/merlink %U
+Comment=VPN Editor
+Icon=/opt/merlink/media/miles.ico
+Type=Application
+Categories=Network;
+Terminal=false
+StartupNotify=true
+Encoding=UTF-8

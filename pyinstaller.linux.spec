@@ -4,10 +4,10 @@
 block_cipher = None
 
 
-a = Analysis(['merlink.py'],
-             pathex=['~/code/merlink'],
+a = Analysis(['src/merlink.py'],
+             pathex=['/home/ross/code/merlink'],
              binaries=[],
-             datas=[('media/', 'media'), ('scripts', 'scripts'), ('../LICENSE.txt', '.')],
+             datas=[('src/media', 'media'), ('src/scripts', 'scripts'), ('LICENSE.txt', '.')],
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
@@ -19,12 +19,16 @@ pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
 exe = EXE(pyz,
           a.scripts,
-          a.binaries,
-          a.zipfiles,
-          a.datas,
+          exclude_binaries=True,
           name='merlink',
           debug=False,
           strip=False,
           upx=True,
-          runtime_tmpdir=None,
           console=False , icon='src/media/miles.ico')
+coll = COLLECT(exe,
+               a.binaries,
+               a.zipfiles,
+               a.datas,
+               strip=False,
+               upx=True,
+               name='merlink')

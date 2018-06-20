@@ -97,9 +97,14 @@ For the versions available, see the [tags on this repository](https://github.com
 
 #### General Documentation
 * [Powershell VPN Client docs](https://docs.microsoft.com/en-us/powershell/module/vpnclient/?view=win10-ps) - Collection of manpages for VPN Client-specific powershell functions.
-* [NSIS](http://nsis.sourceforge.net/Docs/) - Program installer system
+
+#### Building
+* [PyInstaller](https://pyinstaller.readthedocs.io/en/v3.3.1/) - Python bundler used as part of this project 
+    * [PyInstaller Recipes](https://github.com/pyinstaller/pyinstaller/wiki/Recipes) - Useful example code
+* [NSIS](http://nsis.sourceforge.net/Docs/) - Windows program installer system
     * [NSIS Wizard + IDE](http://hmne.sourceforge.net/) - Will build and debug NSIS scripts
     * [NSIS Sample Installers](http://nsis.sourceforge.net/Category:Real_World_Installers) - To learn how to build your own installer by example
+* [FPM](https://github.com/jordansissel/fpm) - A way to package to targets deb, rpm, pacman, and osxpkg
 
 ### License
 

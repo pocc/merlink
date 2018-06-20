@@ -1,0 +1,20 @@
+dist: trusty
+sudo: true
+
+# These python versions are limited to what's available on Trusty and Precise
+language: python
+python:
+  - "3.6"
+  - "pypy3.5"
+
+branches:
+  only:
+    - master
+
+install:
+  - pip install -r requirements.txt
+  # To [get FPM](https://fpm.readthedocs.io/en/latest/installing.html)
+  - apt-get install ruby ruby-dev rubygems build-essential
+  - gem install --no-ri --no-rdoc fpm
+
+script: pytest

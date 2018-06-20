@@ -1,0 +1,11 @@
+Package: merlink
+Version: 0.7
+Maintainer: Ross Jacobs <projectmerlink@gmail.com>
+Source: https://github.com/pocc/merlink
+Homepage: pocc.github.io/merlink
+Architecture: amd64
+Priority: optional
+Suggests: network-manager-l2tp-gnome
+Depends: network-manager-l2tp, network-manager (>=1.8)
+Description: Creates and edits L2TP VPN connections
+ For a full list of features, visit https://github.com/pocc/merlink.
