@@ -10,25 +10,10 @@ python:
 
 # Set up sip and PyQt5, which cannot be installed with pip on travisci
 # Borrowed syntax from https://gist.github.com/KenjiTakahashi/4049085
-before_install:
-  -
-  - curl -L -O https://sourceforge.net/projects/pyqt/files/sip/sip-4.19.8/sip-4.19.8.tar.gz
-  - tar -xvf sip-4.19.8.tar.gz
-  - cd sip-4.19.8
-  - python configure.py
-  - make -j 2
-  - sudo make install
-  - cd ..
-  - curl -L -O https://sourceforge.net/projects/pyqt/files/PyQt5/PyQt-5.10.1/PyQt5_gpl-5.10.1.tar.gz
-  - tar -xvf PyQt5_gpl-5.10.1.tar.gz
-  - cd PyQt5_gpl-5.10.1
-  - python configure.py --confirm-license
-  - make -j 2
-  - sudo make install
-  - cd ..
 install:
+  - sudo apt-get install -y python3-pyqt5
   - sudo pip install -r requirements.txt
-  - sudo apt-get install ruby ruby-dev rubygems build-essential
+  - sudo apt-get install -y ruby ruby-dev rubygems build-essential
   - sudo gem install --no-ri --no-rdoc fpm
 script:
   - bash ./packaging/build-linux-packages.sh
