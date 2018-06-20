@@ -12,9 +12,6 @@ setuptools>=28.8.0
 six>=1.11.0
 urllib3>=1.22
 
-# Must be installed manually (use ./.travis.yml before_install script)
-#sip>=4.19.8
-#PyQt5>=5.10.1
-
-# for maintainers:
-pyinstaller
+# Maintainer: PyInstaller requirements
+Markdown>=2.0.1
+pyinstaller>=3.0.0

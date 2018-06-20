@@ -4,6 +4,7 @@
 # Assume starting directory is ./packaging
 
 # Get variables from setup.py
+echo $(pwd)
 NAME=$(cat ../setup.py | grep name | cut -d "'" -f2)
 VERSION=$(cat ../setup.py | grep version | cut -d "'" -f2)
 MINOR_VERSION=$(echo ${VERSION} | cut -d "." -f1,2)
@@ -13,23 +14,23 @@ PATCH_VERSION=$(echo ${VERSION} | cut -d "." -f3)
 # cd to directory root
 cd ..
 # clean directories first
-rm -rf build dist
+rm -rfv build dist
 pyinstaller -y pyinstaller.linux.spec
 
 ### Setup for FPM
-mkdir -p build/usr/bin
-mkdir -p build/opt
+mkdir -pv build/usr/bin
+mkdir -pv build/opt
 # Remove problematic file for 18.04 Ubuntu
-rm dist/merlink/libdrm.so.2
+rm -v dist/merlink/libdrm.so.2
 # Create a symbolic link to the merlink binary in opt
-ln -fs /opt/merlink/merlink build/usr/bin
+ln -fsv /opt/merlink/merlink build/usr/bin
 # Pyinstaller generates a folder bundle in dist. Move this to opt.
-mv -f dist/merlink build/opt
+mv -fv dist/merlink build/opt
 
 ### FPM configuration
 cd build
 # deb + rpm + tar
-OPTIONS="--force \
+OPTIONS="--force --verbose \
     --input-type dir \
     --version ${MINOR_VERSION} \
     --name ${NAME} \
