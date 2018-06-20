@@ -7,9 +7,9 @@ branches:
   only:
   - master
 install:
-- sudo pip install -r requirements.txt
-- sudo apt-get install ruby ruby-dev rubygems build-essential
-- sudo gem install --no-ri --no-rdoc fpm
+  - sudo pip install -r requirements.txt
+  - sudo apt-get install ruby ruby-dev rubygems build-essential
+  - sudo gem install --no-ri --no-rdoc fpm
 script:
   - bash ./packaging/build-linux-packages.sh
 
