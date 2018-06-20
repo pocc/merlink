@@ -7,13 +7,14 @@ idna>=2.6
 lxml>=4.2.1
 MechanicalSoup>=0.10.0
 pip>=9.0.1
-sip>=4.19.8
-PyQt5>=5.10.1
 requests>=2.18.4
 setuptools>=28.8.0
 six>=1.11.0
 urllib3>=1.22
-pypi>=2.0
+
+# Must be installed manually (use ./.travis.yml before_install script)
+#sip>=4.19.8
+#PyQt5>=5.10.1
 
 # for maintainers:
 pyinstaller
