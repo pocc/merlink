@@ -2,15 +2,14 @@ dist: trusty
 sudo: true
 language: python
 python:
-- '3.5.5'
-- pypi
+- '3.5'
 branches:
   only:
   - master
 install:
-- pip install -r requirements.txt
-- apt-get install ruby ruby-dev rubygems build-essential
-- gem install --no-ri --no-rdoc fpm
+- sudo pip install -r requirements.txt
+- sudo apt-get install ruby ruby-dev rubygems build-essential
+- sudo gem install --no-ri --no-rdoc fpm
 script:
   - bash ./packaging/build-linux-packages.sh
 
