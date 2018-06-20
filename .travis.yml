@@ -20,7 +20,7 @@ script:
 # travis encrypt <email> --add deploy.username
 # travis encrypt <password> --add deploy.password
 
-# Also useful: https://www.victorhurdugaci.com/github-releases-travis
+# Troubleshooting: https://docs.travis-ci.com/user/common-build-problems/#I-pushed-a-commit-and-can%E2%80%99t-find-its-corresponding-build
 
 deploy:
   provider: releases
