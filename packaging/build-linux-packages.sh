@@ -4,15 +4,12 @@
 # Assume starting directory is ./packaging
 
 # Get variables from setup.py
-echo $(pwd)
-NAME=$(cat ../setup.py | grep name | cut -d "'" -f2)
-VERSION=$(cat ../setup.py | grep version | cut -d "'" -f2)
+NAME=$(cat setup.py | grep name | cut -d "'" -f2)
+VERSION=$(cat setup.py | grep version | cut -d "'" -f2)
 MINOR_VERSION=$(echo ${VERSION} | cut -d "." -f1,2)
 PATCH_VERSION=$(echo ${VERSION} | cut -d "." -f3)
 
 ### Create bundle with pyinstaller
-# cd to directory root
-cd ..
 # clean directories first
 rm -rfv build dist
 pyinstaller -y pyinstaller.linux.spec
