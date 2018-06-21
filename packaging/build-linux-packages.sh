@@ -5,10 +5,7 @@
 echo "Entering working directory: $(pwd)"
 # If we're not running in Travis CI, throw an error
 if [ -z $TRAVIS_TAG ]; then
-    VERSION='Unicorn.Sparkles'
-else
-    # Get rid of the leading v
-    VERSION=${TRAVIS_TAG:1}
+    TRAVIS_TAG='Leprechaun.Gold'
 fi
 NAME='merlink'
 
@@ -30,13 +27,14 @@ cd bin
 # deb + rpm + tar
 OPTIONS="--force --verbose \
     --input-type dir \
-    --version ${VERSION} \
+    --TRAVIS_TAG ${TRAVIS_TAG} \
     --name ${NAME} \
     --maintainer projectmerlink@gmail.com \
     --license 'opt/merlink/LICENSE.txt' \
     --architecture amd64 \
     --category Network \
     --url pocc.merlink.io/merlink \
+    --priority optional \
     --vendor MerLink"
 
 echo "Working directory before using fpm: $(pwd)"
@@ -47,7 +45,7 @@ echo "Working directory before using fpm: $(pwd)"
 #   so we need separate dependency lists
 # folders (usr, opt) MUST be the last arguments
 # There are no config files, thus --deb-no-default-config-files
-fpm --output-type deb ${OPTIONS} -p ${NAME}-${VERSION}.deb --description 'Cross-platform VPN editor' \
+fpm --output-type deb ${OPTIONS} -p ${NAME}-${TRAVIS_TAG}.deb --description 'Cross-platform VPN editor' \
     --deb-no-default-config-files \
     --depends network-manager \
     --depends network-manager-l2tp \
@@ -55,18 +53,18 @@ fpm --output-type deb ${OPTIONS} -p ${NAME}-${VERSION}.deb --description 'Cross-
     --deb-suggests strongswan-plugin-openssl\
     opt usr
 # redhat doesn't believe in suggests. There's a suggestion I'd like to make.
-fpm --output-type rpm ${OPTIONS} -p ${NAME}-${VERSION}.rpm --description 'Cross-platform VPN editor' \
+fpm --output-type rpm ${OPTIONS} -p ${NAME}-${TRAVIS_TAG}.rpm --description 'Cross-platform VPN editor' \
     --depends NetworkManager \
     --depends NetworkManager-l2tp\
     opt usr
 # Do not require anything so tar can just work everywhere
-tar cvzf ${NAME}-${VERSION}.tar.gz opt usr
+tar cvzf ${NAME}-${TRAVIS_TAG}.tar.gz opt usr
 
 # Removing non-packages from bin directory
-rm -rfv opt usr
+# rm -rfv opt usr
 
 # pacman (is failing on my system, but need confirmation)
 # ERRORS:
 #     Process failed: /bin/bash failed (exit code 127). Full command was:["/bin/bash", "-c", "LANG=C bsdtar -czf .MTREE --format=mtree --options='!all,use-set,type,uid,gid,mode,time,size,md5,sha256,link' var .PKGINFO"] {:level=>:error}
-#fpm -f -s dir -t pacman -v ${VERSION} -n ${NAME} -p bin/${NAME}-${VERSION}.pacman bin/usr bin/opt
+#fpm -f -s dir -t pacman -v ${TRAVIS_TAG} -n ${NAME} -p bin/${NAME}-${TRAVIS_TAG}.pacman bin/usr bin/opt
 # .tar.gz.     Using fpm and not tar for consistency.

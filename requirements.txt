@@ -12,14 +12,10 @@ setuptools>=28.8.0
 six>=1.11.0
 urllib3>=1.22
 
-# Maintainer: PyInstaller requirements
-macholib>=1.8
-Markdown>=2.0.1
-pyinstaller>=3.0.0
-
-# Not included: sip/PyQt5
+# Not included: sip/PyQt5/PyInstaller
 #   These modules may not be found everywhere. python3-pyqt5, which contains
 #   these is only found in Trusty repos (not in Precise or Bionic).
 #   Recommendation is to manually install from source (see .travis.yml)
 #PyQt5>=5.10.1
 #sip>=4.19.8
+#pyinstaller>=3.0.0

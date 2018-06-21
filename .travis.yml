@@ -48,17 +48,21 @@ before_install:
 install:
   #- sudo apt full-upgrade
   - sudo pip install -r requirements.txt
+  # Download PyInstaller from source because there are issues with the version
+  # that travis ci (i.e. Google Cloud Platform) uses.
+  # See https://github.com/GoogleCloudPlatform/google-cloud-python/issues/1187
+  - sudo pip install --upgrade git+https://github.com/pyinstaller/pyinstaller.git
   - sudo apt install -y rpm ruby ruby-dev rubygems build-essential
   - sudo gem install --no-ri --no-rdoc fpm
 script:
   - bash ./packaging/build-linux-packages.sh
 
-### Setup with the following ###
+### The following was setup with the following ###
 # travis setup releases
 # travis encrypt <email> --add deploy.username
 # travis encrypt <password> --add deploy.password
 
-# Troubleshooting: https://docs.travis-ci.com/user/common-build-problems/#I-pushed-a-commit-and-can%E2%80%99t-find-its-corresponding-build
+# Troubleshooting github release + travis ci integration: https://docs.travis-ci.com/user/common-build-problems/#I-pushed-a-commit-and-can%E2%80%99t-find-its-corresponding-build
 
 deploy:
   provider: releases
