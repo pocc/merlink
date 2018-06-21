@@ -44,18 +44,20 @@ before_install:
   - sudo make install
   - cd ..
 
-# rpm installed here so that we have access to rpmbuild, which fpm in build script requires
-# ruby components installed for fpm
 install:
   #- sudo apt full-upgrade
   - sudo pip install -r requirements.txt
   # Having latest setuptools + wheel is important for PyInstaller on Trusty
-  pip install -U setuptools wheel
+  - sudo pip install -U setuptools wheel
   # Download PyInstaller from source because there are issues with the version
   # that travis ci (i.e. Google Cloud Platform) uses.
   # See https://github.com/GoogleCloudPlatform/google-cloud-python/issues/1187
   - sudo pip install --upgrade git+https://github.com/pyinstaller/pyinstaller.git
-  - sudo apt install -y rpm ruby ruby-dev rubygems build-essential
+  # rpm installed here so that we have access to rpmbuild, which fpm in build script requires
+  # ruby components installed for fpm
+  - sudo apt install -y rpm
+  # Installing ruby dependencies and then installing fpm as a gem
+  - sudo apt install -y ruby ruby-dev rubygems build-essential
   - sudo gem install --no-ri --no-rdoc fpm
 script:
   - bash ./packaging/build-linux-packages.sh
