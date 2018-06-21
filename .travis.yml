@@ -26,6 +26,7 @@ branches:
 # however, python3-pyqt5 is not in the trusty or bionic repos for travis ci
 # * qt5-default required for PyQt5
 before_install:
+  - sudo apt update
   - curl -L -O https://sourceforge.net/projects/pyqt/files/sip/sip-4.19.8/sip-4.19.8.tar.gz
   - tar -xvf sip-4.19.8.tar.gz
   - cd sip-4.19.8
@@ -45,6 +46,7 @@ before_install:
 # rpm installed here so that we have access to rpmbuild, which fpm in build script requires
 # ruby components installed for fpm
 install:
+  #- sudo apt full-upgrade
   - sudo pip install -r requirements.txt
   - sudo apt install -y rpm ruby ruby-dev rubygems build-essential
   - sudo gem install --no-ri --no-rdoc fpm
