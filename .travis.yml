@@ -4,15 +4,19 @@ language: python
 python:
 - '3.5'
 
-#branches:
-#  except:
-#  - master
+# Only tagged commits
+branches:
+  except:
+  - master
 
 # Set up sip and PyQt5, which cannot be installed with pip on travisci
 # Borrowed syntax from https://gist.github.com/KenjiTakahashi/4049085
+# python3-pyqt5 installs PyQt5 and sip because pip cannot install them
+# rpm installed here so that we have access to rpmbuild, which fpm in build script requires
+# ruby components installed for fpm
 install:
   - sudo pip install -r requirements.txt
-  - sudo apt-get install -y python3-pyqt5 ruby ruby-dev rubygems build-essential
+  - sudo apt-get install -y python3-pyqt5 rpm ruby ruby-dev rubygems build-essential
   - sudo gem install --no-ri --no-rdoc fpm
 script:
   - bash ./packaging/build-linux-packages.sh
@@ -26,10 +30,12 @@ script:
 
 deploy:
   provider: releases
+  prerelease: true
+  file_glob: true
   file:
-    - build/merlink-$TRAVIS_TAG.deb
-    - build/merlink-$TRAVIS_TAG.rpm
-    - build/merlink-$TRAVIS_TAG.tar.gz
+    - bin/merlink-$TRAVIS_TAG.deb
+    - bin/merlink-$TRAVIS_TAG.rpm
+    - bin/merlink-$TRAVIS_TAG.tar.gz
   on:
     repo: pocc/merlink
     # Only build on a new release tag. $TRAVIS_TAG will be set to that tag.

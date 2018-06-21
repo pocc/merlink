@@ -3,6 +3,7 @@
 /vendor
 /venv
 /build
+/bin
 /dist
 __pycache__/
 

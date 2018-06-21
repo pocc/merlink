@@ -3,11 +3,13 @@
 # When in doubt, use a force/yes flag to overwrite
 # Assume starting directory is ./packaging
 
+echo "Entering working directory: $(pwd)"
 # Get variables from setup.py
 NAME=$(cat setup.py | grep name | cut -d "'" -f2)
 VERSION=$(cat setup.py | grep version | cut -d "'" -f2)
 MINOR_VERSION=$(echo ${VERSION} | cut -d "." -f1,2)
 PATCH_VERSION=$(echo ${VERSION} | cut -d "." -f3)
+echo "Travis tag$TRAVIS_TAG"
 
 ### Create bundle with pyinstaller
 # clean directories first
@@ -15,17 +17,17 @@ rm -rfv build dist
 pyinstaller -y pyinstaller.linux.spec
 
 ### Setup for FPM
-mkdir -pv build/usr/bin
-mkdir -pv build/opt
+mkdir -pv bin/usr/bin
+mkdir -pv bin/opt
 # Remove problematic file for 18.04 Ubuntu
 rm -v dist/merlink/libdrm.so.2
 # Create a symbolic link to the merlink binary in opt
-ln -fsv /opt/merlink/merlink build/usr/bin
+ln -fsv /opt/merlink/merlink bin/usr/bin
 # Pyinstaller generates a folder bundle in dist. Move this to opt.
-mv -fv dist/merlink build/opt
+mv -fv dist/merlink bin/opt
 
 ### FPM configuration
-cd build
+cd bin
 # deb + rpm + tar
 OPTIONS="--force --verbose \
     --input-type dir \
@@ -59,9 +61,13 @@ fpm --output-type rpm ${OPTIONS} -p ${NAME}-${MINOR_VERSION}.rpm --description '
     usr opt
 # Do not require anything so tar can just work everywhere
 fpm --output-type tar ${OPTIONS} -p ${NAME}-${MINOR_VERSION}.tar --description 'Cross-platform VPN editor' usr opt
+tar -z ${NAME}-${MINOR_VERSION}.tar
+
+# Removing non-packages from bin directory
+rm -rf opt usr
 
 # pacman (is failing on my system, but need confirmation)
 # ERRORS:
 #     Process failed: /bin/bash failed (exit code 127). Full command was:["/bin/bash", "-c", "LANG=C bsdtar -czf .MTREE --format=mtree --options='!all,use-set,type,uid,gid,mode,time,size,md5,sha256,link' var .PKGINFO"] {:level=>:error}
-#fpm -f -s dir -t pacman -v ${VERSION} -n ${NAME} -p build/${NAME}-${VERSION}.pacman build/usr build/opt
+#fpm -f -s dir -t pacman -v ${VERSION} -n ${NAME} -p bin/${NAME}-${VERSION}.pacman bin/usr bin/opt
 # .tar.gz.     Using fpm and not tar for consistency.
