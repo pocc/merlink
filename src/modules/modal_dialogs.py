@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 from PyQt5.QtWidgets import QMessageBox
 
 
@@ -7,6 +8,7 @@ def error_dialog(message):
     error_dialog.setWindowTitle("Error!")
     error_dialog.setText(message)
     error_dialog.exec_()
+
 
 def question_dialog(message):
     question_dialog = QMessageBox()

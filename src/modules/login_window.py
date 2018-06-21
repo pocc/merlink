@@ -1,6 +1,4 @@
 #!/usr/bin/python3
-
-# Qt5
 from PyQt5.QtWidgets import (QLineEdit, QWidget, QPushButton, QLabel, QSpinBox, QCheckBox,
                              QVBoxLayout, QHBoxLayout, QDialog, QMessageBox, QDialogButtonBox)
 from PyQt5.QtGui import QPixmap

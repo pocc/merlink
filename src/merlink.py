@@ -19,16 +19,18 @@ import json
 import requests
 import bs4
 
-# VPN creation
+# OS modules
 import subprocess
 import platform
 from os import getcwd, system
+import psutil
 
 # Import the login_window file
 from src.modules.pyinstaller_path_helper import resource_path
 from src.modules.login_window import LoginWindow
 from src.modules.is_online import is_online
 from src.modules.modal_dialogs import error_dialog, question_dialog
+from src.modules.duplicate_application import is_duplicate_application
 
 
 class MainWindow(QMainWindow):
@@ -934,13 +936,12 @@ DEBUG = True
 
 def main():  # Syntax per PyQt recommendations: http://pyqt.sourceforge.net/Docs/PyQt5/gotchas.html
     app = QApplication(sys.argv)
-    app.setQuitOnLastWindowClosed(False)  # We want to be able to be connected with VPN with systray icon
-    if not is_online():  # If it's not online, let the user know and quit the program so they don't waste time
-        # Error message popup that will take control and that the user will need to acknowledge
-        error_dialog('ERROR: You do not have a valid connection to the internet! '
-                              '\nThis application will now close.')
+    if is_duplicate_application():
+        error_dialog('ERROR: You already have a running instance of merlink!'
+                     '\nThis application will now close.')
         sys.exit(app.exec_())
 
+    app.setQuitOnLastWindowClosed(False)  # We want to be able to be connected with VPN with systray icon
     login_window = LoginWindow()
     # QDialog has two return values: Accepted and Rejected
     # login_window.exec_() will execute while we keep on getting Rejected
