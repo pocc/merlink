@@ -36,9 +36,6 @@ before_install:
   - sudo make install
   - cd ..
   # travis ci + bionic can't download qt5-default? dl package directly
-  - curl -L -O http://mirrors.kernel.org/ubuntu/pool/universe/q/qtbase-opensource-src/qt5-default_5.9.5+dfsg-0ubuntu1_amd64.deb
-  - curl -L -O http://mirrors.kernel.org/ubuntu/pool/universe/q/qttools-opensource-src/qttools5-dev-tools_5.9.5-0ubuntu1_amd64.deb
-  - sudo dpkg -i qt5-default_5.9.5+dfsg-0ubuntu1_amd64.deb qttools5-dev-tools_5.9.5-0ubuntu1_amd64.deb
   - curl -L -O https://sourceforge.net/projects/pyqt/files/PyQt5/PyQt-5.10.1/PyQt5_gpl-5.10.1.tar.gz
   - tar -xvf PyQt5_gpl-5.10.1.tar.gz
   - cd PyQt5_gpl-5.10.1
