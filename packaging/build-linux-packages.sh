@@ -4,7 +4,7 @@
 
 echo "Entering working directory: $(pwd)"
 # If we're not running in Travis CI, throw an error
-if [[-z ${TRAVIS_TAG}]]; then
+if [ -z $TRAVIS_TAG ]; then
     VERSION='Unicorn.Sparkles'
 else
     # Get rid of the leading v
@@ -13,19 +13,17 @@ fi
 NAME='merlink'
 
 ### Create bundle with pyinstaller
-# clean directories first
-rm -rfv build dist
 pyinstaller -y pyinstaller.linux.spec
 
 ### Setup for FPM
 mkdir -pv bin/usr/bin
 mkdir -pv bin/opt
 # Remove problematic file for 18.04 Ubuntu
-rm -v dist/merlink/libdrm.so.2
+rm -vf dist/merlink/libdrm.so.2
 # Create a symbolic link to the merlink binary in opt
 ln -fsv /opt/merlink/merlink bin/usr/bin
 # Pyinstaller generates a folder bundle in dist. Move this to opt.
-mv -fv dist/merlink bin/opt
+cp -fvr dist/merlink bin/opt
 
 ### FPM configuration
 cd bin
@@ -41,6 +39,7 @@ OPTIONS="--force --verbose \
     --url pocc.merlink.io/merlink \
     --vendor MerLink"
 
+echo "Working directory before using fpm: $(pwd)"
 # strongswan-plugin-ssl required for Linux Mint 18.3 (other Xenial distros come with it by default)
 # Ubuntu 18.04 doesn't have strongswan-plugin-ssl though, so not requiring
 #   network-manager-l2tp may be helpful in troubleshooting but is not required
@@ -54,18 +53,17 @@ fpm --output-type deb ${OPTIONS} -p ${NAME}-${VERSION}.deb --description 'Cross-
     --depends network-manager-l2tp \
     --deb-suggests network-manager-l2tp-gnome \
     --deb-suggests strongswan-plugin-openssl\
-    usr opt
+    opt usr
 # redhat doesn't believe in suggests. There's a suggestion I'd like to make.
 fpm --output-type rpm ${OPTIONS} -p ${NAME}-${VERSION}.rpm --description 'Cross-platform VPN editor' \
     --depends NetworkManager \
     --depends NetworkManager-l2tp\
-    usr opt
+    opt usr
 # Do not require anything so tar can just work everywhere
-fpm --output-type tar ${OPTIONS} -p ${NAME}-${VERSION}.tar --description 'Cross-platform VPN editor' usr opt
-tar cvzf ${NAME}-${VERSION}.tar.gz ${NAME}-${VERSION}.tar
+tar cvzf ${NAME}-${VERSION}.tar.gz opt usr
 
 # Removing non-packages from bin directory
-rm -rf opt usr
+rm -rfv opt usr
 
 # pacman (is failing on my system, but need confirmation)
 # ERRORS:
