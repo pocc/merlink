@@ -35,7 +35,10 @@ before_install:
   - make -j 2
   - sudo make install
   - cd ..
-  - sudo apt install qt5-default
+  # travis ci + bionic can't download qt5-default? dl package directly
+  - curl -L -O http://mirrors.kernel.org/ubuntu/pool/universe/q/qtbase-opensource-src/qt5-default_5.9.5+dfsg-0ubuntu1_amd64.deb
+  - curl -L -O http://mirrors.kernel.org/ubuntu/pool/universe/q/qttools-opensource-src/qttools5-dev-tools_5.9.5-0ubuntu1_amd64.deb
+  - sudo dpkg -i qt5-default_5.9.5+dfsg-0ubuntu1_amd64.deb qttools5-dev-tools_5.9.5-0ubuntu1_amd64.deb
   - curl -L -O https://sourceforge.net/projects/pyqt/files/PyQt5/PyQt-5.10.1/PyQt5_gpl-5.10.1.tar.gz
   - tar -xvf PyQt5_gpl-5.10.1.tar.gz
   - cd PyQt5_gpl-5.10.1
@@ -52,10 +55,10 @@ install:
   # Download PyInstaller from source because there are issues with the version
   # that travis ci (i.e. Google Cloud Platform) uses.
   # See https://github.com/GoogleCloudPlatform/google-cloud-python/issues/1187
+  - sudo apt install -y rpm python3-pyqt5
   - sudo pip install --upgrade git+https://github.com/pyinstaller/pyinstaller.git
   # rpm installed here so that we have access to rpmbuild, which fpm in build script requires
   # ruby components installed for fpm
-  - sudo apt install -y rpm
   # Installing ruby dependencies and then installing fpm as a gem
   - sudo apt install -y ruby ruby-dev rubygems build-essential
   - sudo gem install --no-ri --no-rdoc fpm
