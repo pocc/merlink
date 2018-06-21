@@ -27,7 +27,7 @@ cd bin
 # deb + rpm + tar
 OPTIONS="--force --verbose \
     --input-type dir \
-    --TRAVIS_TAG ${TRAVIS_TAG} \
+    --version ${TRAVIS_TAG} \
     --name ${NAME} \
     --maintainer projectmerlink@gmail.com \
     --license 'opt/merlink/LICENSE.txt' \

@@ -26,7 +26,8 @@ branches:
 # however, python3-pyqt5 is not in the trusty or bionic repos for travis ci
 # * qt5-default required for PyQt5
 before_install:
-  - sudo apt update
+  - sudo add-apt-repository --yes ppa:ubuntu-sdk-team/ppa
+  - sudo apt-get update
   - curl -L -O https://sourceforge.net/projects/pyqt/files/sip/sip-4.19.8/sip-4.19.8.tar.gz
   - tar -xvf sip-4.19.8.tar.gz
   - cd sip-4.19.8
@@ -48,6 +49,8 @@ before_install:
 install:
   #- sudo apt full-upgrade
   - sudo pip install -r requirements.txt
+  # Having latest setuptools + wheel is important for PyInstaller on Trusty
+  pip install -U setuptools wheel
   # Download PyInstaller from source because there are issues with the version
   # that travis ci (i.e. Google Cloud Platform) uses.
   # See https://github.com/GoogleCloudPlatform/google-cloud-python/issues/1187
@@ -70,9 +73,9 @@ deploy:
   file_glob: true
   file:
     # ${TRAVIS_TAG:1} strips the starting v from the tag
-    - bin/merlink-${TRAVIS_TAG:1}.deb
-    - bin/merlink-${TRAVIS_TAG:1}.rpm
-    - bin/merlink-${TRAVIS_TAG:1}.tar
+    - bin/merlink-${TRAVIS_TAG}.deb
+    - bin/merlink-${TRAVIS_TAG}.rpm
+    - bin/merlink-${TRAVIS_TAG}.tar
   on:
     repo: pocc/merlink
     # Only build on a new release tag. $TRAVIS_TAG will be set to that tag.
