@@ -1,5 +1,16 @@
-dist: xenial
-sudo: true
+matrix:
+  include:
+  # Not specifying precise because it's EOL
+  - os: linux
+    sudo: required
+    dist: trusty
+  - os: linux
+    sudo: required
+    dist: xenial
+  - os: linux
+    sudo: required
+    dist: bionic
+
 language: python
 python:
 - '3.5'
@@ -18,6 +29,7 @@ install:
   - sudo pip install -r requirements.txt
   - sudo apt-get install -y python3-pyqt5 rpm ruby ruby-dev rubygems build-essential
   - sudo gem install --no-ri --no-rdoc fpm
+  - ping 8.8.8.8
 script:
   - bash ./packaging/build-linux-packages.sh
 
@@ -33,8 +45,10 @@ deploy:
   prerelease: true
   file_glob: true
   file:
-    - bin/*
-    - setup.py
+    # ${TRAVIS_TAG:1} strips the starting v from the tag
+    - bin/merlink-${TRAVIS_TAG:1}.deb
+    - bin/merlink-${TRAVIS_TAG:1}.rpm
+    - bin/merlink-${TRAVIS_TAG:1}.tar
   on:
     repo: pocc/merlink
     # Only build on a new release tag. $TRAVIS_TAG will be set to that tag.

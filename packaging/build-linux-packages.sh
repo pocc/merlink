@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
 # This script will build merlink targets using pyinstaller and fpm
 # When in doubt, use a force/yes flag to overwrite
-# Assume starting directory is ./packaging
 
 echo "Entering working directory: $(pwd)"
-# Get variables from setup.py
-NAME=$(cat setup.py | grep name | cut -d "'" -f2)
-VERSION=$(cat setup.py | grep version | cut -d "'" -f2)
-MINOR_VERSION=$(echo ${VERSION} | cut -d "." -f1,2)
-PATCH_VERSION=$(echo ${VERSION} | cut -d "." -f3)
-echo "Travis tag$TRAVIS_TAG"
+# If we're not running in Travis CI, throw an error
+if [[-z ${TRAVIS_TAG}]]; then
+    VERSION='Unicorn.Sparkles'
+else
+    # Get rid of the leading v
+    VERSION=${TRAVIS_TAG:1}
+fi
+NAME='merlink'
 
 ### Create bundle with pyinstaller
 # clean directories first
@@ -31,7 +32,7 @@ cd bin
 # deb + rpm + tar
 OPTIONS="--force --verbose \
     --input-type dir \
-    --version ${MINOR_VERSION} \
+    --version ${VERSION} \
     --name ${NAME} \
     --maintainer projectmerlink@gmail.com \
     --license 'opt/merlink/LICENSE.txt' \
@@ -47,7 +48,7 @@ OPTIONS="--force --verbose \
 #   so we need separate dependency lists
 # folders (usr, opt) MUST be the last arguments
 # There are no config files, thus --deb-no-default-config-files
-fpm --output-type deb ${OPTIONS} -p ${NAME}-${MINOR_VERSION}.deb --description 'Cross-platform VPN editor' \
+fpm --output-type deb ${OPTIONS} -p ${NAME}-${VERSION}.deb --description 'Cross-platform VPN editor' \
     --deb-no-default-config-files \
     --depends network-manager \
     --depends network-manager-l2tp \
@@ -55,13 +56,13 @@ fpm --output-type deb ${OPTIONS} -p ${NAME}-${MINOR_VERSION}.deb --description '
     --deb-suggests strongswan-plugin-openssl\
     usr opt
 # redhat doesn't believe in suggests. There's a suggestion I'd like to make.
-fpm --output-type rpm ${OPTIONS} -p ${NAME}-${MINOR_VERSION}.rpm --description 'Cross-platform VPN editor' \
+fpm --output-type rpm ${OPTIONS} -p ${NAME}-${VERSION}.rpm --description 'Cross-platform VPN editor' \
     --depends NetworkManager \
     --depends NetworkManager-l2tp\
     usr opt
 # Do not require anything so tar can just work everywhere
-fpm --output-type tar ${OPTIONS} -p ${NAME}-${MINOR_VERSION}.tar --description 'Cross-platform VPN editor' usr opt
-tar -z ${NAME}-${MINOR_VERSION}.tar
+fpm --output-type tar ${OPTIONS} -p ${NAME}-${VERSION}.tar --description 'Cross-platform VPN editor' usr opt
+tar cvzf ${NAME}-${VERSION}.tar.gz ${NAME}-${VERSION}.tar
 
 # Removing non-packages from bin directory
 rm -rf opt usr
