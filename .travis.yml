@@ -21,16 +21,17 @@ branches:
   - master
 
 before_install:
-  # sudo apt update MUST be run in before_install
-  - sudo apt update
-  #- sudo apt full-upgrade
+  # sudo apt-get update MUST be run in before_install
+  - sudo apt-get update
+  #- sudo apt-get full-upgrade
   # Install python requirements
-  - sudo apt install -y python3-pip
+  - sudo apt-get install -y python3-pip
 
 install:
-  - sudo pip3 install -r requirements.txt
+  - sudo python3 -m pip install setuptools wheel
+  - sudo python3 -m pip install -r requirements.txt
   # install FPM 
-  - sudo apt install -y rpm ruby ruby-dev rubygems build-essential
+  - sudo apt-get install -y rpm ruby ruby-dev rubygems build-essential
   - sudo gem install --no-ri --no-rdoc fpm
 script:
   - bash ./packaging/build-linux-packages.sh
