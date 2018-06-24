@@ -20,11 +20,14 @@ branches:
   except:
   - master
 
-install:
+before_install:
+  # sudo apt update MUST be run in before_install
   - sudo apt update
   #- sudo apt full-upgrade
-  # install python requirements
-  - sudo apt install python3-pip
+  # Install python requirements
+  - sudo apt install -y python3-pip
+
+install:
   - sudo pip3 install -r requirements.txt
   # install FPM 
   - sudo apt install -y rpm ruby ruby-dev rubygems build-essential
