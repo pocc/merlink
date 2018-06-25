@@ -23,15 +23,13 @@ branches:
 before_install:
   # See where we are drawing updates from
   - cat /etc/apt/sources.list
-  - which python
-  - which pip
   # sudo apt-get update MUST be run in before_install
+  - sudo apt-get update
 
 install:
-  # Install python libraries
-  - mkvirtualenv myenv --python=python3.5
-  - workon myenv
-  - python -m pip install -r requirements.txt
+  # Install python libraries.
+  # > Not possible to specify --user in travis ci
+  - python3 -m pip install -r requirements.txt
   # install FPM 
   - sudo apt-get install -y rpm ruby ruby-dev rubygems build-essential
   - sudo gem install --no-ri --no-rdoc fpm
