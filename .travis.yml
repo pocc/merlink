@@ -23,14 +23,10 @@ branches:
 before_install:
   - cat /etc/apt/sources.list
   # sudo apt-get update MUST be run in before_install
-  - sudo apt-get update
-  #- sudo apt-get full-upgrade
-  # Install python requirements: pip3 and setuptools
-  - sudo apt-get install -y python3-pip python3-setuptools
 
 install:
   # See where we are drawing updates from
-  - python3 -m pip --user install -r requirements.txt
+  - pip install --user -r requirements.txt
   # install FPM 
   - sudo apt-get install -y rpm ruby ruby-dev rubygems build-essential
   - sudo gem install --no-ri --no-rdoc fpm
