@@ -4,13 +4,12 @@
 block_cipher = None
 
 # Adding runtime hooks per https://github.com/pyinstaller/pyinstaller/issues/1713
-a = Analysis(['src/merlink.py'],
-             pathex=['/home/ross/code/merlink'],
+a = Analysis(['merlink.py'],
              binaries=[],
-             datas=[('src/media', 'media'), ('src/scripts', 'scripts'), ('LICENSE.txt', '.')],
+             datas=[('src', 'src'), ('LICENSE.txt', '.')],
              hiddenimports=[],
              hookspath=[],
-             runtime_hooks=[('packaging/pyinstaller-linux/hook-ctypes.altgraph.py'), ('packaging/pyinstaller-linux/hook-ctypes.macholib.py')],
+             runtime_hooks=[],
              excludes=[],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,

@@ -18,6 +18,7 @@ import re
 import json
 import requests
 import bs4
+import mechanicalsoup
 
 # OS modules
 import subprocess
@@ -53,7 +54,7 @@ class MainWindow(QMainWindow):
         self.cwd = getcwd()  # get current working directory. We use cwd in multiple places, so fetch it once
 
         # Set the Window and Tray Icons
-        self.setWindowIcon(QIcon(resource_path('media/miles.ico')))
+        self.setWindowIcon(QIcon(resource_path('src/media/miles.ico')))
 
         # Set initial vars for username/password fields for dasboard/guest user
         self.radio_username_label = QLabel("Email")
@@ -426,14 +427,14 @@ class MainWindow(QMainWindow):
             print("has passed" + str(i) + str(has_passed_validation[i]))
             print("current directory" + self.cwd)
             if has_passed_validation[i]:
-                self.validation_list.item(i).setIcon(QIcon(resource_path('media/checkmark-16.png')))
+                self.validation_list.item(i).setIcon(QIcon(resource_path('src/media/checkmark-16.png')))
             else:
-                self.validation_list.item(i).setIcon(QIcon(resource_path('media/x-mark-16.png')))
+                self.validation_list.item(i).setIcon(QIcon(resource_path('src/media/x-mark-16.png')))
 
             # All the error messages! Once we know what the error dialog landscape looks like down here,
             # we might want to turn this into an error method with params
         if not has_passed_validation[3]:
-            self.validation_list.item(3).setIcon(QIcon(resource_path('media/x-mark-16.png')))
+            self.validation_list.item(3).setIcon(QIcon(resource_path('src/media/x-mark-16.png')))
             # Error message popup that will take control and that the user will need to acknowledge
             force_enable_client_vpn = error_dialog('Client VPN is not enabled in Dashboard for this network.'
                                   '\nWould you like this program to enable it for you?')
@@ -567,7 +568,7 @@ class MainWindow(QMainWindow):
     def systray_icon(self):
         # Init QSystemTrayIcon
         self.tray_icon = QSystemTrayIcon(self)
-        self.tray_icon.setIcon(QIcon(resource_path('media/miles.ico')))
+        self.tray_icon.setIcon(QIcon(resource_path('src/media/miles.ico')))
         if self.is_vpn_connected():
             connection_status = 'VPN connected'
         else:
@@ -854,7 +855,7 @@ class MainWindow(QMainWindow):
                     # then adding an icon to the system tray
 
                     # Show this when connected
-                    self.tray_icon.setIcon(QIcon(resource_path('media/connected_miles.ico')))
+                    self.tray_icon.setIcon(QIcon(resource_path('src/media/connected_miles.ico')))
                     # If user wants to know more about connection, they can click on message and be redirected
                     self.tray_icon.messageClicked.connect(self.open_vpn_settings)
                     self.tray_icon.showMessage(  # Show the user the message so they know where the program went
@@ -869,7 +870,7 @@ class MainWindow(QMainWindow):
                     self.is_connected = False
                     self.status.showMessage('Status: Connection Failed')
                     self.error_dialog("Connection Failed")
-                    self.tray_icon.setIcon(QIcon(resource_path('media/unmiles.ico')))
+                    self.tray_icon.setIcon(QIcon(resource_path('src/media/unmiles.ico')))
 
             elif self.platform == 'darwin':
                 print("Creating macOS VPN")
