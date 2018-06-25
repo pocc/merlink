@@ -28,15 +28,13 @@ before_install:
   - export PATH=${PATH}:${HOME}/.local/bin
   - echo $PATH
   # Required for rpmbuild and pip
-  - sudo apt-get install -y rpm build-essential python3-pip
+  - sudo apt-get install -y rpm build-essential python-setuptools
   # install FPM. ruby-dev can be used in place of rubygems as a larger meta package
   - rvm install ruby --latest
   - sudo apt-get install -y ruby ruby-dev rubygems-integration
   - sudo gem install --no-ri --no-rdoc fpm
 
 install:
-  - sudo pip install pip --upgrade
-  - sudo python3 -m pip install -r requirements.txt
   - which pip
   - sudo python3 -m pip install pipenv
   - python3 -m pipenv install -r requirements.txt
