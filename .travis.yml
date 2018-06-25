@@ -21,12 +21,13 @@ branches:
   - master
 
 before_install:
+  # See where we are drawing updates from
   - cat /etc/apt/sources.list
   # sudo apt-get update MUST be run in before_install
 
 install:
-  # See where we are drawing updates from
-  - pip install --user -r requirements.txt
+  # Install python libraries
+  - sudo pip3 install -r requirements.txt
   # install FPM 
   - sudo apt-get install -y rpm ruby ruby-dev rubygems build-essential
   - sudo gem install --no-ri --no-rdoc fpm
