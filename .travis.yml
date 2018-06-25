@@ -27,7 +27,7 @@ before_install:
 
 install:
   # Install python libraries
-  - sudo pip3 install -r requirements.txt
+  - sudo -H pip install -r requirements.txt
   # install FPM 
   - sudo apt-get install -y rpm ruby ruby-dev rubygems build-essential
   - sudo gem install --no-ri --no-rdoc fpm
