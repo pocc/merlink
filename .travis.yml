@@ -27,16 +27,19 @@ before_install:
   # sudo apt-get update MUST be run in before_install
   - sudo apt-get update -qq
   - export PATH=${PATH}:${HOME}/.local/bin
-  # install FPM. ruby-integration can be used in place of rubygems as a larger meta package
+  # install FPM. ruby-dev can be used in place of rubygems as a larger meta package
   - rvm install ruby --latest
-  - sudo apt-get install -y rpm build-essential ruby-integration ruby-dev
+  - sudo apt-get install -y rpm build-essential ruby-dev
   - sudo gem install --no-ri --no-rdoc fpm
 
 install:
   - pip install pip --upgrade
+  - python3 -m pip install pipenv
+  - python3 -m pipenv install -r requirements.txt
+  - pipenv shell
   # Install python libraries.
   # > Not possible to specify --user in travis ci
-  - pip install -r requirements.txt
+  # - pip install -r requirements.txt
   - which python
   - python -V
   - pip -V
