@@ -27,8 +27,9 @@ before_install:
   # sudo apt-get update MUST be run in before_install
   - sudo apt-get update -qq
   - export PATH=${PATH}:${HOME}/.local/bin
-  # install FPM
-  - sudo apt-get install -y rpm ruby ruby-dev rubygems build-essential
+  # install FPM. ruby-integration can be used in place of rubygems as a larger meta package
+  - rvm install ruby --latest
+  - sudo apt-get install -y rpm build-essential ruby-integration ruby-dev
   - sudo gem install --no-ri --no-rdoc fpm
 
 install:
