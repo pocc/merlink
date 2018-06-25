@@ -2,10 +2,10 @@ matrix:
   include:
   # Not specifying precise because it's EOL
   - os: linux
-    sudo: required
+    sudo: false
     dist: trusty
   - os: linux
-    sudo: required
+    sudo: false
     dist: xenial
   - os: linux
     sudo: required
@@ -24,12 +24,12 @@ before_install:
   # See where we are drawing updates from
   - cat /etc/apt/sources.list
   # sudo apt-get update MUST be run in before_install
-  - sudo apt-get update
+  #- sudo apt-get update
 
 install:
   # Install python libraries.
   # > Not possible to specify --user in travis ci
-  - python3 -m pip install -r requirements.txt
+  - pip install -r requirements.txt
   # install FPM 
   - sudo apt-get install -y rpm ruby ruby-dev rubygems build-essential
   - sudo gem install --no-ri --no-rdoc fpm
