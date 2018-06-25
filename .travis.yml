@@ -2,18 +2,19 @@ matrix:
   include:
   # Not specifying precise because it's EOL
   - os: linux
-    sudo: false
+    sudo: true
     dist: trusty
   - os: linux
-    sudo: false
+    sudo: true
     dist: xenial
   - os: linux
-    sudo: required
+    sudo: true
     dist: bionic
 
 language: python
 python:
-- '3.5'
+- '3.6'
+- "pypy3"
 
 # Only tagged commits
 branches:
@@ -24,17 +25,21 @@ before_install:
   # See where we are drawing updates from
   - cat /etc/apt/sources.list
   # sudo apt-get update MUST be run in before_install
-  #- sudo apt-get update
-
-  # Install python libraries.
-  # > Not possible to specify --user in travis ci
-  - pip install -r requirements.txt
-
-
-install:
+  - sudo apt-get update -qq
+  - export PATH=${PATH}:${HOME}/.local/bin
   # install FPM
   - sudo apt-get install -y rpm ruby ruby-dev rubygems build-essential
   - sudo gem install --no-ri --no-rdoc fpm
+
+install:
+  - pip install pip --upgrade
+  # Install python libraries.
+  # > Not possible to specify --user in travis ci
+  - pip install -r requirements.txt
+  - which python
+  - python -V
+  - pip -V
+
 script:
   - bash ./packaging/build-linux-packages.sh
 
