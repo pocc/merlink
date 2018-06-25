@@ -21,6 +21,7 @@ branches:
   - master
 
 before_install:
+  - cat /etc/apt/sources.list
   # sudo apt-get update MUST be run in before_install
   - sudo apt-get update
   #- sudo apt-get full-upgrade
@@ -29,8 +30,7 @@ before_install:
 
 install:
   # See where we are drawing updates from
-  - cat /etc/apt/sources.list
-  - python3 -m pip install -r requirements.txt
+  - python3 -m pip --user install -r requirements.txt
   # install FPM 
   - sudo apt-get install -y rpm ruby ruby-dev rubygems build-essential
   - sudo gem install --no-ri --no-rdoc fpm
