@@ -14,7 +14,6 @@ matrix:
 language: python
 python:
 - '3.6'
-- "pypy3"
 
 # Only tagged commits
 branches:
@@ -27,13 +26,18 @@ before_install:
   # sudo apt-get update MUST be run in before_install
   - sudo apt-get update -qq
   - export PATH=${PATH}:${HOME}/.local/bin
+  - echo $PATH
+  # Required for rpmbuild and pip
+  - sudo apt-get install -y rpm build-essential python3-pip
   # install FPM. ruby-dev can be used in place of rubygems as a larger meta package
   - rvm install ruby --latest
-  - sudo apt-get install -y rpm build-essential ruby ruby-dev
+  - sudo apt-get install -y ruby ruby-dev rubygems-integration
   - sudo gem install --no-ri --no-rdoc fpm
 
 install:
   - sudo pip install pip --upgrade
+  - python3 -m pip install -r requirements.txt
+  - which pip
   - sudo python3 -m pip install pipenv
   - python3 -m pipenv install -r requirements.txt
   - pipenv shell
