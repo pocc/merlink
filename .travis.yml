@@ -23,10 +23,14 @@ branches:
 before_install:
   # See where we are drawing updates from
   - cat /etc/apt/sources.list
+  - which python
+  - which pip
   # sudo apt-get update MUST be run in before_install
 
 install:
   # Install python libraries
+  - mkvirtualenv myenv --python=python3.5
+  - workon myenv
   - python -m pip install -r requirements.txt
   # install FPM 
   - sudo apt-get install -y rpm ruby ruby-dev rubygems build-essential
