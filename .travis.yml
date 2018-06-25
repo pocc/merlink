@@ -26,11 +26,13 @@ before_install:
   # sudo apt-get update MUST be run in before_install
   #- sudo apt-get update
 
-install:
   # Install python libraries.
   # > Not possible to specify --user in travis ci
   - pip install -r requirements.txt
-  # install FPM 
+
+
+install:
+  # install FPM
   - sudo apt-get install -y rpm ruby ruby-dev rubygems build-essential
   - sudo gem install --no-ri --no-rdoc fpm
 script:
