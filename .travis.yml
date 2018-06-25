@@ -40,9 +40,9 @@ before_install:
 install:
   - which pip
   - which pip3
-  - sudo $(which pip3) install pipenv
+  - sudo python -m pip3 install pipenv
   - which pipenv
-  - sudo $(which pipenv) install -r requirements.txt
+  - sudo python3 -m pipenv install -r requirements.txt
   - pipenv shell
   # Install python libraries.
   # > Not possible to specify --user in travis ci
