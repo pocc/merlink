@@ -28,7 +28,9 @@ before_install:
   - sudo apt-get install -y python3-pip python3-setuptools
 
 install:
-  - sudo python3 -m pip install -r requirements.txt
+  # See where we are drawing updates from
+  - cat /etc/apt/sources.list
+  - python3 -m pip install -r requirements.txt
   # install FPM 
   - sudo apt-get install -y rpm ruby ruby-dev rubygems build-essential
   - sudo gem install --no-ri --no-rdoc fpm

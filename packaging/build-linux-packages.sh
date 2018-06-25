@@ -46,7 +46,7 @@ echo "Working directory before using fpm: $(pwd)"
 # There are no config files, thus --deb-no-default-config-files
 fpm --output-type deb ${OPTIONS} -p ${NAME}-${TRAVIS_TAG}.deb --description 'Cross-platform VPN editor' \
     --deb-no-default-config-files \
-    --dep-priority optional \
+    --deb-priority optional \
     --depends network-manager \
     --depends network-manager-l2tp \
     --deb-suggests network-manager-l2tp-gnome \

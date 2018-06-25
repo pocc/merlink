@@ -17,4 +17,4 @@ PyQt5>=5.10.1
 sip>=4.19.8
 
 # Maintainers:
-pyinstaller>=3.0.0
+PyInstaller>=3.0.0
