@@ -6,4 +6,4 @@ brew install python3
 sudo easy_install pip
 pip install venv
 sudo python3 -m venv venv
-source ./venv/bin/activate
+source venv/bin/activate
