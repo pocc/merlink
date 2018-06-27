@@ -1,20 +1,21 @@
 matrix:
   include:
   # Not specifying precise because it's EOL
-  - os: linux
-    sudo: true
-    dist: trusty
-  - os: linux
-    sudo: true
-    dist: xenial
-  - os: linux
-    sudo: true
-    dist: bionic
+    allow_failures:
+    - os: linux
+      sudo: true
+      dist: trusty
+    - os: linux
+      sudo: true
+      dist: xenial
+#    - os: linux
+#      sudo: true
+#      dist: bionic
 
   # OSX 10.13
-  - os: osx
-    sudo: true
-    osx_image: xcode9.4
+#  - os: osx
+#    sudo: true
+#    osx_image: xcode9.4
 
 language: python
 python:
@@ -30,6 +31,9 @@ before_install:
   - echo $PATH
   - which pip
   - which python
+
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then bash ./packaging/macos_before_install; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
   # See where we are drawing updates from
   - cat /etc/apt/sources.list
   # sudo apt-get update MUST be run in before_install
