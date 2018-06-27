@@ -11,6 +11,11 @@ matrix:
     sudo: true
     dist: bionic
 
+  # OSX 10.13
+  - os: osx
+    sudo: true
+    osx_image: xcode9.4
+
 language: python
 python:
 - '3.6'
@@ -22,6 +27,8 @@ branches:
 
 before_install:
   # Print important variables
+  - cat test
+  - echo "TEST - Persistence" > test
   - echo $PATH
   - which pip
   - which python
@@ -29,6 +36,9 @@ before_install:
   - cat /etc/apt/sources.list
   # sudo apt-get update MUST be run in before_install
   - sudo apt-get update -qq
+  # Install most recent version of ruby
+  - rvm install ruby --latest
+
 
 install:
   ### INSTALL PYTHON DEPENDENCIES
@@ -63,15 +73,11 @@ install:
   # Required for rpmbuild to build rpm with fpm
   - sudo apt-get install -y rpm build-essential
   # install FPM. ruby-dev can be used in place of rubygems as a larger meta package
-  - rvm install ruby --latest
   - sudo apt-get install -y ruby ruby-dev rubygems-integration
   - sudo gem install --no-ri --no-rdoc fpm
 
 script:
   - bash ./packaging/build-linux-packages.sh
-
-virtualenv:
-    system_site_packages: true
 
 ### The following was setup with the following ###
 # travis setup releases
