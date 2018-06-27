@@ -63,6 +63,9 @@ install:
   - cd ..
   # Install PyInstaller. Many bugs are fixed by the dev version.
   - sudo pip install https://github.com/pyinstaller/pyinstaller/tarball/develop
+  - find / -name 'altgraph' 2>/dev/null
+  - find / -name 'macholib' 2>/dev/null
+  - export PATH=${PATH}:/local/bin
   - sudo pyinstaller --version
   # Install other python dependencies
   - sudo pip install -r requirements.txt
