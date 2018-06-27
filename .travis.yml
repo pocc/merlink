@@ -1,10 +1,9 @@
 matrix:
   include:
   # Not specifying precise because it's EOL
-    allow_failures:
-    - os: linux
-      sudo: true
-      dist: trusty
+  - os: linux
+    sudo: true
+    dist: trusty
   - os: linux
     sudo: true
     dist: xenial
@@ -29,13 +28,11 @@ branches:
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo bash ./packaging/linux-before_install.sh; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo bash ./packaging/macos-before_install.sh; fi
-
   # Print important variables
   - echo $PATH
   - which pip
   - which python
-  - PIPENV_IGNORE_VIRTUALENVS=1
-
+  - let PIPENV_IGNORE_VIRTUALENVS=1
   # Install most recent version of ruby
   - rvm install ruby --latest
 
