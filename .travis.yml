@@ -27,7 +27,7 @@ branches:
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo bash ./packaging/linux-before_install.sh; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo bash ./packaging/macos-before_install.sh; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo bash ./packaging/macos-before_install.sh; fi
 
   # Print important variables
   - echo $PATH
