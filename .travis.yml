@@ -63,6 +63,7 @@ install:
   - cd ..
   # Install PyInstaller. Many bugs are fixed by the dev version.
   - sudo pip install https://github.com/pyinstaller/pyinstaller/tarball/develop
+  - sudo pyinstaller --version
   # Install other python dependencies
   - sudo pip install -r requirements.txt
 
