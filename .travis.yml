@@ -1,16 +1,15 @@
 matrix:
   include:
   # Not specifying precise because it's EOL
-    allow_failures:
-    - os: linux
-      sudo: true
-      dist: trusty
-    - os: linux
-      sudo: true
-      dist: xenial
-#    - os: linux
-#      sudo: true
-#      dist: bionic
+  - os: linux
+    sudo: true
+    dist: trusty
+  - os: linux
+    sudo: true
+    dist: xenial
+#  - os: linux
+#    sudo: true
+#    dist: bionic
 
   # OSX 10.13
 #  - os: osx
@@ -32,12 +31,15 @@ before_install:
   - which pip
   - which python
 
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then bash ./packaging/macos_before_install; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
   # See where we are drawing updates from
-  - cat /etc/apt/sources.list
   # sudo apt-get update MUST be run in before_install
-  - sudo apt-get update -qq
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cat /etc/apt/sources.list; sudo apt-get update -qq; fi
+  # Update brew and install python3
+  #- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; brew install python3; fi
+  # Install pip and pipenv
+  #- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; sudo easy_install pip; pip install venv; fi
+  #- venv
+
   # Install most recent version of ruby
   - rvm install ruby --latest
 
