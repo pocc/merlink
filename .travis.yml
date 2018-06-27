@@ -26,19 +26,13 @@ branches:
   - master
 
 before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo bash ./packaging/linux-before_install.sh; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo bash ./packaging/macos-before_install.sh; fi
+
   # Print important variables
   - echo $PATH
   - which pip
   - which python
-
-  # See where we are drawing updates from
-  # sudo apt-get update MUST be run in before_install
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cat /etc/apt/sources.list; sudo apt-get update -qq; fi
-  # Update brew and install python3
-  #- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; brew install python3; fi
-  # Install pip and pipenv
-  #- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; sudo easy_install pip; pip install venv; fi
-  #- venv
 
   # Install most recent version of ruby
   - rvm install ruby --latest
@@ -60,7 +54,6 @@ install:
   - sudo make install
   - cd ..
   # Install PyQt5
-  - sudo apt install qt5-default
   - curl -L -O https://sourceforge.net/projects/pyqt/files/PyQt5/PyQt-5.10.1/PyQt5_gpl-5.10.1.tar.gz
   - tar -xvf PyQt5_gpl-5.10.1.tar.gz
   - cd PyQt5_gpl-5.10.1
@@ -74,14 +67,12 @@ install:
   - sudo pip install -r requirements.txt
 
   ### INSTALL FPM
-  # Required for rpmbuild to build rpm with fpm
-  - sudo apt-get install -y rpm build-essential
   # install FPM. ruby-dev can be used in place of rubygems as a larger meta package
   - sudo apt-get install -y ruby ruby-dev rubygems-integration
   - sudo gem install --no-ri --no-rdoc fpm
 
 script:
-  - bash ./packaging/build-linux-packages.sh
+  - sudo bash ./packaging/build-linux-packages.sh
 
 ### The following was setup with the following ###
 # travis setup releases
