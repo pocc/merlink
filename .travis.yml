@@ -27,8 +27,6 @@ branches:
 
 before_install:
   # Print important variables
-  - cat test
-  - echo "TEST - Persistence" > test
   - echo $PATH
   - which pip
   - which python
