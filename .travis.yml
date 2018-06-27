@@ -39,7 +39,7 @@ before_install:
 install:
   - sudo /usr/bin/python3 -m pip install pipenv
   - which pipenv
-  - /bin/pipenv install -r requirements.txt
+  - sudo /bin/pipenv install -r requirements.txt
   - pyinstaller --version
 
 script:
