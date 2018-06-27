@@ -21,38 +21,57 @@ branches:
   - master
 
 before_install:
+  # Print important variables
+  - echo $PATH
+  - which pip
+  - which python
   # See where we are drawing updates from
   - cat /etc/apt/sources.list
   # sudo apt-get update MUST be run in before_install
   - sudo apt-get update -qq
-  - export PATH=${PATH}:${HOME}/.local/bin
-  - echo $PATH
-  # Required for rpmbuild and pip
-  - sudo apt-get install -y rpm build-essential python-setuptools
+
+install:
+  ### INSTALL PYTHON DEPENDENCIES
+  # > Set up sip and PyQt5, which cannot be installed with pip on travisci
+  # > Borrowed syntax from https://gist.github.com/KenjiTakahashi/4049085
+  # python3-pyqt5 installs PyQt5 and sip because pip cannot install them;
+  # however, python3-pyqt5 is not in the trusty or bionic repos for travis ci
+  # > qt5-default required for PyQt5
+  # Install sip
+  - curl -L -O https://sourceforge.net/projects/pyqt/files/sip/sip-4.19.8/sip-4.19.8.tar.gz
+  - tar -xvf sip-4.19.8.tar.gz
+  - cd sip-4.19.8
+  - python configure.py
+  - make -j 2
+  - sudo make install
+  - cd ..
+  # Install PyQt5
+  - sudo apt install qt5-default
+  - curl -L -O https://sourceforge.net/projects/pyqt/files/PyQt5/PyQt-5.10.1/PyQt5_gpl-5.10.1.tar.gz
+  - tar -xvf PyQt5_gpl-5.10.1.tar.gz
+  - cd PyQt5_gpl-5.10.1
+  - python configure.py --confirm-license
+  - make -j 2
+  - sudo make install
+  - cd ..
+  # Install PyInstaller. Many bugs are fixed by the dev version.
+  - pip install https://github.com/pyinstaller/pyinstaller/tarball/develop
+  # Install other python dependencies
+  - sudo pip install -r requirements.txt
+
+  ### INSTALL FPM
+  # Required for rpmbuild to build rpm with fpm
+  - sudo apt-get install -y rpm build-essential
   # install FPM. ruby-dev can be used in place of rubygems as a larger meta package
   - rvm install ruby --latest
   - sudo apt-get install -y ruby ruby-dev rubygems-integration
   - sudo gem install --no-ri --no-rdoc fpm
-  # Get pip from source
-  - curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-  - sudo python3 get-pip.py
-
-install:
-  - which pip
-  - which pip3
-  - sudo python3 -m pip install pipenv
-  - which pipenv
-  - sudo python3 -m pipenv install -r requirements.txt
-  - pipenv shell
-  # Install python libraries.
-  # > Not possible to specify --user in travis ci
-  # - pip install -r requirements.txt
-  - which python
-  - python -V
-  - pip -V
 
 script:
   - bash ./packaging/build-linux-packages.sh
+
+virtualenv:
+    system_site_packages: true
 
 ### The following was setup with the following ###
 # travis setup releases
