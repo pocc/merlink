@@ -1,9 +1,10 @@
 matrix:
   include:
   # Not specifying precise because it's EOL
-  - os: linux
-    sudo: true
-    dist: trusty
+    allow_failures:
+    - os: linux
+      sudo: true
+      dist: trusty
   - os: linux
     sudo: true
     dist: xenial
@@ -33,47 +34,15 @@ before_install:
   - echo $PATH
   - which pip
   - which python
+  - PIPENV_IGNORE_VIRTUALENVS=1
 
   # Install most recent version of ruby
   - rvm install ruby --latest
 
-
 install:
-  ### INSTALL PYTHON DEPENDENCIES
-  # > Set up sip and PyQt5, which cannot be installed with pip on travisci
-  # > Borrowed syntax from https://gist.github.com/KenjiTakahashi/4049085
-  # python3-pyqt5 installs PyQt5 and sip because pip cannot install them;
-  # however, python3-pyqt5 is not in the trusty or bionic repos for travis ci
-  # > qt5-default required for PyQt5
-  # Install sip
-  - curl -L -O https://sourceforge.net/projects/pyqt/files/sip/sip-4.19.8/sip-4.19.8.tar.gz
-  - tar -xvf sip-4.19.8.tar.gz
-  - cd sip-4.19.8
-  - python configure.py
-  - make -j 2
-  - sudo make install
-  - cd ..
-  # Install PyQt5
-  - curl -L -O https://sourceforge.net/projects/pyqt/files/PyQt5/PyQt-5.10.1/PyQt5_gpl-5.10.1.tar.gz
-  - tar -xvf PyQt5_gpl-5.10.1.tar.gz
-  - cd PyQt5_gpl-5.10.1
-  - python configure.py --confirm-license
-  - make -j 2
-  - sudo make install
-  - cd ..
-  # Install PyInstaller. Many bugs are fixed by the dev version.
-  - sudo pip install https://github.com/pyinstaller/pyinstaller/tarball/develop
-  - find / -name 'altgraph' 2>/dev/null
-  - find / -name 'macholib' 2>/dev/null
-  - export PATH=${PATH}:/local/bin
-  - sudo pyinstaller --version
-  # Install other python dependencies
-  - sudo pip install -r requirements.txt
-
-  ### INSTALL FPM
-  # install FPM. ruby-dev can be used in place of rubygems as a larger meta package
-  - sudo apt-get install -y ruby ruby-dev rubygems-integration
-  - sudo gem install --no-ri --no-rdoc fpm
+  - sudo /usr/bin/python3 -m pip install pipenv
+  - /usr/bin/python3 -m pipenv install -r requirements.txt
+  - pyinstaller --version
 
 script:
   - sudo bash ./packaging/build-linux-packages.sh
