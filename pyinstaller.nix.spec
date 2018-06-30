@@ -31,3 +31,7 @@ coll = COLLECT(exe,
                strip=False,
                upx=True,
                name='merlink')
+app = BUNDLE(coll,
+             name='merlink.app',
+             icon='./src/media/miles.icns',
+             bundle_identifier=None)

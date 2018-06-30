@@ -836,7 +836,7 @@ class MainWindow(QMainWindow):
                 # TODO Verify that resource_path and the connect script works on Windows
                 result = subprocess.call(
                         [powershell_path, '-ExecutionPolicy', 'Unrestricted',
-                         resource_path('\scripts\connect_windows.ps1'), vpn_name, self.psk, self.current_ddns,
+                         resource_path('\src\scripts\connect_windows.ps1'), vpn_name, self.psk, self.current_ddns,
                          self.current_primary_ip, self.param_username, self.param_password, self.DnsSuffix,
                          str(self.IdleDisconnectSeconds),  str(DEBUG), str(int(self.split_tunnel)),
                          str(int(self.remember_credential)), str(int(self.UseWinlogonCredential))])
@@ -882,13 +882,13 @@ class MainWindow(QMainWindow):
                 # Connection name with forced quotes in case it has spaces.
 
                 scutil_string = 'scutil --nc select ' + '\'' + vpn_name + '\''
-                print(scutil_string)
+                print("scutil_string: " + scutil_string)
                 # Create an applescript execution string so we don't need to bother with parsing arguments with Popen
-                command = 'do shell script \"/bin/sh ./scripts/build_macos_vpn.sh' + ' \'' + vpn_name + '\' \'' \
+                command = 'do shell script \"/bin/bash src/scripts/build_macos_vpn.sh' + ' \'' + vpn_name + '\' \'' \
                     + self.current_ddns + '\' \'' + self.psk + '\' \'' + self.username + '\' \'' + self.password \
                     + '\'; ' + scutil_string + '\" with administrator privileges'
                 # Applescript will prompt the user for credentials in order to create the VPN connection
-                print(command)
+                print("command being run: " + command)
                 result = subprocess.Popen(['/usr/bin/osascript', '-e', command], stdout=subprocess.PIPE)
 
                 # Get the result of VPN creation and print
@@ -898,16 +898,16 @@ class MainWindow(QMainWindow):
                 # Connect to VPN.
                 # Putting 'f' before a string allows you to insert vars in scope
                 print("Connecting to macOS VPN")
-                print(system('pwd'))
-                system("sh ./scripts/connect_macos.sh \'{vpn_name}\'")
+                print("Current working directory: " + str(system('pwd')))
+                subprocess.call(['bash', 'src/scripts/connect_macos.sh', vpn_name])
 
             elif self.platform.startswith('linux'):  # linux, linux2 are both valid
                 # sudo required to create a connection with nmcli
                 # pkexec is built into latest Fedora, Debian, Ubuntu.
                 # 'pkexec <cmd>' correctly asks in GUI on Debian, Ubuntu but in terminal on Fedora
                 # pkexec is PolicyKit, which is the preferred means of asking for permission on LSB
-                system('chmod a+x ' + resource_path('scripts/connect_linux.sh'))  # set execution bit on bash script
-                result = subprocess.Popen(['pkexec', resource_path('scripts/connect_linux.sh'), vpn_name,
+                system('chmod a+x ' + resource_path('src/scripts/connect_linux.sh'))  # set execution bit on bash script
+                result = subprocess.Popen(['pkexec', resource_path('src/scripts/connect_linux.sh'), vpn_name,
                                            self.current_ddns, self.psk, self.username, self.password])
 
             if result == 1:
