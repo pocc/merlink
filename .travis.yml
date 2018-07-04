@@ -39,7 +39,7 @@ install:
   - pyinstaller --version
 
 script:
-  - bash ./pkg/build-nix-packages.sh
+  - bash ./pkg/build_nix_packages.sh
 
 ### The following was setup with the following ###
 # travis setup releases
