@@ -12,8 +12,6 @@ ln -fsv /opt/merlink/merlink build/usr/bin
 cp -fvr dist/merlink build/opt
 # Remove problematic file for 18.04 Ubuntu
 rm -vf dist/merlink/libdrm.so.2
-# Enter directory where we will build and store packages
-cd build
 
 # deb + rpm + tar
 OPTIONS="--force --verbose \
@@ -51,7 +49,7 @@ fpm --output-type rpm ${OPTIONS} -p build/${NAME}-${VERSION}.rpm --description '
     --depends NetworkManager-l2tp\
     opt usr
 # Do not require anything so tar can just work everywhere
-tar czf ${NAME}-${VERSION}.tar.gz opt usr
+tar czf build/${NAME}-${VERSION}.tar.gz build/opt build/usr
 
 # pacman (is failing on my system, but need confirmation)
 # ERRORS:
