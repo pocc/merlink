@@ -7,9 +7,6 @@ matrix:
   - os: linux
     sudo: true
     dist: xenial
-#  - os: linux
-#    sudo: true
-#    dist: bionic
 
   # OSX 10.13
 #  - os: osx
@@ -25,25 +22,26 @@ branches:
   except:
   - master
 
+addons:
+  apt:
+    packages:
+      - rpm
+      - build-essential
+
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo bash ./packaging/linux-before_install.sh; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo bash ./packaging/macos-before_install.sh; fi
   # Print important variables
   - echo $PATH
   - which pip
   - which python
-  - let PIPENV_IGNORE_VIRTUALENVS=1
   # Install most recent version of ruby
   - rvm install ruby --latest
 
 install:
-  - sudo /usr/bin/python3 -m pip install pipenv
-  - which pipenv
-  - sudo /bin/pipenv install -r requirements.txt
+  - pip install -r requirements.txt
   - pyinstaller --version
 
 script:
-  - sudo bash ./packaging/build-linux-packages.sh
+  - bash ./pkg/build-nix-packages.sh
 
 ### The following was setup with the following ###
 # travis setup releases
