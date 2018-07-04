@@ -51,7 +51,7 @@ fpm --output-type rpm ${OPTIONS} -p build/${NAME}-${VERSION}.rpm --description '
     --depends NetworkManager-l2tp\
     opt usr
 # Do not require anything so tar can just work everywhere
-tar czf build/${NAME}-${VERSION}.tar.gz opt usr
+tar czf ${NAME}-${VERSION}.tar.gz opt usr
 
 # pacman (is failing on my system, but need confirmation)
 # ERRORS:
