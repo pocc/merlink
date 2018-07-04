@@ -1,0 +1,72 @@
+matrix:
+  include:
+  # Not specifying precise because it's EOL
+  - os: linux
+    sudo: true
+    dist: trusty
+  - os: linux
+    sudo: true
+    dist: xenial
+
+  # OSX 10.13
+#  - os: osx
+#    sudo: true
+#    osx_image: xcode9.4
+
+language: python
+python: 
+  - '3.6'
+
+# Only tagged commits
+branches:
+  except:
+  - master
+
+addons:
+  apt:
+    packages:
+      - rpm
+      - build-essential
+
+before_install:
+  # Print important variables
+  - echo $PATH
+  - which pip
+  - which python
+
+install:
+  - python -m pip install -r requirements.txt
+  - pyinstaller --version
+
+script:
+  - bash ./pkg/build-nix-packages.sh
+
+### The following was setup with the following ###
+# travis setup releases
+# travis encrypt <email> --add deploy.username
+# travis encrypt <password> --add deploy.password
+
+# Troubleshooting github release + travis ci integration: https://docs.travis-ci.com/user/common-build-problems/#I-pushed-a-commit-and-can%E2%80%99t-find-its-corresponding-build
+
+deploy:
+  provider: releases
+  prerelease: true
+  file_glob: true
+  file:
+    # ${TRAVIS_TAG:1} strips the starting v from the tag
+    - bin/merlink-${TRAVIS_TAG}.deb
+    - bin/merlink-${TRAVIS_TAG}.rpm
+    - bin/merlink-${TRAVIS_TAG}.tar
+  on:
+    repo: pocc/merlink
+    # Only build on a new release tag. $TRAVIS_TAG will be set to that tag.
+    tags: true
+  # Without this, cleaning will remove what you were planning on deploying
+  skip_cleanup: true
+
+  api_key:
+    secure: G6urboURBuV3arOQwlRYyPLx7PN4NuTwN0Vs8nNdueZSTsFemNXeMn/iuP1MAuZLVYpcB4LU4oRVLzSvwOrT/C4Q4JVyqjRV7dJDW8uZO0aBYWdeL66+SV5Y+FKfMgu8NtOos5/FsAZX9+Rtg+UVccOxnOCxpXl8WQsuZ+Q6Zg1XSqJlUC/etA44Hy1+apKXrczTVdmoPIveJY72UFAMmF8cAIikUui4VtqZIQboHglQTMp5PZEKcZZoURk2LtdU/kuB1KzJ/bAAcfw9uBmFTvjqFFAsIzIYi6jZA/R5/ZOAIchDuDN9F+ysvSwKx+KgP5HeIqDAVAQdn/cmOIj690fimW9MQ3VxxDeRuvM3GAEcTd/cG7m6R14OpPsF5ewivImfhwS5SYzyxzLYNsCzBVdacDsLfknWqwRkNpsMGRs+OXjWszM9MfBp0DKSg1XIiHbMTeg6EjUtiztPLPOCicJWMZ+AEH0BxLQn3ov1x97Z1cnMuwHylonbQMq9KkOMGsQOKf9HvG3Envwq6zM1mVnRkFBECznLf9tMUggDO1zidmqXQ1NwCnsNjBkgMK3K6fwXIRMjFWU9FroRlXbiL/nWgT0fWZ2cnjPH53KC5F57iAcaZtITeA568doS9WLHGG3S6zHwh9QkYphb/9AA4KxQ2+slol9LpZJRKf/Xv4g=
+  username:
+    secure: AxaarXV7QlfagFtvkfmV9r39OmnaZ0RxOf1+tUSKU0Cu6cSloZK2WBnBAukkgVITnwfBlzGWy8V8s7+gH7ULzhUgH61Ug7yLInJwhAf2llnW3SaIUAL2hcBRF7n5ruxkzUmEnHRabyySthHDGHlvBuQa3DJY19rzsREwGP1CugsZyfGlMPiY4vA66Gm1t3oBrr3r3Ti8IXTbnUS5JX4Cwf0DDqetU7hkCz7TccUUkSUKTf7NVM/eF75vC/JHgBD/TZ7xSYOBk2q6lgYoBzZUxHNubg2rI0ruO1HqHxDxcMbh/6E1GF+0zxlQ0wncBTKNCjEpx1/tOQ2QEkstfOi9GZgGplsNUfd2NhTlHZNqggKiOaLMj7wj76c+88wpv82ZH50YmvOWLfijbcOq2JUXEF4Fl/zC93GqtfACwcO9A+VPbCTuhfF1w4qw0Y6boWJwJ3TvZSADWn+WBlPgKntyPoHtC2FA0EanpDGMOvWgfxjJAXix/Bzl8UPjtTDd552OOllAiz/Zsj8XbcMm+KnpLUsw7/YPnrmrlPCRTj0lgxyF5bF7PgqUumdnTNoEyjJr4Bn0ZnITFUzA+3n06EDS53PeTiGkcwn7hFMLkrBD0GKw8FXpa7DgPeLEJlYXJvavIpEYhPQ6l1d6jTvElS7hHdpj33UedogJH0cSTIT0ECA=
+  password:
+    secure: il6aPIZfjStfR+A7oAr3O9yXGBZXp8Fq8b6nuwLPzFgMfg9kXP/tzUmRTh74DVALyd68nAG/bW4RrbJTsSzZEBCDkFYZfOZmPcU8DE9eAfaEc7jNuJqibplgNcao+NqvTL7mFvfLyfjM5mn84c9XFoMemfB30+KVYZZfIIL3ECl0DmcvAEuDXH9DhZMIoGe7L75iFH6cMm3gRnFY7NgZXOGvaNDrsPOTFCLJJn5SiXQUux4JJ8RLY2NxMH/GbXmDm0zZ6jH3OMG/UYCqes5h5awWsL5VU4CBDtnEachRUeuCqMRrq0jbIdgEMu068jBOCCHyQB9KTwbuzv1iY3bg7/VEKGesGW0qFjzlJGcpVBRfGJKYy3fSL+grpfVMvkUVmSED7hRSs6Usc8cENzyfI3lzCHN/kZLQAKWuplsK92aR9rzz2MW0QBXOzRSV19xbZTfKroTYt5NJjgkHAsPSMmqJflXI5eKgcSE9wcZ0ocA/0isS4ecv08OOhHmcDCOQOJGBUY3EZauQ0UCVlwLvEGEukoDF4fh1jCI/gqPirtxWDHx+CAByTTTDpRKnsODlKZiAzLmYWeq+zmuixNC8gSrP1sFhoU9JHg5YVa1m699Zhc5D+otlvcWQx2iV30p/R4ZxFpj83nz59BbZPPUW7JSFDPH0T3LkpQBJKFa12GI=
