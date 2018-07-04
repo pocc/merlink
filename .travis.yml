@@ -1,20 +1,23 @@
 matrix:
   include:
   # Not specifying precise because it's EOL
+
   - os: linux
     sudo: false
     dist: trusty
+    language: python
+    python: '3.6'
+
   - os: linux
     sudo: false
     dist: xenial
-  # OSX 10.13
+    language: python
+    python: '3.6'
+
+# OSX 10.13
   - os: osx
     sudo: false
     osx_image: xcode9.4
-
-language: python
-python: 
-  - '3.6'
 
 # Only tagged commits
 branches:
@@ -28,11 +31,13 @@ addons:
       - build-essential
 
 before_install:
-  # Print important variables
+  # Diagnostic info in case of failure
   - echo $PATH
   - echo $TRAVIS_TAG
   - which pip
   - which python
+  # If target is osx, then brew install python3, pip, venv, and activate the venv
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then bash pkg/macos_before_install.sh; fi
 
 install:
   - python -m pip install -r requirements.txt
@@ -56,11 +61,12 @@ deploy:
     # ${TRAVIS_TAG:1} strips the starting v from the tag
     - build/merlink-${TRAVIS_TAG:1}.deb
     - build/merlink-${TRAVIS_TAG:1}.rpm
-    - build/merlink-${TRAVIS_TAG:1}.tar
+    - build/merlink-${TRAVIS_TAG:1}.tar.gz
   on:
     repo: pocc/merlink
     # We only want the builds from xenial
     dist: xenial
+    os: osx
     # Only build on a new release tag. $TRAVIS_TAG will be set to that tag.
     tags: true
   # Without this, cleaning will remove what you were planning on deploying
