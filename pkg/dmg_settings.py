@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import biplist
-import os.path
+from os import path, getcwd
 
 #
 # Example settings file for dmgbuild
@@ -15,18 +15,20 @@ import os.path
 
 # .. Useful stuff ..............................................................
 
+current_dir = getcwd()
+print("dmgbuild directiory: " + current_dir )
 application = defines.get('app', '/Applications/Merlink.app')
-appname = os.path.basename(application)
+appname = path.basename(application)
 
 def icon_from_app(app_path):
-    plist_path = os.path.join(app_path, 'Contents', 'Info.plist')
+    plist_path = path.join(app_path, 'Contents', 'Info.plist')
     plist = biplist.readPlist(plist_path)
     icon_name = plist['CFBundleIconFile']
-    icon_root,icon_ext = os.path.splitext(icon_name)
+    icon_root,icon_ext = path.splitext(icon_name)
     if not icon_ext:
         icon_ext = '.icns'
     icon_name = icon_root + icon_ext
-    return os.path.join(app_path, 'Contents', 'Resources', icon_name)
+    return path.join(app_path, 'Contents', 'Resources', icon_name)
 
 # .. Basics ....................................................................
 
@@ -43,7 +45,7 @@ format = defines.get('format', 'UDBZ')
 #size = defines.get('size', None)
 
 # Files to include
-files = [ '/Users/Merakiuser/code/merlink/dist/merlink.app' ]
+files = [ current_dir + '/dist/merlink.app' ]
 
 # Symlinks to create
 symlinks = { 'Applications': '/Applications' }
@@ -55,7 +57,7 @@ symlinks = { 'Applications': '/Applications' }
 # will be used to badge the system's Removable Disk icon
 #
 # badge_icon = /path/to/icon
-badge_icon = icon_from_app('/Users/Merakiuser/code/merlink/dist/merlink.app')
+badge_icon = icon_from_app( current_dir + '/dist/merlink.app' )
 #print(appname)
 #badge_icon = icon_from_app(application)
 
