@@ -37,7 +37,7 @@ before_install:
   - rvm install ruby --latest
 
 install:
-  - pip --user install -r requirements.txt
+  - pip install --user -r requirements.txt
   - pyinstaller --version
 
 script:
