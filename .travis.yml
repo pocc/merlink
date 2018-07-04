@@ -14,9 +14,9 @@ matrix:
 #    osx_image: xcode9.4
 
 language: python
-python: 3.6
-virtualenv:
-  system_site_packages: true
+python: 
+  - '3.6'
+  - 'pypy'
 
 # Only tagged commits
 branches:
@@ -38,7 +38,7 @@ before_install:
   - rvm install ruby --latest
 
 install:
-  - pip install -r requirements.txt
+  - python3 -m pip install --system-site-packages -r requirements.txt
   - pyinstaller --version
 
 script:
