@@ -16,7 +16,6 @@ matrix:
 language: python
 python: 
   - '3.6'
-  - 'pypy'
 
 # Only tagged commits
 branches:
@@ -34,11 +33,9 @@ before_install:
   - echo $PATH
   - which pip
   - which python
-  # Install most recent version of ruby
-  - rvm install ruby --latest
 
 install:
-  - python3 -m pip install --system-site-packages -r requirements.txt
+  - python -m pip install -r requirements.txt
   - pyinstaller --version
 
 script:
