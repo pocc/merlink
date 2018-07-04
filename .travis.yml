@@ -31,16 +31,17 @@ addons:
       - build-essential
 
 before_install:
+  # If target is osx, then brew install python3, pip, venv, and activate the venv
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then bash pkg/macos_before_install.sh; fi
+  
   # Diagnostic info in case of failure
   - echo $PATH
   - echo $TRAVIS_TAG
   - which pip
   - which python
-  # If target is osx, then brew install python3, pip, venv, and activate the venv
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then bash pkg/macos_before_install.sh; fi
 
 install:
-  - python -m pip install -r requirements.txt
+  - pip install -r requirements.txt
   - gem install fpm
 
 script:
@@ -62,6 +63,7 @@ deploy:
     - build/merlink-${TRAVIS_TAG:1}.deb
     - build/merlink-${TRAVIS_TAG:1}.rpm
     - build/merlink-${TRAVIS_TAG:1}.tar.gz
+    - build/merlink-${TRAVIS_TAG:1}.dmg
   on:
     repo: pocc/merlink
     # We only want the builds from xenial
