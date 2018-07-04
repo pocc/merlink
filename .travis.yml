@@ -2,16 +2,15 @@ matrix:
   include:
   # Not specifying precise because it's EOL
   - os: linux
-    sudo: true
+    sudo: false
     dist: trusty
   - os: linux
-    sudo: true
+    sudo: false
     dist: xenial
-
   # OSX 10.13
-#  - os: osx
-#    sudo: true
-#    osx_image: xcode9.4
+  - os: osx
+    sudo: false
+    osx_image: xcode9.4
 
 language: python
 python: 
@@ -31,6 +30,7 @@ addons:
 before_install:
   # Print important variables
   - echo $PATH
+  - echo $TRAVIS_TAG
   - which pip
   - which python
 
@@ -54,9 +54,9 @@ deploy:
   file_glob: true
   file:
     # ${TRAVIS_TAG:1} strips the starting v from the tag
-    - build/merlink-${TRAVIS_TAG}.deb
-    - build/merlink-${TRAVIS_TAG}.rpm
-    - build/merlink-${TRAVIS_TAG}.tar
+    - build/merlink-${TRAVIS_TAG:1}.deb
+    - build/merlink-${TRAVIS_TAG:1}.rpm
+    - build/merlink-${TRAVIS_TAG:1}.tar
   on:
     repo: pocc/merlink
     # We only want the builds from xenial
