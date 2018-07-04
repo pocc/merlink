@@ -37,6 +37,7 @@ before_install:
   
   # Diagnostic info in case of failure
   - pwd
+  - ls
   - echo $PATH
   - echo $TRAVIS_TAG
   - which pip

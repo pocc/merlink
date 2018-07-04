@@ -3,7 +3,7 @@
 brew update
 brew install python3
 # Install pip and venv and then activate
-python -m easy_install pip
-pip install virtualenv
+python3 -m easy_install pip
+python3 -m pip install virtualenv
 virtualenv venv
 source venv/bin/activate
