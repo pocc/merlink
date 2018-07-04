@@ -6,13 +6,14 @@ VERSION=$2
 ### Setup for FPM
 mkdir -pv build/usr/bin
 mkdir -pv build/opt
-cd build
 # Create a symbolic link to the merlink binary in opt
 ln -fsv /opt/merlink/merlink build/usr/bin
 # Pyinstaller generates a folder bundle in dist. Move this to opt.
 cp -fvr dist/merlink build/opt
 # Remove problematic file for 18.04 Ubuntu
 rm -vf dist/merlink/libdrm.so.2
+# Enter directory where we will build and store packages
+cd build
 
 # deb + rpm + tar
 OPTIONS="--force --verbose \

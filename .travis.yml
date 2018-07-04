@@ -54,11 +54,13 @@ deploy:
   file_glob: true
   file:
     # ${TRAVIS_TAG:1} strips the starting v from the tag
-    - bin/merlink-${TRAVIS_TAG}.deb
-    - bin/merlink-${TRAVIS_TAG}.rpm
-    - bin/merlink-${TRAVIS_TAG}.tar
+    - build/merlink-${TRAVIS_TAG}.deb
+    - build/merlink-${TRAVIS_TAG}.rpm
+    - build/merlink-${TRAVIS_TAG}.tar
   on:
     repo: pocc/merlink
+    # We only want the builds from xenial
+    dist: xenial
     # Only build on a new release tag. $TRAVIS_TAG will be set to that tag.
     tags: true
   # Without this, cleaning will remove what you were planning on deploying
