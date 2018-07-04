@@ -42,6 +42,8 @@ before_install:
   - echo $TRAVIS_TAG
   - which pip
   - which python
+  - pip --version
+  - python --version
 
 install:
   - pip install -r requirements.txt
