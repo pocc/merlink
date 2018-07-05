@@ -32,9 +32,7 @@ install:
   #- ps: C:\Ruby25-x64\bin\ruby.exe  # for any ruby tasks (see build 1.0.5 for more info)
   - C:\Python36\python.exe -m pip install -r requirements.txt
   - ps: $GIT_VERSION=git describe --abbrev=0 --tags
-  # Add new modules to path (pyinstaller is in Scripts)
-  - setx path "%path%;C:\Python36\Scripts"
-  - pyinstaller -y pyinstaller.spec
+  - C:\Python36\Scripts\pyinstaller.exe -y pyinstaller.spec
   - cmd: ECHO %GIT_VERSION%
   # /D specifies additional variables to be used in the script
   - makensis /DPRODUCT_VERSION=GIT_VERSION .\pkg\windows_nsis_installer.nsh
