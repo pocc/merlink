@@ -11,8 +11,9 @@
 ; Using NSIS v3.03, Modern UI v2
 ; Written By Ross Jacobs
 ;
-; Make sure to modify the following line according to where you ran pyinstaller:
+
 !define SOURCE_FILES "..\dist\merlink"
+# PRODUCT_VERSION should be passed in with the /D flag
 !define PRODUCT_NAME "Merlink"
 !define PRODUCT_PUBLISHER "Merlink"
 !define PRODUCT_WEBSITE "https://pocc.github.io/merlink"
