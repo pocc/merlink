@@ -12,6 +12,8 @@ skip_commits:
 # scripts that are called at very beginning, before repo cloning
 init:
   - git config --global core.autocrlf input
+# Check build environment for details. Should have most recent python and ruby versions
+APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
 
 # branches to build
 branches:
@@ -20,7 +22,6 @@ branches:
 
 # this is how to allow failing jobs in the matrix
 matrix:
-  fast_finish: true     # set this flag to immediately finish build once one of the jobs fails.
   allow_failures:
     - platform: x64
 
@@ -28,6 +29,9 @@ matrix:
 install:
   - ps: Write-Host 'This is PowerShell'
   - cmd: echo This is batch again
+  # get info in this build about where to find interpreters
+  - ps: dir C:\Python36-x64
+  - ps: dir C:\Ruby25-x64\bin
   - ps: C:\Python36\python3 -m pip install -r requirements.txt
   - ps: GIT_VERSION=git describe --abrev=0 --tags
 
