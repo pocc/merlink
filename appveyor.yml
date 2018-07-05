@@ -27,12 +27,10 @@ matrix:
 
 # scripts to run before build
 install:
-  - ps: Write-Host 'This is PowerShell'
-  - cmd: echo This is batch again
-  # get info in this build about where to find interpreters
-  - ps: dir C:\Python36-x64
-  - ps: dir C:\Ruby25-x64\bin
-  - ps: C:\Python36\python3 -m pip install -r requirements.txt
+  #- cmd: echo This is batch
+  #- ps: Write-Host 'This is PowerShell'
+  #- ps: C:\Ruby25-x64\bin\ruby.exe  # for any ruby tasks (see build 1.0.5 for more info)
+  - ps: C:\Python36\python.exe -m pip install -r requirements.txt
   - ps: GIT_VERSION=git describe --abrev=0 --tags
 
   - pyinstaller -y pyinstaller.spec
