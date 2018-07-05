@@ -55,8 +55,8 @@ artifacts:
     type: exe
 
 deploy:
-  tag: v$GIT_VERSION
-  release: merlink-$GIT_VERSION
+  tag: APPVEYOR_REPO_TAG_NAME
+  release: APPVEYOR_REPO_TAG_NAME
   description: 'VPN editor'
   provider: GitHub
   auth_token:
