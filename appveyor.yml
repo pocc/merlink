@@ -31,7 +31,8 @@ install:
   #- ps: Write-Host 'This is PowerShell'
   #- ps: C:\Ruby25-x64\bin\ruby.exe  # for any ruby tasks (see build 1.0.5 for more info)
   - C:\Python36\python.exe -m pip install -r requirements.txt
-  - SET GIT_VERSION=git describe --abrev=0 --tags
+  - ps: $GIT_VERSION=git describe --abrev=0 --tags
+  - ps: dir C:\Python36\Lib
   - pyinstaller -y pyinstaller.spec
   # /D specifies additional variables to be used in the script
   - makensis /DPRODUCT_VERSION=GIT_VERSION .\pkg\windows_nsis_installer.nsh
