@@ -19,11 +19,11 @@ image: Visual Studio 2017
 build: off
 
 # branches to build
-branches:
-  only:
+#branches:
+#  only:
     # Only match tagged versions that look like v0.12.34
     #- /v\d+\.\d+\.\d+/
-    - $(APPVEYOR_REPO_TAG_NAME)
+    #- master
 
 # this is how to allow failing jobs in the matrix
 matrix:
