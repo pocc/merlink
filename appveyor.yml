@@ -1,5 +1,6 @@
 # For appveyor.yml example : https://www.appveyor.com/docs/appveyor-yml/
 # For appveyor.yml validation: https://ci.appveyor.com/tools/validate-yaml
+# Build environment: https://www.appveyor.com/docs/build-environment/
 
 version: 1.0.{build}
 clone_depth: 50                      # clone entire repository history if not defined
@@ -27,7 +28,7 @@ matrix:
 install:
   - ps: Write-Host 'This is PowerShell'
   - cmd: echo This is batch again
-  - python3 -m pip install -r requirements.txt
+  - ps: C:\Python36\python3 -m pip install -r requirements.txt
   - ps: GIT_VERSION=git describe --abrev=0 --tags
 
   - pyinstaller -y pyinstaller.spec
