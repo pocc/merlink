@@ -21,7 +21,7 @@
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
 !define PRODUCT_DESCRIPTION 'A VPN client for Meraki firewalls'
-BrandingText "Merlink ${PRODUCT_VERSION}"
+BrandingText "Merlink v${PRODUCT_VERSION}"
 
 
 SetCompressor /SOLID lzma
@@ -66,7 +66,7 @@ SetCompressor /SOLID lzma
 ; MUI end ------
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "Merlink-${PRODUCT_VERSION}.exe"
+OutFile "Merlink-${PRODUCT_VERSION}-x64.exe"
 InstallDir "$PROGRAMFILES\Merlink"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
