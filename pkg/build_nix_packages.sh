@@ -12,7 +12,7 @@ VERSION=${GIT_VERSION:1}
 NAME='merlink'
 
 ### Create bundle with pyinstaller
-pyinstaller -y pyinstaller.nix.spec
+pyinstaller -y pyinstaller.spec
 
 ### If Linux make deb, rpm, tar; Elif Macos make dmg; Else Error
 if [ $(uname) = 'Linux' ]; then 
