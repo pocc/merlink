@@ -22,7 +22,8 @@ build: off
 branches:
   only:
     # Only match tagged versions that look like v0.12.34
-    - /v\d+\.\d+\.\d+/
+    #- /v\d+\.\d+\.\d+/
+    - master
 
 # this is how to allow failing jobs in the matrix
 matrix:
