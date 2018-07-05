@@ -55,8 +55,8 @@ artifacts:
     type: exe
 
 deploy:
-  tag: APPVEYOR_REPO_TAG_NAME
-  release: APPVEYOR_REPO_TAG_NAME
+  tag: $(APPVEYOR_REPO_TAG_NAME)
+  release: $(APPVEYOR_REPO_TAG_NAME)
   description: 'VPN editor'
   provider: GitHub
   auth_token:
