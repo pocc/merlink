@@ -20,7 +20,7 @@ build: off
 
 # branches to build
 branches:
-  only:
+  except:
     - appveyor-ci
 
 # this is how to allow failing jobs in the matrix
