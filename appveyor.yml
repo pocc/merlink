@@ -49,7 +49,7 @@ build_script:
 
 artifacts:
   # pushing a single file with environment variable in path and "Deployment name" specified
-  - path: C:\projects\merlink\pkg\merlink-*.exe
+  - path: merlink\pkg\merlink-*.exe
     name: MerLink
     type: exe
 
