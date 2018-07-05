@@ -64,10 +64,10 @@ deploy:
   file_glob: true
   file:
     # ${TRAVIS_TAG:1} strips the starting v from the tag
-    - build/merlink-${TRAVIS_TAG:1}.deb
-    - build/merlink-${TRAVIS_TAG:1}.rpm
-    - build/merlink-${TRAVIS_TAG:1}.tar.gz
-    - build/merlink-${TRAVIS_TAG:1}.dmg
+    - build/merlink-${TRAVIS_TAG:1}_x64.deb
+    - build/merlink-${TRAVIS_TAG:1}_x64.rpm
+    - build/merlink-${TRAVIS_TAG:1}_x64.tar.gz
+    - build/merlink-${TRAVIS_TAG:1}_x64.dmg
   on:
     repo: pocc/merlink
     # We only want the builds from xenial

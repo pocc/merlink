@@ -66,7 +66,7 @@ SetCompressor /SOLID lzma
 ; MUI end ------
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "Merlink-${PRODUCT_VERSION}-x64.exe"
+OutFile "Merlink-${PRODUCT_VERSION}_x64.exe"
 InstallDir "$PROGRAMFILES\Merlink"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
