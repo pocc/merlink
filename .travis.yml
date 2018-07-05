@@ -20,9 +20,9 @@ matrix:
     osx_image: xcode9.4
 
 # Only tagged commits
-branches:
-  only:
-  - master
+#branches:
+#  only:
+#  - master
 
 addons:
   apt:
