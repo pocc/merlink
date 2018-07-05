@@ -3,11 +3,10 @@
 
 block_cipher = None
 
-
+# Adding runtime hooks per https://github.com/pyinstaller/pyinstaller/issues/1713
 a = Analysis(['merlink.py'],
-             pathex=['%USERPROFILE%\\code\\merlink'],
              binaries=[],
-             datas=[('media\\', 'media'), ('scripts', 'scripts'), ('..\\LICENSE.txt', '.')],
+             datas=[('src', 'src'), ('LICENSE.txt', '.')],
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
@@ -24,7 +23,7 @@ exe = EXE(pyz,
           debug=False,
           strip=False,
           upx=True,
-          console=False , icon='media\\miles.ico')
+          console=False, icon='src/media/miles.ico')
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
@@ -32,3 +31,7 @@ coll = COLLECT(exe,
                strip=False,
                upx=True,
                name='merlink')
+app = BUNDLE(coll,
+             name='merlink.app',
+             icon='./src/media/miles.icns',
+             bundle_identifier=None)

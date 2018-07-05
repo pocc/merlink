@@ -16,7 +16,7 @@ from os import path, getcwd
 # .. Useful stuff ..............................................................
 
 current_dir = getcwd()
-print("dmgbuild directiory: " + current_dir )
+print("dmgbuild directory: " + current_dir )
 application = defines.get('app', '/Applications/Merlink.app')
 appname = path.basename(application)
 

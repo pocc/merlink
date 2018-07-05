@@ -1,0 +1,77 @@
+# For appveyor.yml example : https://www.appveyor.com/docs/appveyor-yml/
+# For appveyor.yml validation: https://ci.appveyor.com/tools/validate-yaml
+# Build environment: https://www.appveyor.com/docs/build-environment/
+
+clone_depth: 50                      # clone entire repository history if not defined
+# Start builds on tags only (GitHub and BitBucket)
+#skip_non_tags: true
+# Skipping commits with particular message or from specific user
+skip_commits:
+  message: /noci/      # Regex for matching commit message
+# This is the default. Making it explicit here.
+clone_folder: c:\projects
+# scripts that are called at very beginning, before repo cloning
+init:
+  - git config --global core.autocrlf input
+# Check build environment for details. Should have most recent python and ruby versions
+image: Visual Studio 2017
+# This is not an MSBuild, so turn it off
+build: off
+
+# branches to build
+branches:
+  only:
+    # Only match tagged versions that look like v0.12.34
+    - /v\d+\.\d+\.\d+/
+
+# this is how to allow failing jobs in the matrix
+matrix:
+  allow_failures:
+    - platform: x64
+
+# scripts to run before build
+install:
+  #- cmd: echo This is batch
+  #- ps: Write-Host 'This is PowerShell'
+  #- ps: C:\Ruby25-x64\bin\ruby.exe  # for any ruby tasks (see build 1.0.5 for more info)
+  - C:\Python36\python.exe -m pip install -r requirements.txt
+  # Get git version and get rid of prefaced 'v'
+  - ps: $GIT_VERSION=$(git describe --abbrev=0 --tags).substring(1)
+  - C:\Python36\Scripts\pyinstaller.exe -y pyinstaller.spec
+  - ps: ECHO $GIT_VERSION
+
+build_script:
+  # /D specifies additional variables to be used in the script
+  - ps: makensis /DPRODUCT_VERSION=$GIT_VERSION .\pkg\windows_nsis_installer.nsh
+
+# TESTS (add these at some point)
+#before_test:
+#test:
+#after_test:
+
+artifacts:
+  # pushing a single file with environment variable in path and "Deployment name" specified
+  - path: pkg\merlink-*.exe
+    name: MerLink
+    type: exe
+
+deploy:
+  tag: $(APPVEYOR_REPO_TAG_NAME)
+  release: $(APPVEYOR_REPO_TAG_NAME)
+  description: 'VPN editor'
+  provider: GitHub
+  auth_token:
+  # your encrypted token from GitHub
+    secure: WUQSo/s4J6CS1QhSfeaURLvdZkvfj6KrPZOU9yWdnlTAr6Rp7/6VmP3gCGB2VPws
+  draft: true  # Change to false once we have success
+  prerelease: true
+  on:
+    branch: master                 # release from master branch only
+    appveyor_repo_tag: true        # deploy on tag push only
+
+notifications:
+  - provider: Email
+    to:
+      - projectmerlink@gmail.com
+    subject: 'Build {{status}}'                  # optional
+    message: "{{message}}, {{commitId}}, ..."    # optional
