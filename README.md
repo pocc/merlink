@@ -76,12 +76,12 @@ To set up your Windows environment, please read [pycharm_setup.md](https://githu
 For the versions available, see the [tags on this repository](https://github.com/pocc/merlink/tags). 
 
 ### Branching
+Adapting [Git Branching](http://nvie.com/posts/a-successful-git-branching-model/) for this projcet
 
+* **feature-\<name\>**: Feature branch for ONE feature. When feature is ready, integrate it back into dev. 
+* **dev-X.Y**: Development branch. When it's ready for a release, branch into a release.
+* **rel-X.Y**: Release candidate targeting version X.Y. When it is ready, it should be merged into master tagged with version X.Y.
 * **master**: Master branch.
-* **develop**: Development branch. When it's ready for a release, branch into a release.
-* **feature-`*`**: Feature branch for ONE feature. When feature is ready, integrate it back into develop. 
-* **vX.Y.0-release**: Release candidate targeting version X.Y.0. When it is ready, it should be merged into master and master should be tagged with version X.Y.
-* **vX.Y.Z-hotfix-`*`**: Hotfix that targets vX.Y.Z. When it is ready, it should be merged into master and master should be tagged with version X.Y.Z
 
 ## Addenda
 ### Reference Material
@@ -90,9 +90,6 @@ For the versions available, see the [tags on this repository](https://github.com
 * [Qt5](https://doc.qt.io/qt-5/index.html) - Comprehensive Qt reference made by the Qt company. It is made for C++, but will supply the information you need about classes and functions.
 * [PyQt5](http://pyqt.sourceforge.net/Docs/PyQt5/) - Documentation for PyQt5. This is a copypaste of the Qt docs applied to Python, and generally contains less useful information  
 * [Mechanical Soup](https://github.com/MechanicalSoup/MechanicalSoup) - Web scraper for Python 3
-
-#### Git
-* [Git Branching](http://nvie.com/posts/a-successful-git-branching-model/) - Method adapted for this project
 
 #### Environment
 * [PyCharm](https://www.jetbrains.com/pycharm/) - IDE used
