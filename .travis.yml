@@ -1,3 +1,8 @@
+# .travis.yml used with Travis CI
+
+# Only build if this is a tagged build
+if: tag IS present
+
 matrix:
   include:
   # Not specifying precise because it's EOL

@@ -100,6 +100,10 @@ Adapting [Git Branching](http://nvie.com/posts/a-successful-git-branching-model/
 #### Building
 * [PyInstaller](https://pyinstaller.readthedocs.io/en/v3.3.1/) - Python bundler used as part of this project 
     * [PyInstaller Recipes](https://github.com/pyinstaller/pyinstaller/wiki/Recipes) - Useful example code
+    * Make sure you install the latest PyIntstaller directly:
+    
+    `pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip
+`
 * [NSIS](http://nsis.sourceforge.net/Docs/) - Windows program installer system
     * [NSIS Wizard + IDE](http://hmne.sourceforge.net/) - Will build and debug NSIS scripts
     * [NSIS Sample Installers](http://nsis.sourceforge.net/Category:Real_World_Installers) - To learn how to build your own installer by example

@@ -4,7 +4,7 @@
 
 clone_depth: 50                      # clone entire repository history if not defined
 # Start builds on tags only (GitHub and BitBucket)
-#skip_non_tags: true
+skip_non_tags: true
 # Skipping commits with particular message or from specific user
 skip_commits:
   message: /noci/      # Regex for matching commit message

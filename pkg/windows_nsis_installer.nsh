@@ -73,7 +73,8 @@ ShowInstDetails show
 ShowUnInstDetails show
 
 Section "MainSection" SEC01
-  SetOutPath "$INSTDIR"
+  CreateDirectory "$INSTDIR\${PRODUCT_PUBLISHER}"
+  SetOutPath "$INSTDIR\${PRODUCT_PUBLISHER}"
   SetOverwrite try
   File /r "${SOURCE_FILES}\*"
 
@@ -104,15 +105,20 @@ Function un.onUninstSuccess
 FunctionEnd
 
 Function un.onInit
-  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Are you sure you want to completely remove $(^Name) and all of its components? THIS WILL REMOVE THE MERLINK INSTALL DIRECTORY!" IDYES +2
+  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Are you sure you want to completely remove $(^Name) and all of its components?" IDYES +2
   Abort
 FunctionEnd
 
 Section Uninstall
-  RMDir /r /REBOOTOK "$INSTDIR"
+  ; We may want to use this script instead at some point: http://nsis.sourceforge.net/Uninstall_only_installed_files
+  ;   Storing files in Merlink/Merlink, deleting Merlink/Merlink recursively, and deleting folder Merlink if empty
+  ;   is more robust than having an uninstall section where we delete a list of hardcoded files
+  Delete "$INSTDIR\${PRODUCT_NAME}.url"
+  Delete "$INSTDIR\uninst.exe"
+  RMDir /r "$INSTDIR\${PRODUCT_PUBLISHER}"  ; delete all files in install directory
+  RMDir "$INSTDIR\" ; We should only delete the install directory if it is empty after prev command
 
   ; Shortcuts
-  ;RMDir "$SMPROGRAMS\Merlink" ; To use a directory (also see install list)
   Delete "$SMPROGRAMS\Merlink\Uninstall.lnk"
   Delete "$SMPROGRAMS\Merlink\Website.lnk"
   Delete "$QUICKLAUNCH.lnk"
