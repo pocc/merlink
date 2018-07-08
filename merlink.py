@@ -216,26 +216,27 @@ class MainWindow(QMainWindow):
         self.refresh_network_dropdown()
 
     def change_organization(self):
-        self.network_dropdown.setEnabled(True)
-        self.status.showMessage("Status: Fetching organizations...")
-        # Change primary organization
-        self.current_org = self.org_dropdown.currentText()
-        # If the organization index of network_list is empty (i.e. this network list for this org has never been
-        # updated), then get the networks for this organization
-        # This makes it so we don't need to get the network list twice for the same organization
-        self.current_org_index = self.org_list.index(self.current_org)
-        print("In change_organization and this is network list " + str(self.network_list))
-        if self.network_list[self.current_org_index] == []:
-            print("getting networks from change_organization")
-            print("we are getting new info for " + self.current_org + " at index" + str(self.current_org_index))
-            self.get_networks()
-        else:
-            print("we already have that info for " + self.current_org + " at index" + str(self.current_org_index))
-            # If we already have the network list, remove the current entries in the network combobox
-            # And add the ones corresponding to the selected organization
-            self.refresh_network_dropdown()
+        if self.org_dropdown.currentIndex() != 0:  # We only care if they've actually selected an organization
+            self.network_dropdown.setEnabled(True)
+            self.status.showMessage("Status: Fetching organizations...")
+            # Change primary organization
+            self.current_org = self.org_dropdown.currentText()
+            # If the organization index of network_list is empty (i.e. this network list for this org has never been
+            # updated), then get the networks for this organization
+            # This makes it so we don't need to get the network list twice for the same organization
+            self.current_org_index = self.org_list.index(self.current_org)
+            print("In change_organization and this is network list " + str(self.network_list))
+            if self.network_list[self.current_org_index] == []:
+                print("getting networks from change_organization")
+                print("we are getting new info for " + self.current_org + " at index" + str(self.current_org_index))
+                self.get_networks()
+            else:
+                print("we already have that info for " + self.current_org + " at index" + str(self.current_org_index))
+                # If we already have the network list, remove the current entries in the network combobox
+                # And add the ones corresponding to the selected organization
+                self.refresh_network_dropdown()
 
-        self.status.showMessage("Status: Select network")
+            self.status.showMessage("Status: Select network")
 
     def refresh_network_dropdown(self):
         # Remove previous contents of Networks QComboBox and add new ones according to chosen organization
@@ -556,6 +557,8 @@ class MainWindow(QMainWindow):
         # Only change organization when there are more than 1 organization to change
 
         self.systray_icon()
+
+        # We don't need to change organization if the user chooses "-- Select an Organization --"
 
         self.org_dropdown.currentIndexChanged.connect(self.change_organization)
         self.network_dropdown.activated.connect(self.scrape_vars)
