@@ -25,6 +25,7 @@ import subprocess
 import platform
 from os import getcwd, system
 import psutil
+import logging
 
 # Import the login_window file
 from src.modules.pyinstaller_path_helper import resource_path
@@ -253,17 +254,19 @@ class MainWindow(QMainWindow):
             + Is client VPN enabled in dashboard?
             - Is this a security appliance that is online?
         """
-        self.get_client_vpn_text()
+        if self.network_dropdown.currentIndex() != 0:  # Only proceed if network selected is an actual network
+            self.get_client_vpn_text()
 
-        self.psk = self.client_vpn_soup.find("input", {"id": "wired_config_client_vpn_secret", "value": True})['value']
-        # Found in html as    ,"client_vpn_enabled":true
-        client_vpn_value_index = self.client_vpn_text.find(",\"client_vpn_enabled\"")
+            self.psk = self.client_vpn_soup.find("input",
+                                                 {"id": "wired_config_client_vpn_secret", "value": True})['value']
+            # Found in html as    ,"client_vpn_enabled":true
+            client_vpn_value_index = self.client_vpn_text.find(",\"client_vpn_enabled\"")
 
-        print(self.client_vpn_text[client_vpn_value_index:client_vpn_value_index+27])
+            print(self.client_vpn_text[client_vpn_value_index:client_vpn_value_index+27])
 
-        self.scrape_ddns_and_ip()
-        # validate_date() MUST come after scrape_ddns_and_ip() because it needs DDNS/IP address
-        self.validate_data()
+            self.scrape_ddns_and_ip()
+            # validate_date() MUST come after scrape_ddns_and_ip() because it needs DDNS/IP address
+            self.validate_data()
 
     def get_client_vpn_text(self):
         if DEBUG:
@@ -764,10 +767,12 @@ class MainWindow(QMainWindow):
         self.feature_in_development()
         pass
 
+    @staticmethod
     def help_support_action(self):
         # Redirect to Meraki's support website
         webbrowser.open('https://meraki.cisco.com/support')
 
+    @staticmethod
     def help_about_action(self):
         about_popup = QDialog()
         about_popup.setWindowTitle("Meraki Client VPN: About")
