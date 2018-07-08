@@ -78,10 +78,8 @@ For the versions available, see the [tags on this repository](https://github.com
 ### Branching
 Adapting [Git Branching](http://nvie.com/posts/a-successful-git-branching-model/) for this projcet
 
-* **issue#-X.Y.Z**: Branch from dev-X.Y.Z and reintegrate to dev-X.Y.Z, incremented on Y or Z. 
-  * Should be tied to an issue tagged with 'bug', 'feature', or 'enchancement' on repo. 
-  * Features increment Y while bugs and enhancements increment Z.
-* **dev-X.Y.Z**: Development branch. When it's ready for a release, branch into a release.
+* **iss#-X.Y**: Branch from dev-X.Y and reintegrate to dev-X.Y. Should be tied to an issue tagged with 'bug', 'feature', or 'enchancement' on repo. 
+* **dev-X.Y**: Development branch. When it's ready for a release, branch into a release.
 * **rel-X.Y**: Release candidate targeting version X.Y. When it is ready, it should be merged into master tagged with version X.Y.
 * **master**: Master branch.
 
