@@ -786,8 +786,7 @@ class MainWindow(QMainWindow):
         if DEBUG:
             print("entering attempt_connection function")
         # If they've selected organization and network OR they've entered everything manually
-        if ('Select' not in self.org_dropdown.currentText() and 'Select' not in self.network_dropdown.currentText()) \
-                or self.data_entry_tabs.currentIndex() == 1:
+        if 'Select' not in self.org_dropdown.currentText() and 'Select' not in self.network_dropdown.currentText():
             # Change status to reflect we're connecting. For fast connections, you might not see this message
             self.status.showMessage('Status: Connecting...')
             result = 1  # If result doesn't get assigned, we assume program to have failed
@@ -925,17 +924,18 @@ class MainWindow(QMainWindow):
                 self.troubleshoot_connection()
 
         else:  # They haven't selected an item in one of the message boxes
-            self.error_dialog('You must select BOTH an organization AND network before connecting!')
+            error_dialog('You must select BOTH an organization AND network before connecting!')
 
+    @staticmethod
     def troubleshoot_connection(self):
         print("ACTIVELY troubleshooting connection")
-        self.error_dialog('VPN Connection Failed!')
+        error_dialog('VPN Connection Failed!')
 
     def disconnect(self):
         if self.is_vpn_connected():
             system('rasdial ' + self.vpn_name + ' /disconnect')
         else:
-            self.error_dialog("ERROR: You cannot disconnect if you are not connected!")
+            error_dialog("ERROR: You cannot disconnect if you are not connected!")
 
     def is_vpn_connected(self):
         if self.platform == 'win32':
