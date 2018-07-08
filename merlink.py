@@ -796,6 +796,7 @@ class MainWindow(QMainWindow):
             network_name = self.network_dropdown.currentText()
             # Set VPN name to the network name +/- cosmetic things
             vpn_name = network_name.replace('- appliance', '') + '- VPN'
+            print("VPN name is: " + vpn_name)
 
             if self.radio_dashboard_admin_user.isChecked() == 0:  # If the user is logging in as a guest user
                 self.username = self.radio_username_textfield.text()
@@ -814,6 +815,11 @@ class MainWindow(QMainWindow):
                 self.param_username = self.username.replace('$', '`$')
                 self.param_password = self.password.replace('$', '`$')
 
+                # vpn_name, psk, and password can have spaces so sanitize for powershell (email can't per spec)
+                vpn_name = '\"' + vpn_name + '\"'
+                self.psk = '\"' + self.psk + '\"'
+                self.param_password = '\"' + self.param_password + '\"'
+
                 # Get values from spinboxes/textfields
                 self.IdleDisconnectSeconds = self.idle_disconnect_spinbox.value()
                 self.DnsSuffix = self.dns_suffix_txtbox.text()
@@ -826,17 +832,22 @@ class MainWindow(QMainWindow):
                 self.UseWinlogonCredential = self.use_winlogon_chkbox.checkState()
 
                 if DEBUG:
-                    print("attempting to connect via powershell script")
+                    print("Attempting to connect via powershell script with this invocation:")
+                    print(powershell_path, '-ExecutionPolicy', 'Unrestricted',
+                          resource_path('src\scripts\connect_windows.ps1'), str(vpn_name), self.psk, self.current_ddns,
+                          self.current_primary_ip, self.param_username, self.param_password, self.DnsSuffix,
+                          str(self.IdleDisconnectSeconds), str(DEBUG), str(int(self.split_tunnel)),
+                          str(int(self.remember_credential)), str(int(self.UseWinlogonCredential)))
 
                 # Arguments sent to powershell MUST BE STRINGS
                 # Each argument cannot be the empty string or null or PS will think there's no param there!!!
                 # Last 3 ps params are bools converted to ints (0/1) converted to strings. It's easy to force convert
                 # '0' and '1' to ints on powershell side
                 # Setting execution policy to unrestricted is necessary so that we can access VPN functions
-                # TODO Verify that resource_path and the connect script works on Windows
+                # Emaill CANNOT have spaces, but password can.
                 result = subprocess.call(
                         [powershell_path, '-ExecutionPolicy', 'Unrestricted',
-                         resource_path('\src\scripts\connect_windows.ps1'), vpn_name, self.psk, self.current_ddns,
+                         resource_path('src\scripts\connect_windows.ps1'), vpn_name, self.psk, self.current_ddns,
                          self.current_primary_ip, self.param_username, self.param_password, self.DnsSuffix,
                          str(self.IdleDisconnectSeconds),  str(DEBUG), str(int(self.split_tunnel)),
                          str(int(self.remember_credential)), str(int(self.UseWinlogonCredential))])
