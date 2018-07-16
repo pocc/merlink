@@ -4,15 +4,23 @@
 
 import sys
 from PyQt5.QtWidgets import QApplication
-from src.modules.main_window import MainWindow
+from src.modules.merlink_gui import MainWindow
+from src.modules.merlink_cli import MainCli
 
 
 def main():  # Syntax per PyQt recommendations: http://pyqt.sourceforge.net/Docs/PyQt5/gotchas.html
-    app = QApplication(sys.argv)
-    app.setQuitOnLastWindowClosed(False)  # We want to be able to be connected with VPN with systray icon
-    main_window = MainWindow()
-    main_window.show()
-    sys.exit(app.exec_())
+    # If there is one argument, start GUI
+    # Otherwise, start CLI
+    if len(sys.argv) == 1:
+        app = QApplication(sys.argv)
+        app.setQuitOnLastWindowClosed(False)  # We want to be able to be connected with VPN with systray icon
+        merlink_gui = MainWindow()
+        merlink_gui.show()
+
+        sys.exit(app.exec_())
+
+    else:
+        merlink_cli = MainCli()
 
 
 if __name__ == '__main__':

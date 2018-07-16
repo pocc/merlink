@@ -17,15 +17,13 @@ import mechanicalsoup
 
 # OS modules
 import subprocess
-import platform
 from os import getcwd, system
-import psutil
 
 # Import the login_window file
 from src.modules.login_window import LoginWindow
 from src.modules.pyinstaller_path_helper import resource_path
-from src.modules.is_online import is_online
 from src.modules.modal_dialogs import error_dialog, question_dialog
+from src.modules.attempt_connection import AttemptConnection
 
 DEBUG = True
 
@@ -801,142 +799,67 @@ class MainWindow(QMainWindow):
     def attempt_connection(self):
         if DEBUG:
             print("entering attempt_connection function")
-        # If they've selected organization and network OR they've entered everything manually
+        # If they've selected organization and network
         if 'Select' not in self.org_dropdown.currentText() and 'Select' not in self.network_dropdown.currentText():
-            # Change status to reflect we're connecting. For fast connections, you might not see this message
-            self.status.showMessage('Status: Connecting...')
-            result = 1  # If result doesn't get assigned, we assume program to have failed
-
+            """
             # Making vpn_name have no spcaes because I haven't figured out how to pass a string with spaces to PS
             network_name = self.network_dropdown.currentText()
             # Set VPN name to the network name +/- cosmetic things
             vpn_name = network_name.replace('- appliance', '') + '- VPN'
             print("VPN name is: " + vpn_name)
-
+            """
             if self.radio_dashboard_admin_user.isChecked() == 0:  # If the user is logging in as a guest user
                 self.username = self.radio_username_textfield.text()
                 self.password = self.radio_password_textfield.text()
 
-            if self.platform == 'win32':
-                arch = platform.architecture()
-                if arch == '64bit':
-                    powershell_path = 'C:\\Windows\\SysWOW64\\WindowsPowerShell\\v1.0\\powershell.exe'
-                else:  # arch MUST be 32bit if not 64bit
-                    powershell_path = 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe'
+            # Change status to reflect we're connecting. For fast connections, you might not see this message
+            self.status.showMessage('Status: Connecting...')
+            # Send a list to attempt_connection containing data from all the textboxes and spinboxes
+            vpn_data = [vpn_name,
+                        self.current_ddns,
+                        self.psk,
+                        self.username,
+                        self.password,
+                        DEBUG]
+            windows_options = [self.dns_suffix_txtbox.text(),
+                               self.idle_disconnect_spinbox.value(),
+                               self.split_tunneled_chkbox.checkState(),
+                               self.use_winlogon_chkbox.checkState(),
+                               self.use_winlogon_chkbox.checkState()]
+            macos_options = []
+            linux_options = []
 
-                # Sanitize variables for powershell input: '$' -> '`$'
-                vpn_name = vpn_name.replace('$', '`$')
-                self.psk = self.psk.replace('$', '`$')
-                self.param_username = self.username.replace('$', '`$')
-                self.param_password = self.password.replace('$', '`$')
+            successful_attempt = AttemptConnection(vpn_data, windows_options, macos_options, linux_options)
+            if successful_attempt:
+                print("MainWindow and the result is " + str(successful_attempt) + str(type(successful_attempt)))
+                self.is_connected = True
+                self.status.showMessage('Status: Connected')
+                success_message = QMessageBox()
+                success_message.setIcon(QMessageBox.Information)
+                success_message.setWindowTitle("Success!")
+                success_message.setText("Successfully Connected!")
+                success_message.exec_()
 
-                # vpn_name, psk, and password can have spaces so sanitize for powershell (email can't per spec)
-                vpn_name = '\"' + vpn_name + '\"'
-                self.psk = '\"' + self.psk + '\"'
-                self.param_password = '\"' + self.param_password + '\"'
+                # There's no such thing as "minimize to system tray". What we're doing is hiding the window and
+                # then adding an icon to the system tray
 
-                # Get values from spinboxes/textfields
-                self.IdleDisconnectSeconds = self.idle_disconnect_spinbox.value()
-                self.DnsSuffix = self.dns_suffix_txtbox.text()
-                if self.DnsSuffix.isspace():  # If they've only submitted space, convert to '-' so PS will not break
-                    self.DnsSuffix = '-'
+                # Show this when connected
+                self.tray_icon.setIcon(QIcon(resource_path('src/media/connected_miles.ico')))
+                # If user wants to know more about connection, they can click on message and be redirected
+                self.tray_icon.messageClicked.connect(self.open_vpn_settings)
+                self.tray_icon.showMessage(  # Show the user the message so they know where the program went
+                    "Merlink",
+                    "Succesfully connected!",
+                    QSystemTrayIcon.Information,
+                    2000
+                )
+                self.hide()
 
-                # Get values from checkboxes and text fields
-                self.split_tunnel = self.split_tunneled_chkbox.checkState()
-                self.remember_credential = self.remember_credential_chkbox.checkState()
-                self.UseWinlogonCredential = self.use_winlogon_chkbox.checkState()
-
-                if DEBUG:
-                    print("Attempting to connect via powershell script with this invocation:")
-                    print(powershell_path, '-ExecutionPolicy', 'Unrestricted',
-                          resource_path('src\scripts\connect_windows.ps1'), str(vpn_name), self.psk, self.current_ddns,
-                          self.current_primary_ip, self.param_username, self.param_password, self.DnsSuffix,
-                          str(self.IdleDisconnectSeconds), str(DEBUG), str(int(self.split_tunnel)),
-                          str(int(self.remember_credential)), str(int(self.UseWinlogonCredential)))
-
-                # Arguments sent to powershell MUST BE STRINGS
-                # Each argument cannot be the empty string or null or PS will think there's no param there!!!
-                # Last 3 ps params are bools converted to ints (0/1) converted to strings. It's easy to force convert
-                # '0' and '1' to ints on powershell side
-                # Setting execution policy to unrestricted is necessary so that we can access VPN functions
-                # Emaill CANNOT have spaces, but password can.
-                result = subprocess.call(
-                        [powershell_path, '-ExecutionPolicy', 'Unrestricted',
-                         resource_path('src\scripts\connect_windows.ps1'), vpn_name, self.psk, self.current_ddns,
-                         self.current_primary_ip, self.param_username, self.param_password, self.DnsSuffix,
-                         str(self.IdleDisconnectSeconds),  str(DEBUG), str(int(self.split_tunnel)),
-                         str(int(self.remember_credential)), str(int(self.UseWinlogonCredential))])
-                # subprocess.Popen([], creationflags=subprocess.CREATE_NEW_CONSOLE)  # open ps window
-                print("MainWindow and the result is " + str(result) + str(type(result)))
-                if result == 0:
-                    self.is_connected = True
-                    self.status.showMessage('Status: Connected')
-                    success_message = QMessageBox()
-                    success_message.setIcon(QMessageBox.Information)
-                    success_message.setWindowTitle("Success!")
-                    success_message.setText("Successfully Connected!")
-                    success_message.exec_()
-
-                    # There's no such thing as "minimize to system tray". What we're doing is hiding the window and
-                    # then adding an icon to the system tray
-
-                    # Show this when connected
-                    self.tray_icon.setIcon(QIcon(resource_path('src/media/connected_miles.ico')))
-                    # If user wants to know more about connection, they can click on message and be redirected
-                    self.tray_icon.messageClicked.connect(self.open_vpn_settings)
-                    self.tray_icon.showMessage(  # Show the user the message so they know where the program went
-                        "Merlink",
-                        "Succesfully connected!",
-                        QSystemTrayIcon.Information,
-                        2000
-                    )
-                    self.hide()
-
-                else:
-                    self.is_connected = False
-                    self.status.showMessage('Status: Connection Failed')
-                    self.error_dialog("Connection Failed")
-                    self.tray_icon.setIcon(QIcon(resource_path('src/media/unmiles.ico')))
-
-            elif self.platform == 'darwin':
-                print("Creating macOS VPN")
-                # scutil is required to add the VPN to the active set. Without this, it is
-                #   not possible to connect, even if a VPN is listed in Network Services
-                # scutil --nc select <connection> throws '0:227: execution error: No service (1)'
-                #   if it's a part of the build script instead of here.
-                # This is why it's added directly to the osacript request.
-                # Connection name with forced quotes in case it has spaces.
-
-                scutil_string = 'scutil --nc select ' + '\'' + vpn_name + '\''
-                print("scutil_string: " + scutil_string)
-                # Create an applescript execution string so we don't need to bother with parsing arguments with Popen
-                command = 'do shell script \"/bin/bash src/scripts/build_macos_vpn.sh' + ' \'' + vpn_name + '\' \'' \
-                    + self.current_ddns + '\' \'' + self.psk + '\' \'' + self.username + '\' \'' + self.password \
-                    + '\'; ' + scutil_string + '\" with administrator privileges'
-                # Applescript will prompt the user for credentials in order to create the VPN connection
-                print("command being run: " + command)
-                result = subprocess.Popen(['/usr/bin/osascript', '-e', command], stdout=subprocess.PIPE)
-
-                # Get the result of VPN creation and print
-                output = result.stdout.read()
-                print(output.decode('utf-8'))
-
-                # Connect to VPN.
-                # Putting 'f' before a string allows you to insert vars in scope
-                print("Connecting to macOS VPN")
-                print("Current working directory: " + str(system('pwd')))
-                subprocess.call(['bash', 'src/scripts/connect_macos.sh', vpn_name])
-
-            elif self.platform.startswith('linux'):  # linux, linux2 are both valid
-                # sudo required to create a connection with nmcli
-                # pkexec is built into latest Fedora, Debian, Ubuntu.
-                # 'pkexec <cmd>' correctly asks in GUI on Debian, Ubuntu but in terminal on Fedora
-                # pkexec is PolicyKit, which is the preferred means of asking for permission on LSB
-                system('chmod a+x ' + resource_path('src/scripts/connect_linux.sh'))  # set execution bit on bash script
-                result = subprocess.Popen(['pkexec', resource_path('src/scripts/connect_linux.sh'), vpn_name,
-                                           self.current_ddns, self.psk, self.username, self.password])
-
-            if result == 1:
+            else:
+                self.is_connected = False
+                self.status.showMessage('Status: Connection Failed')
+                self.error_dialog("Connection Failed")
+                self.tray_icon.setIcon(QIcon(resource_path('src/media/unmiles.ico')))
                 self.troubleshoot_connection()
 
         else:  # They haven't selected an item in one of the message boxes
@@ -957,4 +880,8 @@ class MainWindow(QMainWindow):
         if self.platform == 'win32':
             rasdial_status = subprocess.Popen(['rasdial'], stdout=subprocess.PIPE).communicate()[0].decode('utf-8')
             return 'Connected to' in rasdial_status
+
+    @staticmethod
+    def get_debug_status():
+        return DEBUG
 
