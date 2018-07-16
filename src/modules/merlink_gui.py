@@ -801,13 +801,11 @@ class MainWindow(QMainWindow):
             print("entering attempt_connection function")
         # If they've selected organization and network
         if 'Select' not in self.org_dropdown.currentText() and 'Select' not in self.network_dropdown.currentText():
-            """
-            # Making vpn_name have no spcaes because I haven't figured out how to pass a string with spaces to PS
+            # Get current network from dropdown
             network_name = self.network_dropdown.currentText()
             # Set VPN name to the network name +/- cosmetic things
             vpn_name = network_name.replace('- appliance', '') + '- VPN'
-            print("VPN name is: " + vpn_name)
-            """
+
             if self.radio_dashboard_admin_user.isChecked() == 0:  # If the user is logging in as a guest user
                 self.username = self.radio_username_textfield.text()
                 self.password = self.radio_password_textfield.text()
@@ -828,7 +826,6 @@ class MainWindow(QMainWindow):
                                self.use_winlogon_chkbox.checkState()]
             macos_options = []
             linux_options = []
-
             successful_attempt = AttemptConnection(vpn_data, windows_options, macos_options, linux_options)
             if successful_attempt:
                 print("MainWindow and the result is " + str(successful_attempt) + str(type(successful_attempt)))
