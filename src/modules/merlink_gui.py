@@ -38,9 +38,9 @@ class MainWindow(QMainWindow):
         # QDialog has two return values: Accepted and Rejected
         # login_window.exec_() will execute while we keep on getting Rejected
         if login_window.exec_() == QDialog.Accepted:
-            browser_session = login_window.get_browser()
-            username = login_window.username
-            password = login_window.password
+            self.browser = login_window.get_browser()
+            self.username = login_window.username
+            self.password = login_window.password
 
         if DEBUG:
             print("Main Window")
