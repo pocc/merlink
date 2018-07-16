@@ -810,13 +810,13 @@ class MainWindow(QMainWindow):
                 self.current_ddns,
                 self.psk,
                 self.username,
-                self.password,
-                DEBUG
+                self.password
             ]
             connection = VpnConnection(vpn_data)
 
             if self.platform == 'win32':
                 windows_options = [
+                    DEBUG,
                     self.dns_suffix_txtbox.text(),
                     self.idle_disconnect_spinbox.value(),
                     self.split_tunneled_chkbox.checkState(),
@@ -844,7 +844,7 @@ class MainWindow(QMainWindow):
         else:  # They haven't selected an item in one of the message boxes
             error_dialog('You must select BOTH an organization AND network before connecting!')
 
-    def communicate_vpn_succcess(self):
+    def communicate_vpn_success(self):
         self.is_connected = True
         self.status.showMessage('Status: Connected')
         success_message = QMessageBox()

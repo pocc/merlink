@@ -32,24 +32,19 @@ class VpnConnection:
         self.vpn_data = vpn_data
         self.vpn_options = []
 
-        self.sanitize_variables()
-
     # Sanitize variables for powershell/bash input
     def sanitize_variables(self):
-        if platform == 'win32':
-            escape_char = '`'
-        else:
-            escape_char = '\\'
-
         for i in range(len(self.vpn_data)):
             # Convert to string
             self.vpn_data[i] = str(self.vpn_data[i])
             # '$' -> '`$' for powershell and '$' -> '\$' for bash
-            self.vpn_data[i] = self.vpn_data[i].replace('$', escape_char + '$')
+            self.vpn_data[i] = self.vpn_data[i].replace('$', '`$')
             # Surround each var with double quotes in case of spaces
             self.vpn_data[i] = '\"' + self.vpn_data[i] + '\"'
 
     def attempt_windows_vpn(self, vpn_options):
+        self.sanitize_variables()
+
         self.vpn_options = vpn_options
         # 32bit powershell path : 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe'
         # Opinionated view that 32bit is not necessary
@@ -67,7 +62,7 @@ class VpnConnection:
         # Email CANNOT have spaces, but password can.
         return subprocess.call(
             [powershell_path, '-ExecutionPolicy', 'Unrestricted',
-             resource_path('src\scripts\connect_windows.ps1'), *self.vpn_data])
+             resource_path('src\scripts\connect_windows.ps1'), *self.vpn_data, *self.vpn_options])
         # subprocess.Popen([], creationflags=subprocess.CREATE_NEW_CONSOLE)  # open ps window
 
     def attempt_macos_vpn(self, vpn_options):
