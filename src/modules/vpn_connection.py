@@ -6,7 +6,7 @@ from sys import platform
 from os import system
 
 """
-AttemptConnection list arguments
+VpnConnection list arguments
     vpn_data
         vpn_name
         ddns
@@ -14,26 +14,26 @@ AttemptConnection list arguments
         username
         password
     windows_options
+        dns_suffix
+        idle_disconnect_seconds
+        split_tunneled
+        remember_credentials
+        use_winlogon
         
+VpnConnection takes 2 lists as args: vpn_data and vpn_options
+    Required VPN parameters will arrive in vpn_data
+    Any OS-specific VPN parameters will go into vpn_options 
 """
 
 
-
-class AttemptConnection:
-    def __init__(self, vpn_data, windows_options, macos_options, linux_options):
-        super(AttemptConnection, self).__init__()
+class VpnConnection:
+    def __init__(self, vpn_data):
+        super(VpnConnection, self).__init__()
         self.vpn_data = vpn_data
-        self.windows_options = windows_options
-        self.macos_options = macos_options
-        self.linux_options = linux_options
-        if platform == 'win32':
-            self.attempt_windows_vpn()
-        elif platform == 'darwin':
-            self.attempt_macos_vpn()
-        elif platform.startswith('linux'):  # linux, linux2 are both valid
-            self.attempt_linux_vpn()
+        self.vpn_options = []
 
-    def attempt_windows_vpn(self):
+    def attempt_windows_vpn(self, vpn_options):
+        self.vpn_options = vpn_options
         # 32bit powershell path : 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe'
         # Opinionated view that 32bit is not necessary
         powershell_path = 'C:\\Windows\\SysWOW64\\WindowsPowerShell\\v1.0\\powershell.exe'
@@ -47,12 +47,12 @@ class AttemptConnection:
             # Surround each var with double quotes in case of spaces
             self.vpn_data[i] = '\"' + self.vpn_data[i] + '\"'
 
-        for i in range(len(self.windows_options)):
+        for i in range(len(self.vpn_options)):
             # Convert to string
-            self.windows_options[i] = str(self.windows_options[i])
+            self.vpn_options[i] = str(self.vpn_options[i])
 
         # Convert vpn data and options lists to a string we can pass to powershell
-        vpn_data_string = ','.join(self.vpn_data) + ',' + ','.join(self.windows_options)
+        vpn_data_string = ','.join(self.vpn_data) + ',' + ','.join(self.vpn_options)
         print(vpn_data_string)
 
         # Arguments sent to powershell MUST BE STRINGS
@@ -66,7 +66,8 @@ class AttemptConnection:
              resource_path('src\scripts\connect_windows.ps1'), vpn_data_string])
         # subprocess.Popen([], creationflags=subprocess.CREATE_NEW_CONSOLE)  # open ps window
 
-    def attempt_macos_vpn(self):
+    def attempt_macos_vpn(self, vpn_options):
+        self.vpn_options = vpn_options
         print("Creating macOS VPN")
         # scutil is required to add the VPN to the active set. Without this, it is
         #   not possible to connect, even if a VPN is listed in Network Services
@@ -96,7 +97,8 @@ class AttemptConnection:
         print("Current working directory: " + str(system('pwd')))
         return subprocess.call(['bash', 'src/scripts/connect_macos.sh', vpn_name])
 
-    def attempt_linux_vpn(self):
+    def attempt_linux_vpn(self, vpn_options):
+        self.vpn_options = vpn_options
         # sudo required to create a connection with nmcli
         # pkexec is built into latest Fedora, Debian, Ubuntu.
         # 'pkexec <cmd>' correctly asks in GUI on Debian, Ubuntu but in terminal on Fedora

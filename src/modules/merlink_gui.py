@@ -22,8 +22,8 @@ from os import getcwd, system
 # Import the login_window file
 from src.modules.login_window import LoginWindow
 from src.modules.pyinstaller_path_helper import resource_path
-from src.modules.modal_dialogs import error_dialog, question_dialog
-from src.modules.attempt_connection import AttemptConnection
+from src.modules.modal_dialogs import error_dialog, question_dialog, feature_in_development
+from src.modules.vpn_connection import VpnConnection
 
 DEBUG = True
 
@@ -91,9 +91,6 @@ class MainWindow(QMainWindow):
         # CURRENT minimum width of Main Window - SUBJECT TO CHANGE as features are added
         # self.cw.setMinimumWidth(400)
 
-        self.browser = browser_session
-        self.username = username
-        self.password = password
         self.scrape_orgs()
         self.main_init_ui()
         self.menu_bars()
@@ -137,7 +134,6 @@ class MainWindow(QMainWindow):
         # Create as many network lists in the network list as there are orgs
         self.network_list = [[]] * self.org_qty
         self.base_url_list = [[]] * self.org_qty
-
 
     def get_networks(self):
         """ ASSERTS
@@ -456,15 +452,8 @@ class MainWindow(QMainWindow):
         self.status.showMessage("Status: Ready to connect to " + self.current_network + ".")
 
     def enable_client_vpn(self):
-        self.feature_in_development()
+        feature_in_development()
         pass
-
-    def feature_in_development(self):
-        dev_message = QMessageBox()
-        dev_message.setIcon(QMessageBox.Information)
-        dev_message.setWindowTitle("Meraki Client VPN: Features in Progress")
-        dev_message.setText('This feature is currently in progress.')
-        dev_message.exec_()
 
     def main_init_ui(self):
         # Create a horizontal line above the status bar to highlight it
@@ -619,6 +608,7 @@ class MainWindow(QMainWindow):
         # If they click on the connected message, show them the VPN connection
         self.tray_icon.activated.connect(self.icon_activated)  # If systray icon is clicked
 
+    @staticmethod
     def open_vpn_settings(self):
         # Opens Windows 10 Settings > Network & Internet > VPN
         system('start ms-settings:network-vpn')
@@ -726,12 +716,12 @@ class MainWindow(QMainWindow):
 
     def file_open_action(self):
         # Might use this to open a saved vpn config
-        self.feature_in_development()
+        feature_in_development()
         pass
 
     def file_save_action(self):
         # Might use this to save a vpn config
-        self.feature_in_development()
+        feature_in_development()
         pass
 
     def file_quit_action(self):
@@ -753,26 +743,26 @@ class MainWindow(QMainWindow):
     def view_interfaces_action(self):
         # If linux/macos > ifconfig
         # If Windows > ipconfig /all
-        self.feature_in_development()
+        feature_in_development()
         pass
 
     def view_routing_action(self):
         # If linux/macos > netstat -rn
         # If Windows > route print
-        self.feature_in_development()
+        feature_in_development()
         pass
 
     def view_data_action(self):
-        self.feature_in_development()
+        feature_in_development()
         pass
 
     def tshoot_error_action(self):
         # In Windows, use powershell: get-eventlog
-        self.feature_in_development()
+        feature_in_development()
         pass
 
     def tshoot_pcap_action(self):
-        self.feature_in_development()
+        feature_in_development()
         pass
 
     def help_support_action(self):
@@ -813,6 +803,7 @@ class MainWindow(QMainWindow):
             # Change status to reflect we're connecting. For fast connections, you might not see this message
             self.status.showMessage('Status: Connecting...')
             # Send a list to attempt_connection containing data from all the textboxes and spinboxes
+
             vpn_data = [vpn_name,
                         self.current_ddns,
                         self.psk,
@@ -822,11 +813,23 @@ class MainWindow(QMainWindow):
             windows_options = [self.dns_suffix_txtbox.text(),
                                self.idle_disconnect_spinbox.value(),
                                self.split_tunneled_chkbox.checkState(),
-                               self.use_winlogon_chkbox.checkState(),
+                               self.remember_credential_chkbox.checkState(),
                                self.use_winlogon_chkbox.checkState()]
             macos_options = []
             linux_options = []
-            successful_attempt = AttemptConnection(vpn_data, windows_options, macos_options, linux_options)
+
+            # Create VPN connection
+            connection = VpnConnection(vpn_data)
+
+            if self.platform == 'win32':
+                successful_attempt = connection.attempt_windows_vpn(windows_options)
+            elif self.platform == 'darwin':
+                successful_attempt = connection.attempt_macos_vpn(macos_options)
+            elif self.platform.startswith('linux'):  # linux, linux2 are both valid
+                successful_attempt = connection.attempt_linux_vpn(linux_options)
+            else:
+                successful_attempt = False
+
             if successful_attempt:
                 print("MainWindow and the result is " + str(successful_attempt) + str(type(successful_attempt)))
                 self.is_connected = True
@@ -877,6 +880,10 @@ class MainWindow(QMainWindow):
         if self.platform == 'win32':
             rasdial_status = subprocess.Popen(['rasdial'], stdout=subprocess.PIPE).communicate()[0].decode('utf-8')
             return 'Connected to' in rasdial_status
+        elif self.platform == 'darwin':
+            pass
+        elif self.platform.startswith('linux'):
+            pass
 
     @staticmethod
     def get_debug_status():
