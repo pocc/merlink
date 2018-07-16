@@ -7,7 +7,7 @@ clone_depth: 50                      # clone entire repository history if not de
 skip_non_tags: true
 # Skipping commits with particular message or from specific user
 skip_commits:
-  message: /noci/      # Regex for matching commit message
+  message: /no-ci/      # Regex for matching commit message
 # This is the default. Making it explicit here.
 clone_folder: c:\projects
 # scripts that are called at very beginning, before repo cloning
@@ -19,11 +19,10 @@ image: Visual Studio 2017
 build: off
 
 # branches to build
-#branches:
-#  only:
+branches:
+  only:
     # Only match tagged versions that look like v0.12.34
-    #- /v\d+\.\d+\.\d+/
-    #- master
+    - /^v\d+\.\d+\.\d+$/
 
 # this is how to allow failing jobs in the matrix
 matrix:

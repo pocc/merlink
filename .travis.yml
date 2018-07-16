@@ -25,7 +25,7 @@ matrix:
 # Only tagged commits
 branches:
   only:
-  - "/^v\\d+\\.\\d+\\.\\d+$/"
+    - /^v\d+\.\d+\.\d+$/
 
 # Required for fpm when building rpm
 addons:
