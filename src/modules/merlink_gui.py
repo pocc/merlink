@@ -24,6 +24,7 @@ from src.modules.login_window import LoginWindow
 from src.modules.pyinstaller_path_helper import resource_path
 from src.modules.modal_dialogs import error_dialog, question_dialog, feature_in_development
 from src.modules.vpn_connection import VpnConnection
+from src.modules.troubleshoot_vpn_failure import TroubleshootVpnFailure
 
 DEBUG = True
 
@@ -61,7 +62,6 @@ class MainWindow(QMainWindow):
         # Initialize organization dictionary {Name: Link} and list for easier access. org_list is org_links.keys()
         self.org_links = {}
         self.org_list = []
-        self.validation_list = QListWidget()
         self.cwd = getcwd()  # get current working directory. We use cwd in multiple places, so fetch it once
 
         # Set the Window and Tray Icons
@@ -270,7 +270,9 @@ class MainWindow(QMainWindow):
 
         self.scrape_ddns_and_ip()
         # validate_date() MUST come after scrape_ddns_and_ip() because it needs DDNS/IP address
-        self.validate_data()
+        self.status.showMessage("Status: Verifying configuration for " + self.current_network + "...")
+        TroubleshootVpnFailure()
+        self.status.showMessage("Status: Ready to connect to " + self.current_network + ".")
 
     def get_client_vpn_text(self):
         if DEBUG:
@@ -310,150 +312,6 @@ class MainWindow(QMainWindow):
         ip_start = self.fw_status_text.find("{\"public_ip\":")+14
         ip_end = self.fw_status_text[ip_start:].find('\"') + ip_start
         self.current_primary_ip=self.fw_status_text[ip_start: ip_end]
-
-    def validate_data(self):
-        """
-        This method will check all of these values and show which are invalid
-        User should not be able to connect if there are any tests that fail (i.e grayed out button)
-        Each test should be clickable so that the user can find out more information
-        """
-        self.status.showMessage("Status: Verifying configuration for " + self.current_network + "...")
-        self.validation_list.clear()
-        validation_textlist = [
-            "Is the MX online?",
-            "Can the client ping the firewall's public IP?",
-            "Is the user behind the firewall?",
-            "Is Client VPN enabled?",
-            "Is authentication type Meraki Auth?",
-            "Are UDP ports 500/4500 port forwarded through firewall?"]
-            # "Is the user authorized for Client VPN?",
-        has_passed_validation = [True] * 6  # False for failed, True for passed
-        for i in range(len(validation_textlist)):  # For as many times as there are items in the validation_textlist
-            item = QListWidgetItem(validation_textlist[i])  # Initialize a QListWidgetItem out of a string
-            self.validation_list.addItem(item)  # Add the item to the QListView
-
-        # *** TEST 0 ***
-        # Is the MX online?
-        try:
-            is_online_status_code = int(self.fw_status_text[self.fw_status_text.find("status#")+9])
-            if is_online_status_code != 0:  # 0 is online, 2 is unreachable. There are probably other statuses
-                has_passed_validation[0] = False  # Default for has_passed_validation is true, so we don't need else
-        except:
-            # No 'status#' in HTML means there is no firewall in that network
-            # TODO This error should reset org/network prompt after an error as there's no way to fix an empty network
-            # Maybe redirect to adding devices to network
-            error_dialog("There is no device in this network!")
-            # Failure error dialog and then return
-
-        # *** TEST 1 ***
-        # Can the client ping the firewall if ICMP is enabled
-        # TODO This test should become one of the troubleshooting tests after connection failure because it takes time
-        # Ping 4 times
-        if self.platform == 'win32':  # Identifies any form of Windows
-            ping_string = "ping " + self.current_ddns  # ping 4 times every 1000ms
-        else:  # *nix of some kind
-            ping_string = "ping -c 5 -i 0.2 " + self.current_primary_ip  # ping 4 times every 200ms
-        ping_response = system(ping_string)
-        if ping_response != 0:  # Ping responses other than 0 mean failure. Error codes are OS-dependent
-            has_passed_validation[1] = False
-            # Failure error dialog and then return
-            error_dialog("Cannot connect to device!")
-
-        # *** TEST 2 ***
-        # Is the user behind the firewall?
-        try:
-            # This IP is the source public IP that the user is connecting with
-            ip_start = self.fw_status_text.find("\"request_ip\":")+14  # Start of IP position
-            ip_end = self.fw_status_text[ip_start:].find('\"') + ip_start  # Get the position of the IP end quote
-            src_public_ip = self.fw_status_text[ip_start:ip_end]
-            if src_public_ip == self.current_primary_ip:  # If public IP address of client == MX IP
-                has_passed_validation[2] = False  # Then the user is behind their firewall and client vpn won't work
-        except:
-            print("Exception during source public IP == MX IP test")
-            # TODO Raise exception of some type
-
-        # *** TEST 3 ***
-        # Is Client VPN enabled?
-        if self.client_vpn_text[self.client_vpn_text.find(",\"client_vpn_enabled\"") + 22] != 't':
-            has_passed_validation[3] = False
-
-        # *** TEST 4 ***
-        # Authentication type is Meraki Auth?
-        # User fixes (for now)
-        """ When an auth type is selected, we get one of these in the client VPN HTML depending on user's auth choice:
-        Meraki cloud</option></select>
-        Active Directory</option></select>
-        RADIUS</option></select>
-        """
-        # String find returns -1 if the string isn't found
-        meraki_select_type1 = self.client_vpn_text.find('Meraki cloud</option></select>')
-        meraki_select_type2 = self.client_vpn_text.find('<option value="meraki" selected="selected">')
-        if meraki_select_type1 == -1 and meraki_select_type2 == -1:
-            has_passed_validation[4] = False
-            print("ERROR: Please select Meraki cloud authentication")
-            # TODO Error dialog goes here
-
-        # *** TEST 5 ***
-        """ 
-        If the following text exists, they're port forwarding ports 500 or 4500:
-        "public_port":"500"
-        "public_port":"4500"
-        """
-        # -1 is returned by string find if a match is not found
-        is_forwarding_500 = self.client_vpn_text.find('"public_port":"500"') != -1
-        is_forwarding_4500 = self.client_vpn_text.find('"public_port":"4500"') != -1
-        if is_forwarding_500:
-            # TODO Error dialog goes here
-            print("ERROR: You are forwarding port 500!")
-            has_passed_validation[5] = False
-
-        if is_forwarding_4500:
-            # TODO Error dialog goes here
-            print("ERROR: You are forwarding port 4500!")
-            has_passed_validation[5] = False
-
-        # *** TEST 6 *** : CURRENTLY ON HOLD
-        # Is user authorized for Client VPN?
-        # By definition, if you can log in as a user, you have a user in the Client VPN users page
-
-        # This is the only test which requires us to scrape data from a table. Tables in dashboard use javascript,
-        # So we need to scrape differently.
-        # https://stackoverflow.com/questions/8049520/web-scraping-javascript-page-with-python
-        """ from selenium import webdriver
-         from selenium.webdriver.chrome.options import Options
-         options = Options()
-         options.add_argument('--headless')
-         # options.add_argument('--disable-gpu')  # Last I checked this was necessary.
-         driver = webdriver.Chrome('/usr/bin/google-chrome', chrome_options=options)
-         driver.get(self.client_vpn_url)
-         print(driver.find_elements_by_css_selector('td.ft.notranslate.email'))
-        """
-
-        # ----------------------------------------------
-        # Add checkboxes/x-marks to each validation test
-        for i in range(len(validation_textlist)):
-            print("has passed" + str(i) + str(has_passed_validation[i]))
-            print("current directory" + self.cwd)
-            if has_passed_validation[i]:
-                self.validation_list.item(i).setIcon(QIcon(resource_path('src/media/checkmark-16.png')))
-            else:
-                self.validation_list.item(i).setIcon(QIcon(resource_path('src/media/x-mark-16.png')))
-
-            # All the error messages! Once we know what the error dialog landscape looks like down here,
-            # we might want to turn this into an error method with params
-        if not has_passed_validation[3]:
-            self.validation_list.item(3).setIcon(QIcon(resource_path('src/media/x-mark-16.png')))
-            # Error message popup that will take control and that the user will need to acknowledge
-            force_enable_client_vpn = error_dialog('Client VPN is not enabled in Dashboard for this network.'
-                                  '\nWould you like this program to enable it for you?')
-            if force_enable_client_vpn == QMessageBox.Yes:
-                self.enable_client_vpn()
-
-        self.status.showMessage("Status: Ready to connect to " + self.current_network + ".")
-
-    def enable_client_vpn(self):
-        feature_in_development()
-        pass
 
     def main_init_ui(self):
         # Create a horizontal line above the status bar to highlight it
