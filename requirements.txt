@@ -18,7 +18,6 @@ PyQt5>=5.10.1
 sip>=4.19.8
 
 # Maintainers:
+# Grab the latest pyinstaller develop version (currently 3.4)
+https://github.com/pyinstaller/pyinstaller/tarball/develop
 #dmgbuild>=1.3.2 (only required on macos, installed by macos preinstall script)
-# Use the following if you have problems with building or get "Failed to execute script" error:
-#   pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip
-pyinstaller>=3.3.1

@@ -1,4 +1,7 @@
 # Building from Source
+**NOTE**: Make sure you install the latest PyIntstaller directly
+`pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip`
+
 ## With spec file
 `pyinstaller -y pyinstaller.spec`
 

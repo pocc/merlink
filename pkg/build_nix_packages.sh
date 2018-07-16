@@ -19,9 +19,18 @@ if [ $(uname) = 'Linux' ]; then
 	bash pkg/fpm_build.sh ${NAME} ${VERSION}
 
 elif [ $(uname) = 'Darwin' ]; then
-	dmgbuild -s pkg/dmg_settings.py "${NAME}" build/${NAME}-${VERSION}.dmg
+	dmgbuild -s pkg/dmg_settings.py "${NAME}" "build/${NAME}-${VERSION}_x64.dmg"
 
 else
 	echo "ERROR: Unsupported OS $(uname)"
 
 fi
+
+# Extra debug info for travis
+echo "Built targets:"
+ls -1d build/* | grep merlink
+echo "Deploy targets:"
+echo "build/merlink-${VERSION}_x64.deb"
+echo "build/merlink-${VERSION}_x64.rpm"
+echo "build/merlink-${VERSION}_x64.tar.gz"
+echo "build/merlink-${VERSION}_x64.dmg"
