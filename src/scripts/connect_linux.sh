@@ -1,5 +1,12 @@
 #!/bin/bash
 # This bash file will create and connect an L2TP VPN connection on linux
+# 5 required params to use this script
+if [[ -z $1 ]] || [[ -z $2 ]] || [[ -z $3 ]] || [[ -z $4 ]] || [[ -z $5 ]] ; then
+    echo "Incorrect number of arguments, expecting 5"
+    echo "Correct usage:\n  bash ./connect_linux.sh 'MyVpnName' 'MyServerAddress' 'MyPsk' 'MyUsername' 'MyPassword'"
+    sleep 5
+    exit 5
+fi
 
 # Verify that we have required packages
 # Verify that we have network-manager
@@ -27,18 +34,10 @@ elif [ -f /etc/redhat-release ] && [[ -z $(rpm -qa NetworkManager-l2tp 2>/dev/nu
 fi
 
 # Linux Mint doesn't come with strongswan-plugin-openssl, which is required. Error out if
-if [ $(cat /etc/os-release | grep Mint) ] && [[ -z $(dpkg -l strongswan-plugin-agent) ]]; then
+if [[ $(cat /etc/os-release | grep Mint) ]] && [[ -z $(dpkg -l strongswan-plugin-agent) ]]; then
 	echo "ERROR: strongswan-plugin-openssl must be installed. Exiting..."
 	sleep 5
 	exit 4
-fi
-
-# If there are too few arguments, exit
-if [[ -z $1 ]] || [[ -z $2 ]] || [[ -z $3 ]] || [[ -z $4 ]] || [[ -z $5 ]] ; then
-    echo "Incorrect number of arguments, expecting 5"
-    echo "Correct usage:\n  linux-vpn.sh 'MyVpnName' 'MyServerAddress' 'MyPsk' 'MyUsername' 'MyPassword'"
-    sleep 5
-    exit 5
 fi
 
 # Set variables from params
@@ -55,9 +54,8 @@ password=$5
 # Generate NetworkManager VPN connection
 # l2tp gets stored as type org.freedesktop.NetworkManager.l2tp
 nmcli con add type vpn ifname ${vpn_name} vpn-type l2tp
-# nmcli prepends with 'vpn-', so we should too
-vpn_name=vpn-${vpn_name}
-
+# nmcli prepends with 'vpn-'; remove this unnecessary prefix
+nmcli con modify "vpn-${vpn_name}" connection.id "${vpn_name}"
 
 # Overwrite config created at /etc/NetworkManager/system-connections/$vpn_name
 # This content has been lifted from a successful connection
@@ -101,8 +99,10 @@ EOT
 
 # Reload the connections
 sudo nmcli con reload
-# REQUIRED for network-manager-l2tpd to work (see description 
-# for https://launchpad.net/~seriy-pr/+archive/ubuntu/network-manager-l2tp)
+# REQUIRED for network-manager-l2tpd to work (see description for
+#   https://launchpad.net/~seriy-pr/+archive/ubuntu/network-manager-l2tp)
+# networkmanage-l2tp spawns its own xl2tpd so if
+#   one has already been started, it will interfere
 sudo service xl2tpd stop
 sudo systemctl disable xl2tpd 2>/dev/null
 
