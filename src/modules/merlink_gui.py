@@ -47,7 +47,7 @@ class MainWindow(QMainWindow):
             print("Main Window")
 
         """
-        # Shelving this code as it prevents creating multiple processes with an IDE 
+        # Shelving this code as it prevents creating multiple processes using an IDE 
         if is_online():
             error_dialog('ERROR: You already have a running instance of merlink!'
                          '\nThis application will now close.')
@@ -63,6 +63,7 @@ class MainWindow(QMainWindow):
         self.org_links = {}
         self.org_list = []
         self.cwd = getcwd()  # get current working directory. We use cwd in multiple places, so fetch it once
+        self.validation_list = QListWidget()
 
         # Set the Window and Tray Icons
         self.setWindowIcon(QIcon(resource_path('src/media/miles.ico')))
@@ -269,9 +270,36 @@ class MainWindow(QMainWindow):
         print(self.client_vpn_text[client_vpn_value_index:client_vpn_value_index+27])
 
         self.scrape_ddns_and_ip()
-        # validate_date() MUST come after scrape_ddns_and_ip() because it needs DDNS/IP address
+        # tshoot_vpn_fail_gui() MUST come after scrape_ddns_and_ip() because it needs DDNS/IP address
+        self.tshoot_vpn_fail_gui()
+
+    def tshoot_vpn_fail_gui(self):
         self.status.showMessage("Status: Verifying configuration for " + self.current_network + "...")
-        TroubleshootVpnFailure()
+        result = TroubleshootVpnFailure(self.fw_status_text, self.client_vpn_text,
+                                        self.current_ddns, self.current_primary_ip)
+        has_passed_validation = result.get_test_results()
+        validation_textlist = [
+            "Is the MX online?",
+            "Can the client ping the firewall's public IP?",
+            "Is the user behind the firewall?",
+            "Is Client VPN enabled?",
+            "Is authentication type Meraki Auth?",
+            "Are UDP ports 500/4500 port forwarded through firewall?"]
+        # "Is the user authorized for Client VPN?",
+        for i in range(len(validation_textlist)):  # For as many times as items in the validation_textlist
+            item = QListWidgetItem(validation_textlist[i])  # Initialize a QListWidgetItem out of a string
+            self.validation_list.addItem(item)  # Add the item to the QListView
+
+        for i in range(len(validation_textlist)):
+            print("has passed" + str(i) + str(has_passed_validation[i]))
+            if has_passed_validation[i]:
+                self.validation_list.item(i).setIcon(QIcon(resource_path('src/media/checkmark-16.png')))
+            else:
+                self.validation_list.item(i).setIcon(QIcon(resource_path('src/media/x-mark-16.png')))
+
+            # All the error messages! Once we know what the error dialog landscape looks like down here,
+            # we might want to turn this into an error method with params
+
         self.status.showMessage("Status: Ready to connect to " + self.current_network + ".")
 
     def get_client_vpn_text(self):

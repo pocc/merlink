@@ -1,46 +1,31 @@
 #!/usr/bin/python3
+# This should run after a connection has resulted in failure
 
 # Library imports
-from PyQt5.QtWidgets import QListWidgetItem, QListWidget, QMessageBox
-from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QMessageBox
 from sys import platform
 from os import system
 
 # Local imports
 from src.modules.modal_dialogs import error_dialog, feature_in_development
-from src.modules.pyinstaller_path_helper import resource_path
-
-# This should run after a connection has resulted in failure
 
 
 class TroubleshootVpnFailure:
-    def __init__(self):
+    def __init__(self, fw_status_text, client_vpn_text, ddns_address, firewall_ip):
         super(TroubleshootVpnFailure, self).__init__()
-        # TODO REQUIRED VARS #################################################
-        self.fw_status_text = ''
-        self.ddns_address = ''
-        self.firewall_ip = ''
-        self.client_vpn_text = ''
-        # TODO ###############################################################
+
+        # Set required variables from merlink_gui
+        self.fw_status_text = fw_status_text
+        self.client_vpn_text = client_vpn_text
+        self.ddns_address = ddns_address
+        self.firewall_ip = firewall_ip
+
         """
         This method will check all of these values and show which are invalid
         User should not be able to connect if there are any tests that fail (i.e grayed out button)
         Each test should be clickable so that the user can find out more information
         """
-        self.validation_list = QListWidget()
-        self.validation_textlist = [
-            "Is the MX online?",
-            "Can the client ping the firewall's public IP?",
-            "Is the user behind the firewall?",
-            "Is Client VPN enabled?",
-            "Is authentication type Meraki Auth?",
-            "Are UDP ports 500/4500 port forwarded through firewall?"]
-        # "Is the user authorized for Client VPN?",
         self.has_passed_validation = [True] * 6  # False for failed, True for passed
-        for i in range(len(self.validation_textlist)):  # For as many times as items in the validation_textlist
-            item = QListWidgetItem(self.validation_textlist[i])  # Initialize a QListWidgetItem out of a string
-            self.validation_list.addItem(item)  # Add the item to the QListView
-
         self.run_tests()
 
     def run_tests(self):
@@ -157,24 +142,15 @@ class TroubleshootVpnFailure:
         """
 
     def show_results(self):
-        # ----------------------------------------------
-        # Add checkboxes/x-marks to each validation test
-        for i in range(len(self.validation_textlist)):
-            print("has passed" + str(i) + str(self.has_passed_validation[i]))
-            if self.has_passed_validation[i]:
-                self.validation_list.item(i).setIcon(QIcon(resource_path('src/media/checkmark-16.png')))
-            else:
-                self.validation_list.item(i).setIcon(QIcon(resource_path('src/media/x-mark-16.png')))
-
-            # All the error messages! Once we know what the error dialog landscape looks like down here,
-            # we might want to turn this into an error method with params
         if not self.has_passed_validation[3]:
-            self.validation_list.item(3).setIcon(QIcon(resource_path('src/media/x-mark-16.png')))
             # Error message popup that will take control and that the user will need to acknowledge
             force_enable_client_vpn = error_dialog('Client VPN is not enabled in Dashboard for this network.'
                                                    '\nWould you like this program to enable it for you?')
             if force_enable_client_vpn == QMessageBox.Yes:
                 self.enable_client_vpn()
+
+    def get_test_results(self):
+        return self.has_passed_validation
 
     @staticmethod
     def enable_client_vpn():
