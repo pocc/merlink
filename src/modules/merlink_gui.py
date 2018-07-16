@@ -804,66 +804,76 @@ class MainWindow(QMainWindow):
             self.status.showMessage('Status: Connecting...')
             # Send a list to attempt_connection containing data from all the textboxes and spinboxes
 
-            vpn_data = [vpn_name,
-                        self.current_ddns,
-                        self.psk,
-                        self.username,
-                        self.password,
-                        DEBUG]
-            windows_options = [self.dns_suffix_txtbox.text(),
-                               self.idle_disconnect_spinbox.value(),
-                               self.split_tunneled_chkbox.checkState(),
-                               self.remember_credential_chkbox.checkState(),
-                               self.use_winlogon_chkbox.checkState()]
-            macos_options = []
-            linux_options = []
-
             # Create VPN connection
+            vpn_data = [
+                vpn_name,
+                self.current_ddns,
+                self.psk,
+                self.username,
+                self.password,
+                DEBUG
+            ]
             connection = VpnConnection(vpn_data)
 
             if self.platform == 'win32':
+                windows_options = [
+                    self.dns_suffix_txtbox.text(),
+                    self.idle_disconnect_spinbox.value(),
+                    self.split_tunneled_chkbox.checkState(),
+                    self.remember_credential_chkbox.checkState(),
+                    self.use_winlogon_chkbox.checkState()
+                ]
                 successful_attempt = connection.attempt_windows_vpn(windows_options)
+
             elif self.platform == 'darwin':
+                macos_options = []
                 successful_attempt = connection.attempt_macos_vpn(macos_options)
+
             elif self.platform.startswith('linux'):  # linux, linux2 are both valid
+                linux_options = []
                 successful_attempt = connection.attempt_linux_vpn(linux_options)
+
             else:
                 successful_attempt = False
 
             if successful_attempt:
-                print("MainWindow and the result is " + str(successful_attempt) + str(type(successful_attempt)))
-                self.is_connected = True
-                self.status.showMessage('Status: Connected')
-                success_message = QMessageBox()
-                success_message.setIcon(QMessageBox.Information)
-                success_message.setWindowTitle("Success!")
-                success_message.setText("Successfully Connected!")
-                success_message.exec_()
-
-                # There's no such thing as "minimize to system tray". What we're doing is hiding the window and
-                # then adding an icon to the system tray
-
-                # Show this when connected
-                self.tray_icon.setIcon(QIcon(resource_path('src/media/connected_miles.ico')))
-                # If user wants to know more about connection, they can click on message and be redirected
-                self.tray_icon.messageClicked.connect(self.open_vpn_settings)
-                self.tray_icon.showMessage(  # Show the user the message so they know where the program went
-                    "Merlink",
-                    "Succesfully connected!",
-                    QSystemTrayIcon.Information,
-                    2000
-                )
-                self.hide()
-
+                self.communicate_vpn_success()
             else:
-                self.is_connected = False
-                self.status.showMessage('Status: Connection Failed')
-                self.error_dialog("Connection Failed")
-                self.tray_icon.setIcon(QIcon(resource_path('src/media/unmiles.ico')))
-                self.troubleshoot_connection()
+                self.communicate_vpn_failure()
 
         else:  # They haven't selected an item in one of the message boxes
             error_dialog('You must select BOTH an organization AND network before connecting!')
+
+    def communicate_vpn_succcess(self):
+        self.is_connected = True
+        self.status.showMessage('Status: Connected')
+        success_message = QMessageBox()
+        success_message.setIcon(QMessageBox.Information)
+        success_message.setWindowTitle("Success!")
+        success_message.setText("Successfully Connected!")
+        success_message.exec_()
+
+        # There's no such thing as "minimize to system tray". What we're doing is hiding the window and
+        # then adding an icon to the system tray
+
+        # Show this when connected
+        self.tray_icon.setIcon(QIcon(resource_path('src/media/connected_miles.ico')))
+        # If user wants to know more about connection, they can click on message and be redirected
+        self.tray_icon.messageClicked.connect(self.open_vpn_settings)
+        self.tray_icon.showMessage(  # Show the user the message so they know where the program went
+            "Merlink",
+            "Succesfully connected!",
+            QSystemTrayIcon.Information,
+            2000
+        )
+        self.hide()
+
+    def communicate_vpn_failure(self):
+        self.is_connected = False
+        self.status.showMessage('Status: Connection Failed')
+        self.error_dialog("Connection Failed")
+        self.tray_icon.setIcon(QIcon(resource_path('src/media/unmiles.ico')))
+        self.troubleshoot_connection()
 
     @staticmethod
     def troubleshoot_connection(self):
