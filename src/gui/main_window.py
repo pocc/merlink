@@ -16,10 +16,11 @@ from os import getcwd, system
 
 # Import the login_window file
 from src.modules.pyinstaller_path_helper import resource_path
-from src.ui.modal_dialogs import show_error_dialog, show_login_dialog, \
+from src.gui.modal_dialogs import show_error_dialog, \
     show_feature_in_development_dialog
 from src.modules.vpn_connection import VpnConnection
 from src.modules.troubleshoot_vpn_failure import TroubleshootVpnFailure
+from src.gui.login_window import LoginWindow
 
 DEBUG = True
 
@@ -30,7 +31,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
 
-        login_dialog = show_login_dialog()
+        login_dialog = LoginWindow()
         # QDialog has two return values: Accepted and Rejected
         # login_window.exec_() will execute while we keep on getting Rejected
         if login_dialog.exec_() == QDialog.Accepted:

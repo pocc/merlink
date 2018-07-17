@@ -5,16 +5,15 @@
 import mechanicalsoup
 
 # Local modules
-from src.ui.modal_dialogs import show_error_dialog, get_tfa_dialog
 
 
 class DataScraper:
     def __init__(self):
         super(DataScraper, self).__init__()
 
-        # Setup browser
-        self.username = self.username_field.text()
-        self.password = self.password_field.text()
+        # Setup browser for use by other components
+        self.username = ''
+        self.password = ''
         # Instantiate browser
         self.browser = mechanicalsoup.StatefulBrowser(
             soup_config={'features': 'lxml'},  # Use the lxml HTML parser
@@ -23,55 +22,44 @@ class DataScraper:
             user_agent='Mozilla/5.0 (Nintendo Switch; ShareApplet) AppleWebKit/601.6 '
                        '(KHTML, like Gecko) NF/4.0.0.5.9 NintendoBrowser/5.1.0.13341',
         )
+        # Set tfa_success to false
+        self.tfa_success = False
 
-    def attempt_login(self):
+    def get_url(self):
+        print("browser url in get_url" + str(self.browser.get_url()))
+        return self.browser.get_url()
+
+    def get_tfa_success(self):
+        return self.tfa_success
+
+    # Return browser with any username, password, and cookies with it
+    def get_browser(self):
+        return self.browser
+
+    def attempt_login(self, username, password):
+        # Set up required vars
+        self.username = username
+        self.password = password
+
         # Navigate to login page
         self.browser.open('https://account.meraki.com/login/dashboard_login')
         form = self.browser.select_form()
         self.browser["email"] = self.username
         self.browser["password"] = self.password
         form.choose_submit('commit')  # Click login button
-        resp = self.browser.submit_selected()  # resp should be '<Response [200]>'
-        self.result_url = self.browser.get_url()
+        self.browser.submit_selected()  # response should be '<Response [200]>'
+        print("browser url in attempt login" + str(self.browser.get_url()))
 
-        # After setting everything up, let's see whether user authenticates correctly
-        if '/login/login' in self.result_url:  # URL contains /login/login if login failed
-            # Error message popup that will take control and that the user will need to acknowledge
-            show_error_dialog('ERROR: Invalid username or password.')
-
-            # Sanitize password field so they can reenter credentials
-            ''' Design choice: Don't reset username as reentering can be annyoying if only password is wrong
-                self.username_field.setText('')'''
-            self.password_field.setText('')
-
-            # Don't return 'Rejected' as value from QDialog object as that will kill login window for auth fail
-            # self.reject()
-        elif 'sms_auth' in self.result_url:  # Two-Factor redirect: https://account.meraki.com/login/sms_auth?go=%2F
-
-        else:
-            self.accept()
-
-
-    def tfa_submit_info(self):
+    def tfa_submit_info(self, tfa_code):
         form = self.browser.select_form()
-        self.browser["code"] = self.get_twofactor_code.text()
-        # if self.get_remember_choice.isChecked():
-        # self.browser["remember"] = "1"  # Set remember to checked by default
+        self.browser["code"] = tfa_code
         form.choose_submit('commit')  # Click 'Verify' button
         self.browser.submit_selected()
 
         current_page = self.browser.get_current_page().text
-        twofactor_success = current_page.find("Invalid verification code")  # Will return -1 if it is not found
-        if twofactor_success == -1:  # if success
-            self.quit_dialog()  # Kill the dialog because we don't need it any longer
-            self.accept()
-        else:
-            show_error_dialog('ERROR: Invalid verification code')
-            self.attempt_login()  # Try again. There is a recursion risk here.
-
-    # Return browser with any username, password, and cookies with it
-    def get_browser(self):
-        return self.browser
+        # Will return -1 if it is not found
+        if current_page.find("Invalid verification code") == -1:
+            self.tfa_success = True
 
     # TODO merlink_gui #############################################################
 

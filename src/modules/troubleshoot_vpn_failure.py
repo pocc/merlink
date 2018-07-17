@@ -2,12 +2,11 @@
 # This should run after a connection has resulted in failure
 
 # Library imports
-from PyQt5.QtWidgets import QMessageBox
 from sys import platform
 from os import system
 
 # Local imports
-from src.ui.modal_dialogs import show_error_dialog, show_feature_in_development_dialog
+from src.gui.modal_dialogs import show_error_dialog, show_feature_in_development_dialog
 
 
 class TroubleshootVpnFailure:
@@ -143,16 +142,7 @@ class TroubleshootVpnFailure:
 
     def show_results(self):
         if not self.has_passed_validation[3]:
-            # Error message popup that will take control and that the user will need to acknowledge
-            force_enable_client_vpn = show_error_dialog('Client VPN is not enabled in Dashboard for this network.'
-                                                   '\nWould you like this program to enable it for you?')
-            if force_enable_client_vpn == QMessageBox.Yes:
-                self.enable_client_vpn()
+            show_error_dialog('Client VPN is not enabled in Dashboard for this network.')
 
     def get_test_results(self):
         return self.has_passed_validation
-
-    @staticmethod
-    def enable_client_vpn():
-        show_feature_in_development_dialog()
-        pass
