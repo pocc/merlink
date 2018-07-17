@@ -3,26 +3,21 @@ import sys
 import webbrowser
 
 # Qt5
-from PyQt5.QtWidgets import (QApplication, QWidget, QPushButton, QLabel, QSystemTrayIcon, QTextEdit, QLineEdit, qApp,
+from PyQt5.QtWidgets import (QWidget, QPushButton, QLabel, QSystemTrayIcon, QTextEdit, QLineEdit, qApp,
                              QVBoxLayout, QComboBox, QMainWindow, QAction, QDialog, QMessageBox, QSpinBox, QMenu,
                              QStatusBar, QFrame, QListWidget, QListWidgetItem, QCheckBox, QHBoxLayout, QRadioButton)
 from PyQt5.QtGui import QIcon, QFont
 
 # Web Scraping
-import re
-import json
-import requests
-import bs4
-import mechanicalsoup
 
 # OS modules
 import subprocess
 from os import getcwd, system
 
 # Import the login_window file
-from src.modules.login_window import LoginWindow
 from src.modules.pyinstaller_path_helper import resource_path
-from src.modules.modal_dialogs import error_dialog, question_dialog, feature_in_development
+from src.ui.modal_dialogs import show_error_dialog, show_login_dialog, \
+    show_feature_in_development_dialog
 from src.modules.vpn_connection import VpnConnection
 from src.modules.troubleshoot_vpn_failure import TroubleshootVpnFailure
 
@@ -35,13 +30,13 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
 
-        login_window = LoginWindow()
+        login_dialog = show_login_dialog()
         # QDialog has two return values: Accepted and Rejected
         # login_window.exec_() will execute while we keep on getting Rejected
-        if login_window.exec_() == QDialog.Accepted:
-            self.browser = login_window.get_browser()
-            self.username = login_window.username
-            self.password = login_window.password
+        if login_dialog.exec_() == QDialog.Accepted:
+            self.browser = login_dialog.get_browser()
+            self.username = login_dialog.username
+            self.password = login_dialog.password
 
         if DEBUG:
             print("Main Window")
@@ -415,12 +410,12 @@ class MainWindow(QMainWindow):
 
     def file_open_action(self):
         # Might use this to open a saved vpn config
-        feature_in_development()
+        show_feature_in_development_dialog()
         pass
 
     def file_save_action(self):
         # Might use this to save a vpn config
-        feature_in_development()
+        show_feature_in_development_dialog()
         pass
 
     def file_quit_action(self):
@@ -442,26 +437,26 @@ class MainWindow(QMainWindow):
     def view_interfaces_action(self):
         # If linux/macos > ifconfig
         # If Windows > ipconfig /all
-        feature_in_development()
+        show_feature_in_development_dialog()
         pass
 
     def view_routing_action(self):
         # If linux/macos > netstat -rn
         # If Windows > route print
-        feature_in_development()
+        show_feature_in_development_dialog()
         pass
 
     def view_data_action(self):
-        feature_in_development()
+        show_feature_in_development_dialog()
         pass
 
     def tshoot_error_action(self):
         # In Windows, use powershell: get-eventlog
-        feature_in_development()
+        show_feature_in_development_dialog()
         pass
 
     def tshoot_pcap_action(self):
-        feature_in_development()
+        show_feature_in_development_dialog()
         pass
 
     def help_support_action(self):
@@ -541,7 +536,7 @@ class MainWindow(QMainWindow):
                 self.communicate_vpn_failure()
 
         else:  # They haven't selected an item in one of the message boxes
-            error_dialog('You must select BOTH an organization AND network before connecting!')
+            show_error_dialog('You must select BOTH an organization AND network before connecting!')
 
     def communicate_vpn_success(self):
         self.is_connected = True
@@ -577,13 +572,13 @@ class MainWindow(QMainWindow):
     @staticmethod
     def troubleshoot_connection(self):
         print("ACTIVELY troubleshooting connection")
-        error_dialog('VPN Connection Failed!')
+        show_error_dialog('VPN Connection Failed!')
 
     def disconnect(self):
         if self.is_vpn_connected():
             system('rasdial ' + self.vpn_name + ' /disconnect')
         else:
-            error_dialog("ERROR: You cannot disconnect if you are not connected!")
+            show_error_dialog("ERROR: You cannot disconnect if you are not connected!")
 
     def is_vpn_connected(self):
         if self.platform == 'win32':

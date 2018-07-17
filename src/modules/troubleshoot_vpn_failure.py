@@ -7,7 +7,7 @@ from sys import platform
 from os import system
 
 # Local imports
-from src.modules.modal_dialogs import error_dialog, feature_in_development
+from src.ui.modal_dialogs import show_error_dialog, show_feature_in_development_dialog
 
 
 class TroubleshootVpnFailure:
@@ -64,7 +64,7 @@ class TroubleshootVpnFailure:
         if ping_response != 0:  # Ping responses other than 0 mean failure. Error codes are OS-dependent
             self.has_passed_validation[1] = False
             # Failure error dialog and then return
-            error_dialog("Cannot connect to device!")
+            show_error_dialog("Cannot connect to device!")
 
     def test2_is_user_behind_fw(self):
         # *** TEST 2 ***
@@ -104,7 +104,7 @@ class TroubleshootVpnFailure:
         meraki_select_type2 = self.client_vpn_text.find('<option value="meraki" selected="selected">')
         if meraki_select_type1 == -1 and meraki_select_type2 == -1:
             self.has_passed_validation[4] = False
-            error_dialog("ERROR: Please select Meraki cloud authentication")
+            show_error_dialog("ERROR: Please select Meraki cloud authentication")
 
     def test5_incompatible_port_forwards(self):
         # *** TEST 5 ***
@@ -117,11 +117,11 @@ class TroubleshootVpnFailure:
         is_forwarding_500 = self.client_vpn_text.find('"public_port":"500"') != -1
         is_forwarding_4500 = self.client_vpn_text.find('"public_port":"4500"') != -1
         if is_forwarding_500:
-            error_dialog("ERROR: You are forwarding port 500!")
+            show_error_dialog("ERROR: You are forwarding port 500!")
             self.has_passed_validation[5] = False
 
         if is_forwarding_4500:
-            error_dialog("ERROR: You are forwarding port 4500!")
+            show_error_dialog("ERROR: You are forwarding port 4500!")
             self.has_passed_validation[5] = False
 
         # *** TEST 6 *** : CURRENTLY ON HOLD
@@ -144,7 +144,7 @@ class TroubleshootVpnFailure:
     def show_results(self):
         if not self.has_passed_validation[3]:
             # Error message popup that will take control and that the user will need to acknowledge
-            force_enable_client_vpn = error_dialog('Client VPN is not enabled in Dashboard for this network.'
+            force_enable_client_vpn = show_error_dialog('Client VPN is not enabled in Dashboard for this network.'
                                                    '\nWould you like this program to enable it for you?')
             if force_enable_client_vpn == QMessageBox.Yes:
                 self.enable_client_vpn()
@@ -154,5 +154,5 @@ class TroubleshootVpnFailure:
 
     @staticmethod
     def enable_client_vpn():
-        feature_in_development()
+        show_feature_in_development_dialog()
         pass
