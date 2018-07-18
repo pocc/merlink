@@ -152,8 +152,6 @@ class MainWindow(QMainWindow):
 
     def main_init_ui(self):
         # Create a horizontal line above the status bar to highlight it
-
-
         self.hline = QFrame()
         self.hline.setFrameShape(QFrame.HLine)
         self.hline.setFrameShadow(QFrame.Sunken)
