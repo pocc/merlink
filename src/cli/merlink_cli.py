@@ -54,3 +54,24 @@ class MainCli:
             # 48w made by hand with ASCII characters
             with open("src/media/ascii-miles-48w.txt", 'r') as miles:
                 print(miles.read())
+
+    def login_provider(self):
+        pass
+
+    def show_main_menu(self, username, password):
+        pass
+
+    def attempt_vpn_connection(self, *vpn_vars):
+        pass
+
+    def show_result(self, result):
+        pass
+
+    def show_error_dialog(self, message):
+        pass
+
+    def get_tfa_dialog(self):
+        pass
+
+    def login_success(self):
+        pass

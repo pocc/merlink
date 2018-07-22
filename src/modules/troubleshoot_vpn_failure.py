@@ -6,7 +6,8 @@ from sys import platform
 from os import system
 
 # Local imports
-from src.gui.modal_dialogs import show_error_dialog, show_feature_in_development_dialog
+from src.gui.modal_dialogs import show_error_dialog, \
+    show_feature_in_development_dialog
 
 
 class TroubleshootVpnFailure:

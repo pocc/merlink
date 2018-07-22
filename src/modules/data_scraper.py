@@ -19,8 +19,9 @@ class DataScraper:
             soup_config={'features': 'lxml'},  # Use the lxml HTML parser
             raise_on_404=True,
             # User Agent String is for the Nintendo Switch because why not
-            user_agent='Mozilla/5.0 (Nintendo Switch; ShareApplet) AppleWebKit/601.6 '
-                       '(KHTML, like Gecko) NF/4.0.0.5.9 NintendoBrowser/5.1.0.13341',
+            user_agent=
+            'Mozilla/5.0 (Nintendo Switch; ShareApplet) AppleWebKit/601.6 '
+            '(KHTML, like Gecko) NF/4.0.0.5.9 NintendoBrowser/5.1.0.13341',
         )
         # Set tfa_success to false
         self.tfa_success = False
@@ -61,7 +62,7 @@ class DataScraper:
         if current_page.find("Invalid verification code") == -1:
             self.tfa_success = True
 
-    # TODO merlink_gui #############################################################
+    # TODO merlink_gui #########################################################
 
     # This function will get the organizations and then save them as a dict of names and links
     def scrape_orgs(self):

@@ -8,16 +8,13 @@ from PyQt5.QtWidgets import (QWidget, QPushButton, QLabel, QSystemTrayIcon, QTex
                              QStatusBar, QFrame, QListWidget, QListWidgetItem, QCheckBox, QHBoxLayout, QRadioButton)
 from PyQt5.QtGui import QIcon, QFont
 
-# Web Scraping
-
 # OS modules
 import subprocess
 from os import getcwd, system
 
 # Import the login_window file
 from src.modules.pyinstaller_path_helper import resource_path
-from src.gui.modal_dialogs import show_error_dialog, \
-    show_feature_in_development_dialog
+from src.gui.modal_dialogs import ModalDialogs
 from src.modules.vpn_connection import VpnConnection
 from src.modules.troubleshoot_vpn_failure import TroubleshootVpnFailure
 from src.gui.login_window import LoginWindow
@@ -30,14 +27,6 @@ class MainWindow(QMainWindow):
     # ASSERT: User has logged in and has a connection to Dashboard AND DNS is working
     def __init__(self):
         super(MainWindow, self).__init__()
-
-        login_dialog = LoginWindow()
-        # QDialog has two return values: Accepted and Rejected
-        # login_window.exec_() will execute while we keep on getting Rejected
-        if login_dialog.exec_() == QDialog.Accepted:
-            self.browser = login_dialog.get_browser()
-            self.username = login_dialog.username
-            self.password = login_dialog.password
 
         if DEBUG:
             print("Main Window")
@@ -82,6 +71,9 @@ class MainWindow(QMainWindow):
         self.UseWinlogonCredential = False
         self.is_connected = False
 
+        self.username = ''
+        self.password = ''
+
         # QMainWindow requires that a central widget be set
         self.cw = QWidget(self)
         self.setCentralWidget(self.cw)
@@ -89,8 +81,25 @@ class MainWindow(QMainWindow):
         # self.cw.setMinimumWidth(400)
 
         self.scrape_orgs()
-        self.main_init_ui()
         self.menu_bars()
+
+    def messages(self):
+        self.modal = ModalDialogs()
+
+    @staticmethod
+    def login_provider():
+        login_dialog = LoginWindow()
+        # QDialog has two return values: Accepted and Rejected
+        # login_window.exec_() will execute while we keep on getting Rejected
+        if login_dialog.exec_() == QDialog.Accepted:
+            return login_dialog.username, login_dialog.password
+
+    def show_main_menu(self, username, password):
+        self.username = username
+        self.password = password
+        self.main_init_ui()
+
+    def show_result(self, vpn_result): pass
 
     def change_organization(self):
         if self.org_dropdown.currentIndex() != 0:  # We only care if they've actually selected an organization
