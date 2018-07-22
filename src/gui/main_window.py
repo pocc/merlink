@@ -17,7 +17,6 @@ from src.modules.pyinstaller_path_helper import resource_path
 from src.gui.modal_dialogs import ModalDialogs
 from src.modules.vpn_connection import VpnConnection
 from src.modules.troubleshoot_vpn_failure import TroubleshootVpnFailure
-from src.gui.login_window import LoginWindow
 
 DEBUG = True
 
@@ -83,16 +82,7 @@ class MainWindow(QMainWindow):
         self.scrape_orgs()
         self.menu_bars()
 
-    def messages(self):
-        self.modal = ModalDialogs()
-
-    @staticmethod
-    def login_provider():
-        login_dialog = LoginWindow()
-        # QDialog has two return values: Accepted and Rejected
-        # login_window.exec_() will execute while we keep on getting Rejected
-        if login_dialog.exec_() == QDialog.Accepted:
-            return login_dialog.username, login_dialog.password
+        self.messages = ModalDialogs()
 
     def show_main_menu(self, username, password):
         self.username = username

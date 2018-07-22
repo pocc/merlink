@@ -4,7 +4,6 @@
 # "A modal dialog is a window that forces the user to interact with it
 # before they can go back to using the parent application."
 
-# Python modules
 
 # Python modules
 from PyQt5.QtWidgets import (QLineEdit, QWidget, QPushButton, QDialog,
@@ -46,7 +45,7 @@ class ModalDialogs(QMessageBox):
         fid_message.exec_()
 
     @staticmethod
-    def show_login_query():
+    def get_login_info():
         username_field = QLineEdit()
         password_field = QLineEdit()
         # Masks password as a series of dots instead of characters

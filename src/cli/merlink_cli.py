@@ -33,6 +33,7 @@ error and it may be wise to use organization_id/network_id instead.
 """
 
 import argparse
+from src.cli.modal_prompts import ModalPrompts
 
 
 class MainCli:
@@ -40,6 +41,7 @@ class MainCli:
         super(MainCli, self).__init__()
 
         self.parse_options()
+        self.messages = ModalPrompts()
 
     @staticmethod
     def parse_options():
