@@ -3,9 +3,11 @@ import sys
 import webbrowser
 
 # Qt5
-from PyQt5.QtWidgets import (QWidget, QPushButton, QLabel, QSystemTrayIcon, QTextEdit, QLineEdit, qApp,
-                             QVBoxLayout, QComboBox, QMainWindow, QAction, QDialog, QMessageBox, QSpinBox, QMenu,
-                             QStatusBar, QFrame, QListWidget, QListWidgetItem, QCheckBox, QHBoxLayout, QRadioButton)
+from PyQt5.QtWidgets \
+    import (QWidget, QPushButton, QLabel, QSystemTrayIcon, QTextEdit, QLineEdit,
+            qApp, QVBoxLayout, QComboBox, QMainWindow, QAction, QDialog,
+            QMessageBox, QSpinBox, QMenu, QStatusBar, QFrame, QListWidget,
+            QListWidgetItem, QCheckBox, QHBoxLayout, QRadioButton)
 from PyQt5.QtGui import QIcon, QFont
 
 # OS modules
@@ -22,8 +24,6 @@ DEBUG = True
 
 
 class MainWindow(QMainWindow):
-    # Pass in browser_session object from LoginWindow so that we can maintain the same session
-    # ASSERT: User has logged in and has a connection to Dashboard AND DNS is working
     def __init__(self):
         super(MainWindow, self).__init__()
 
@@ -41,12 +41,16 @@ class MainWindow(QMainWindow):
         # Variables
         self.platform = sys.platform
         self.network_admin_only = False
-        self.current_org_index = 0  # By default, we choose the first org to display
-        self.org_qty = 0  # By default, you have access to 0 orgs
-        # Initialize organization dictionary {Name: Link} and list for easier access. org_list is org_links.keys()
+        # By default, we choose the first org to display
+        self.current_org_index = 0
+        # By default, you have access to 0 orgs
+        self.org_qty = 0
+        # Initialize organization dictionary {Name: Link} and
+        # list for easier access. org_list is org_links.keys()
         self.org_links = {}
         self.org_list = []
-        self.cwd = getcwd()  # get current working directory. We use cwd in multiple places, so fetch it once
+        # We use cwd in multiple places, so fetch current working directory once
+        self.cwd = getcwd()
         self.validation_list = QListWidget()
 
         # Set the Window and Tray Icons
@@ -63,10 +67,13 @@ class MainWindow(QMainWindow):
 
         # Powershell Variables set to defaults
         self.current_ddns = '-'  # set to default hyphen char as a failsafe
-        self.split_tunnel = False  # Expected behavior is to have full-tunnel by default
+        # Expected behavior is to have full-tunnel by default
+        self.split_tunnel = False
         self.remember_credential = False
-        self.DnsSuffix = '-'  # If it's set to '', then powershell will skip reading that parameter.
-        self.IdleDisconnectSeconds = 0  # Powershell default indicating that we shouldn't disconnect after x seconds
+        # If it's set to '', then powershell will skip reading that parameter.
+        self.DnsSuffix = '-'
+        # Powershell default for not disconnecting until after x seconds
+        self.IdleDisconnectSeconds = 0
         self.UseWinlogonCredential = False
         self.is_connected = False
 
@@ -76,7 +83,8 @@ class MainWindow(QMainWindow):
         # QMainWindow requires that a central widget be set
         self.cw = QWidget(self)
         self.setCentralWidget(self.cw)
-        # CURRENT minimum width of Main Window - SUBJECT TO CHANGE as features are added
+        # CURRENT minimum width of Main Window
+        # SUBJECT TO CHANGE as features are added
         # self.cw.setMinimumWidth(400)
 
         self.scrape_orgs()
@@ -92,38 +100,50 @@ class MainWindow(QMainWindow):
     def show_result(self, vpn_result): pass
 
     def change_organization(self):
-        if self.org_dropdown.currentIndex() != 0:  # We only care if they've actually selected an organization
+        # We only care if they've actually selected an organization
+        if self.org_dropdown.currentIndex() != 0:
             self.network_dropdown.setEnabled(True)
             self.status.showMessage("Status: Fetching organizations...")
             # Change primary organization
             self.current_org = self.org_dropdown.currentText()
-            # If the organization index of network_list is empty (i.e. this network list for this org has never been
-            # updated), then get the networks for this organization
-            # This makes it so we don't need to get the network list twice for the same organization
+            """
+            If the organization index of network_list is empty (i.e. this 
+            network list for this org has never been updated), then get the
+            networks for this organization. This makes it so we don't need 
+            to get the network list twice for the same organization
+            """
             self.current_org_index = self.org_list.index(self.current_org)
-            print("In change_organization and this is network list " + str(self.network_list))
+            print("In change_organization and this is network list "
+                  + str(self.network_list))
             if self.network_list[self.current_org_index] == []:
                 print("getting networks from change_organization")
-                print("we are getting new info for " + self.current_org + " at index" + str(self.current_org_index))
+                print("we are getting new info for " + self.current_org +
+                      " at index" + str(self.current_org_index))
                 self.get_networks()
             else:
-                print("we already have that info for " + self.current_org + " at index" + str(self.current_org_index))
-                # If we already have the network list, remove the current entries in the network combobox
+                print("we already have that info for " + self.current_org +
+                      " at index" + str(self.current_org_index))
+                # If we already have the network list,
+                # remove the current entries in the network combobox
                 # And add the ones corresponding to the selected organization
                 self.refresh_network_dropdown()
 
             self.status.showMessage("Status: Select network")
 
     def refresh_network_dropdown(self):
-        # Remove previous contents of Networks QComboBox and add new ones according to chosen organization
+        # Remove previous contents of Networks QComboBox and
+        # add new ones according to chosen organization
         self.network_dropdown.clear()
         self.network_dropdown.addItems(["-- Select a Network --"])
-        self.network_dropdown.addItems(self.network_list[self.current_org_index])
+        self.network_dropdown.addItems(
+            self.network_list[self.current_org_index])
 
     def tshoot_vpn_fail_gui(self):
-        self.status.showMessage("Status: Verifying configuration for " + self.current_network + "...")
-        result = TroubleshootVpnFailure(self.fw_status_text, self.client_vpn_text,
-                                        self.current_ddns, self.current_primary_ip)
+        self.status.showMessage("Status: Verifying configuration for "
+                                + self.current_network + "...")
+        result = \
+            TroubleshootVpnFailure(self.fw_status_text, self.client_vpn_text,
+                                   self.current_ddns, self.current_primary_ip)
         has_passed_validation = result.get_test_results()
         validation_textlist = [
             "Is the MX online?",
@@ -133,21 +153,26 @@ class MainWindow(QMainWindow):
             "Is authentication type Meraki Auth?",
             "Are UDP ports 500/4500 port forwarded through firewall?"]
         # "Is the user authorized for Client VPN?",
-        for i in range(len(validation_textlist)):  # For as many times as items in the validation_textlist
-            item = QListWidgetItem(validation_textlist[i])  # Initialize a QListWidgetItem out of a string
+        # For as many times as items in the validation_textlist
+        for i in range(len(validation_textlist)):
+            # Initialize a QListWidgetItem out of a string
+            item = QListWidgetItem(validation_textlist[i])
             self.validation_list.addItem(item)  # Add the item to the QListView
 
         for i in range(len(validation_textlist)):
             print("has passed" + str(i) + str(has_passed_validation[i]))
             if has_passed_validation[i]:
-                self.validation_list.item(i).setIcon(QIcon(resource_path('src/media/checkmark-16.png')))
+                self.validation_list.item(i).setIcon(
+                    QIcon(resource_path('src/media/checkmark-16.png')))
             else:
-                self.validation_list.item(i).setIcon(QIcon(resource_path('src/media/x-mark-16.png')))
+                self.validation_list.item(i).setIcon(
+                    QIcon(resource_path('src/media/x-mark-16.png')))
 
-            # All the error messages! Once we know what the error dialog landscape looks like down here,
+            # Once we know what the error dialog landscape looks like down here,
             # we might want to turn this into an error method with params
 
-        self.status.showMessage("Status: Ready to connect to " + self.current_network + ".")
+        self.status.showMessage("Status: Ready to connect to "
+                                + self.current_network + ".")
 
     def main_init_ui(self):
         # Create a horizontal line above the status bar to highlight it
@@ -170,12 +195,14 @@ class MainWindow(QMainWindow):
         self.radio_user_layout = QHBoxLayout()
         self.user_auth_section.addLayout(self.radio_user_layout)
         self.radio_dashboard_admin_user = QRadioButton("Dashboard Admin")
-        self.radio_dashboard_admin_user.setChecked(True)  # Default is to have dashboard user
+        # Default is to have dashboard user
+        self.radio_dashboard_admin_user.setChecked(True)
         self.radio_guest_user = QRadioButton("Guest User")
         self.radio_user_layout.addWidget(self.radio_dashboard_admin_user)
         self.radio_user_layout.addWidget(self.radio_guest_user)
         self.set_dashboard_user_layout()  # Default is to use dashboard user
-        self.radio_dashboard_admin_user.toggled.connect(self.set_dashboard_user_layout)
+        self.radio_dashboard_admin_user.toggled.connect(
+            self.set_dashboard_user_layout)
         self.radio_guest_user.toggled.connect(self.set_guest_user_layout)
 
         self.user_auth_section.addWidget(self.radio_username_label)
@@ -196,7 +223,8 @@ class MainWindow(QMainWindow):
         self.idle_disconnect_chkbox = QCheckBox("Idle disconnect seconds?")
         self.idle_disconnect_spinbox = QSpinBox()
         self.idle_disconnect_spinbox.setValue(0)
-        self.idle_disconnect_spinbox.setMinimum(0)  # Negative seconds aren't useful here
+        # Negative seconds aren't useful here
+        self.idle_disconnect_spinbox.setMinimum(0)
         self.idle_disconnect_layout.addWidget(self.idle_disconnect_chkbox)
         self.idle_disconnect_layout.addWidget(self.idle_disconnect_spinbox)
 
@@ -239,18 +267,20 @@ class MainWindow(QMainWindow):
         # Get the data we need and remove the cruft we don't
         self.get_networks()
         self.network_dropdown.clear()
-        # For network admins, we get org information from administered_orgs json blob
+        # We get org information from administered_orgs for network admins
         for i in range(len(self.org_list)):
             print(self.org_list[i])
         self.org_dropdown.addItems(self.org_list)
 
         # When we have the organization, we can scrape networks
-        # When the user changes the organization dropdown, call the scrap networks method
-        # Only change organization when there are more than 1 organization to change
+        # When the user changes the organization dropdown, call the scrap
+        # networks method. Only change organization when there are more than 1
+        # organization to change
 
         self.systray_icon()
 
-        # We don't need to change organization if the user chooses "-- Select an Organization --"
+        # We don't need to change organization if the user chooses
+        # "-- Select an Organization --"
 
         self.org_dropdown.currentIndexChanged.connect(self.change_organization)
         self.network_dropdown.activated.connect(self.scrape_vars)
@@ -281,7 +311,8 @@ class MainWindow(QMainWindow):
         show_action = QAction("Show", self)
         quit_action = QAction("Exit", self)
         hide_action = QAction("Hide", self)
-        connect_action.triggered.connect(self.attempt_connection)  # Allow this if we're not connected
+        # Allow this if we're not connected
+        connect_action.triggered.connect(self.attempt_connection)
         disconnect_action.triggered.connect(self.disconnect)
         show_action.triggered.connect(self.show)
         hide_action.triggered.connect(self.hide)
@@ -297,8 +328,9 @@ class MainWindow(QMainWindow):
         self.tray_icon.setContextMenu(tray_menu)
         self.tray_icon.show()
 
+        # If systray icon is clicked
         # If they click on the connected message, show them the VPN connection
-        self.tray_icon.activated.connect(self.icon_activated)  # If systray icon is clicked
+        self.tray_icon.activated.connect(self.icon_activated)
 
     @staticmethod
     def open_vpn_settings(self):
@@ -313,15 +345,17 @@ class MainWindow(QMainWindow):
 
         elif reason == QSystemTrayIcon.MiddleClick:
             # Go to Security Appliance that we've connected to
-            # TODO This is going to need more legwork as we need to pass the cookie when we open the browser
+            # TODO This is going to need more legwork as we need to pass the
+            # TODO cookie when we open the browser
             webbrowser.open("https://meraki.cisco.com/")
 
         # Override closeEvent, to intercept the window closing event
-        # The window will be closed only if there is no check mark in the check box
+        # The window will be closed if there is no check mark in the check box
 
     def closeEvent(self, event):
         event.ignore()
-        self.tray_icon.showMessage(  # Show the user the message so they know where the program went
+        # Show the user the message so they know where the program went
+        self.tray_icon.showMessage(
             "Merlink",
             "Merlink is now minimized",
             QSystemTrayIcon.Information,
@@ -421,7 +455,8 @@ class MainWindow(QMainWindow):
         self.close()
 
     def edit_prefs_action(self):
-        # Preferences should go here. How many settings are here will depend on the feature set
+        # Preferences should go here.
+        # How many settings are here will depend on the feature set
         self.prefs = QDialog()
         layout = QVBoxLayout()
         self.prefs_heading = QLabel('<h1>Preferences</h1>')
@@ -465,8 +500,10 @@ class MainWindow(QMainWindow):
         about_popup = QDialog()
         about_popup.setWindowTitle("Meraki Client VPN: About")
         about_program = QLabel()
-        about_program.setText("<h1>Meraki VPN Client 0.5.1</h1>\nDeveloped by Ross Jacobs<br><br><br>"
-                              "This project is licensed with the Apache License, which can be viewed below:")
+        about_program.setText("<h1>Meraki VPN Client 0.5.1</h1>\n"
+                              "Developed by Ross Jacobs<br><br><br>"
+                              "This project is licensed with the "
+                              "Apache License, which can be viewed below:")
         license_text = open("LICENSE", 'r').read()
         licenses = QTextEdit()
         licenses.setText(license_text)
@@ -482,19 +519,23 @@ class MainWindow(QMainWindow):
         if DEBUG:
             print("entering attempt_connection function")
         # If they've selected organization and network
-        if 'Select' not in self.org_dropdown.currentText() and 'Select' not in self.network_dropdown.currentText():
+        if 'Select' not in self.org_dropdown.currentText() and \
+                'Select' not in self.network_dropdown.currentText():
             # Get current network from dropdown
             network_name = self.network_dropdown.currentText()
             # Set VPN name to the network name +/- cosmetic things
             vpn_name = network_name.replace('- appliance', '') + '- VPN'
 
-            if self.radio_dashboard_admin_user.isChecked() == 0:  # If the user is logging in as a guest user
+            # If the user is logging in as a guest user
+            if self.radio_dashboard_admin_user.isChecked() == 0:
                 self.username = self.radio_username_textfield.text()
                 self.password = self.radio_password_textfield.text()
 
-            # Change status to reflect we're connecting. For fast connections, you might not see this message
+            # Change status to reflect we're connecting.
+            # For fast connections, you might not see this message
             self.status.showMessage('Status: Connecting...')
-            # Send a list to attempt_connection containing data from all the textboxes and spinboxes
+            # Send a list to attempt_connection containing data
+            # from all the textboxes and spinboxes
 
             # Create VPN connection
             vpn_data = [
@@ -515,13 +556,15 @@ class MainWindow(QMainWindow):
                     self.remember_credential_chkbox.checkState(),
                     self.use_winlogon_chkbox.checkState()
                 ]
-                successful_attempt = connection.attempt_windows_vpn(windows_options)
+                successful_attempt = \
+                    connection.attempt_windows_vpn(windows_options)
 
             elif self.platform == 'darwin':
                 macos_options = []
                 successful_attempt = connection.attempt_macos_vpn(macos_options)
 
-            elif self.platform.startswith('linux'):  # linux, linux2 are both valid
+            # linux, linux2 are valid for linux distros
+            elif self.platform.startswith('linux'):
                 linux_options = []
                 successful_attempt = connection.attempt_linux_vpn(linux_options)
 
@@ -534,7 +577,8 @@ class MainWindow(QMainWindow):
                 self.communicate_vpn_failure()
 
         else:  # They haven't selected an item in one of the message boxes
-            show_error_dialog('You must select BOTH an organization AND network before connecting!')
+            show_error_dialog('You must select BOTH an organization '
+                              'AND network before connecting!')
 
     def communicate_vpn_success(self):
         self.is_connected = True
@@ -545,14 +589,18 @@ class MainWindow(QMainWindow):
         success_message.setText("Successfully Connected!")
         success_message.exec_()
 
-        # There's no such thing as "minimize to system tray". What we're doing is hiding the window and
+        # There's no such thing as "minimize to system tray".
+        # What we're doing is hiding the window and
         # then adding an icon to the system tray
 
         # Show this when connected
-        self.tray_icon.setIcon(QIcon(resource_path('src/media/connected_miles.ico')))
-        # If user wants to know more about connection, they can click on message and be redirected
+        self.tray_icon.setIcon(QIcon(resource_path(
+            'src/media/connected_miles.ico')))
+        # If user wants to know more about connection,
+        # they can click on message and be redirected
         self.tray_icon.messageClicked.connect(self.open_vpn_settings)
-        self.tray_icon.showMessage(  # Show the user the message so they know where the program went
+        # Show the user the message so they know where the program went
+        self.tray_icon.showMessage(
             "Merlink",
             "Succesfully connected!",
             QSystemTrayIcon.Information,
@@ -576,11 +624,14 @@ class MainWindow(QMainWindow):
         if self.is_vpn_connected():
             system('rasdial ' + self.vpn_name + ' /disconnect')
         else:
-            show_error_dialog("ERROR: You cannot disconnect if you are not connected!")
+            show_error_dialog(
+                "ERROR: You cannot disconnect if you are not connected!")
 
     def is_vpn_connected(self):
         if self.platform == 'win32':
-            rasdial_status = subprocess.Popen(['rasdial'], stdout=subprocess.PIPE).communicate()[0].decode('utf-8')
+            rasdial_status = \
+                subprocess.Popen(['rasdial'], stdout=subprocess.PIPE
+                                 ).communicate()[0].decode('utf-8')
             return 'Connected to' in rasdial_status
         elif self.platform == 'darwin':
             pass

@@ -138,7 +138,8 @@ class ModalDialogs(QMessageBox):
 
         return login_btn.clicked.connect(return_values())
 
-    def get_tfa_query(self):
+    @staticmethod
+    def get_tfa_query():
         # QDialog that gets 6 digit two-factor code
         tfa_dialog = QDialog()
         tfa_dialog.setWindowTitle("Two-Factor Authentication")
