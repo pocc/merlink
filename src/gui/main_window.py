@@ -16,7 +16,7 @@ from os import getcwd, system
 
 # Import the login_window file
 from src.modules.pyinstaller_path_helper import resource_path
-from src.gui.modal_dialogs import ModalDialogs
+from src.gui.modal_dialogs import ModalMessages
 from src.modules.vpn_connection import VpnConnection
 from src.modules.troubleshoot_vpn_failure import TroubleshootVpnFailure
 
@@ -87,10 +87,9 @@ class MainWindow(QMainWindow):
         # SUBJECT TO CHANGE as features are added
         # self.cw.setMinimumWidth(400)
 
-        self.scrape_orgs()
         self.menu_bars()
 
-        self.messages = ModalDialogs()
+        self.messages = ModalMessages()
 
     def show_main_menu(self, username, password):
         self.username = username
@@ -442,12 +441,12 @@ class MainWindow(QMainWindow):
 
     def file_open_action(self):
         # Might use this to open a saved vpn config
-        show_feature_in_development_dialog()
+        self.show_feature_in_development_dialog()
         pass
 
     def file_save_action(self):
         # Might use this to save a vpn config
-        show_feature_in_development_dialog()
+        self.show_feature_in_development_dialog()
         pass
 
     def file_quit_action(self):
@@ -464,32 +463,29 @@ class MainWindow(QMainWindow):
         self.prefs.setLayout(layout)
         self.prefs.show()
 
-    def invert_bool(self, boolvar):
-        return not boolvar
-
     def view_interfaces_action(self):
         # If linux/macos > ifconfig
         # If Windows > ipconfig /all
-        show_feature_in_development_dialog()
+        self.show_feature_in_development_dialog()
         pass
 
     def view_routing_action(self):
         # If linux/macos > netstat -rn
         # If Windows > route print
-        show_feature_in_development_dialog()
+        self.show_feature_in_development_dialog()
         pass
 
     def view_data_action(self):
-        show_feature_in_development_dialog()
+        self.show_feature_in_development_dialog()
         pass
 
     def tshoot_error_action(self):
         # In Windows, use powershell: get-eventlog
-        show_feature_in_development_dialog()
+        self.show_feature_in_development_dialog()
         pass
 
     def tshoot_pcap_action(self):
-        show_feature_in_development_dialog()
+        self.show_feature_in_development_dialog()
         pass
 
     def help_support_action(self):
@@ -577,8 +573,8 @@ class MainWindow(QMainWindow):
                 self.communicate_vpn_failure()
 
         else:  # They haven't selected an item in one of the message boxes
-            show_error_dialog('You must select BOTH an organization '
-                              'AND network before connecting!')
+            self.show_error_dialog('You must select BOTH an organization '
+                                   'AND network before connecting!')
 
     def communicate_vpn_success(self):
         self.is_connected = True
@@ -618,13 +614,13 @@ class MainWindow(QMainWindow):
     @staticmethod
     def troubleshoot_connection(self):
         print("ACTIVELY troubleshooting connection")
-        show_error_dialog('VPN Connection Failed!')
+        self.show_error_dialog('VPN Connection Failed!')
 
     def disconnect(self):
         if self.is_vpn_connected():
             system('rasdial ' + self.vpn_name + ' /disconnect')
         else:
-            show_error_dialog(
+            self.show_error_dialog(
                 "ERROR: You cannot disconnect if you are not connected!")
 
     def is_vpn_connected(self):

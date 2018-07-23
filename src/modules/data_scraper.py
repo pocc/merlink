@@ -3,8 +3,11 @@
 
 # Python libraries
 import mechanicalsoup
+import re
+import requests
+import json
 
-# Local modules
+DEBUG = True
 
 
 class DataScraper:
