@@ -12,11 +12,15 @@ from PyQt5.QtGui import QPixmap
 
 # Local modules
 from src.modules.pyinstaller_path_helper import resource_path
+from src.modules.data_scraper import DataScraper
+from src.gui.modal_dialogs import show_error_dialog
 
 
 class LoginDialog(QDialog):
     def __init__(self):
         super(LoginDialog, self).__init__()
+
+        self.browser = DataScraper()
 
         self.meraki_img = QLabel('<a href=https://meraki.cisco.com/products/'
                                  'wireless#mr-new>MR advertisement</a>')
@@ -102,11 +106,41 @@ class LoginDialog(QDialog):
         self.setLayout(layout_main)
         self.setWindowTitle('Meraki Client VPN')
 
-        self.login_btn.clicked.connect(self.close)
+        self.login_btn.clicked.connect(self.check_login_attempt)
         # Test connection with a virtual browser
 
     def get_login_info(self):
         return self.username_field.text(), self.password_field.text()
+
+    def get_browser(self):
+        return self.browser
+
+    """Keeping this code in here even though it is interface-independent.
+    If we don't keep this here, then the login button will need to connect to
+    self.close. It may look weird if the login window closes due to the user
+    incorrectly entering user/pass and then reopens"""
+    def check_login_attempt(self):
+        print("check login attempt" + self.username_field.text() +
+              self.password_field.text())
+        self.browser.attempt_login(
+            self.username_field.text(),
+            self.password_field.text()
+        )
+        # After setup, verify whether user authenticates correctly
+        result_url = self.browser.get_url()
+        # URL contains /login/login if login failed
+        if '/login/login' in result_url:
+            show_error_dialog(
+                'ERROR: Invalid username or password.')
+            self.password_field.setText('')
+            return False
+
+        # Two-Factor redirect: https://account.meraki.com/login/sms_auth?go=%2F
+        elif 'sms_auth' in result_url:
+            self.get_tfa_dialog()
+        else:
+            self.close()
+            return True
 
     def get_tfa_query(self):
         # QDialog that gets 6 digit two-factor code

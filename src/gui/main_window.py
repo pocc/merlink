@@ -16,7 +16,8 @@ from os import getcwd, system
 
 # Import the login_window file
 from src.modules.pyinstaller_path_helper import resource_path
-from src.gui.modal_dialogs import ModalMessages
+from src.gui.modal_dialogs import show_error_dialog, show_question_dialog, \
+    show_feature_in_development_dialog
 from src.modules.vpn_connection import VpnConnection
 from src.modules.troubleshoot_vpn_failure import TroubleshootVpnFailure
 
@@ -88,8 +89,6 @@ class MainWindow(QMainWindow):
         # self.cw.setMinimumWidth(400)
 
         self.menu_bars()
-
-        self.messages = ModalMessages()
 
     def show_main_menu(self, username, password):
         self.username = username
