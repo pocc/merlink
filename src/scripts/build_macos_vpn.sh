@@ -5,6 +5,25 @@ echo $vpnUuid
 
 # The name of connection type displayed in GUI
 connectionName=$1
+
+# If there are multiple of this connection name, delete duplicaten as trying to
+#   read vpn connections with the same name can cause 'scutil --nc' to error.
+# If one of this connection name exists, use that UUID and replace its settings
+# If this connection does not exist, create it (i.e. previous 2 commands with no alterations)
+#qty_redundancies=$(/usr/sbin/networksetup -listallnetworkservices | grep -w "$1" | wc -l)
+#while [ ${qty_redundancies} -gt 1 ]
+#do
+  # Use part of the random UUID as a suffix to the connection name
+#  /usr/sbin/networksetup -deletepppoeservice "$1"
+#  ((qty_redundancies--))
+#  if [[ ${qty_redundancies} == 1 ]]; then
+    # Get UUID from connection name and overwrite its data
+#    vpnUuid=$(scutil --nc show "$1" | grep 'L2TP' | awk '{print $3}')
+#  fi
+#done
+
+echo "VPN UUID:"${vpnUuid}
+
 # IP address of server
 serverAddress=$2
 # L2TP PSK
