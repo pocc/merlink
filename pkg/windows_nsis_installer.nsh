@@ -14,6 +14,7 @@
 
 !define SOURCE_FILES "..\dist\merlink"
 # PRODUCT_VERSION should be passed in with the /D flag
+!define PRODUCT_VERSION "0.8.3"
 !define PRODUCT_NAME "Merlink"
 !define PRODUCT_PUBLISHER "Merlink"
 !define PRODUCT_WEBSITE "https://pocc.github.io/merlink"
@@ -75,7 +76,36 @@ ShowUnInstDetails show
 Section "MainSection" SEC01
   SetOutPath "$INSTDIR"
   SetOverwrite try
-  File /r "${SOURCE_FILES}\*"
+  File "${SOURCE_FILES}\base_library.zip"
+  File "${SOURCE_FILES}\LICENSE.txt"
+  File "${SOURCE_FILES}\merlink.exe"
+  File "${SOURCE_FILES}\merlink.exe.manifest"
+  File "${SOURCE_FILES}\MSVCP140.dll"
+  File "${SOURCE_FILES}\pyexpat.pyd"
+  File "${SOURCE_FILES}\python3.dll"
+  File "${SOURCE_FILES}\python36.dll"
+  File "${SOURCE_FILES}\pywintypes36.dll"
+  File "${SOURCE_FILES}\Qt5Core.dll"
+  File "${SOURCE_FILES}\Qt5Gui.dll"
+  File "${SOURCE_FILES}\Qt5Svg.dll"
+  File "${SOURCE_FILES}\Qt5Widgets.dll"
+  File "${SOURCE_FILES}\select.pyd"
+  File "${SOURCE_FILES}\sip.pyd"
+  File "${SOURCE_FILES}\unicodedata.pyd"
+  File "${SOURCE_FILES}\VCRUNTIME140.dll"
+  File "${SOURCE_FILES}\win32wnet.pyd"
+  File "${SOURCE_FILES}\_bz2.pyd"
+  File "${SOURCE_FILES}\_ctypes.pyd"
+  File "${SOURCE_FILES}\_elementtree.pyd"
+  File "${SOURCE_FILES}\_hashlib.pyd"
+  File "${SOURCE_FILES}\_lzma.pyd"
+  File "${SOURCE_FILES}\_socket.pyd"
+  File "${SOURCE_FILES}\_ssl.pyd"
+  File /r "${SOURCE_FILES}\certifi"
+  File /r "${SOURCE_FILES}\lxml"
+  File /r "${SOURCE_FILES}\psutil"
+  File /r "${SOURCE_FILES}\PyQt5"
+  File /r "${SOURCE_FILES}\src"
 
   ; Shortcuts
   ;CreateDirectory "$SMPROGRAMS\Merlink" ; To use a directory (also see uninstall list)
@@ -104,15 +134,48 @@ Function un.onUninstSuccess
 FunctionEnd
 
 Function un.onInit
-  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Are you sure you want to completely remove $(^Name) and all of its components? THIS WILL REMOVE THE MERLINK INSTALL DIRECTORY!" IDYES +2
+  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Are you sure you want to completely remove $(^Name) and all of its components?" IDYES +2
   Abort
 FunctionEnd
 
 Section Uninstall
-  RMDir /r /REBOOTOK "$INSTDIR"
+  ; We may want to use this script instead at some point: http://nsis.sourceforge.net/Uninstall_only_installed_files
+  ;   Storing files in Merlink/Merlink, deleting Merlink/Merlink recursively, and deleting folder Merlink if empty
+  ;   is more robust than having an uninstall section where we delete a list of hardcoded files
+  Delete "$INSTDIR\${PRODUCT_NAME}.url"
+  Delete "$INSTDIR\base_library.zip"
+  Delete "$INSTDIR\LICENSE.txt"
+  Delete "$INSTDIR\merlink.exe"
+  Delete "$INSTDIR\merlink.exe.manifest"
+  Delete "$INSTDIR\MSVCP140.dll"
+  Delete "$INSTDIR\pyexpat.pyd"
+  Delete "$INSTDIR\python3.dll"
+  Delete "$INSTDIR\python36.dll"
+  Delete "$INSTDIR\pywintypes36.dll"
+  Delete "$INSTDIR\Qt5Core.dll"
+  Delete "$INSTDIR\Qt5Gui.dll"
+  Delete "$INSTDIR\Qt5Svg.dll"
+  Delete "$INSTDIR\Qt5Widgets.dll"
+  Delete "$INSTDIR\select.pyd"
+  Delete "$INSTDIR\sip.pyd"
+  Delete "$INSTDIR\unicodedata.pyd"
+  Delete "$INSTDIR\VCRUNTIME140.dll"
+  Delete "$INSTDIR\win32wnet.pyd"
+  Delete "$INSTDIR\_bz2.pyd"
+  Delete "$INSTDIR\_ctypes.pyd"
+  Delete "$INSTDIR\_elementtree.pyd"
+  Delete "$INSTDIR\_hashlib.pyd"
+  Delete "$INSTDIR\_lzma.pyd"
+  Delete "$INSTDIR\_socket.pyd"
+  Delete "$INSTDIR\_ssl.pyd"
+  RMDir /r "$INSTDIR\certifi"
+  RMDir /r "$INSTDIR\lxml"
+  RMDir /r "$INSTDIR\psutil"
+  RMDir /r "$INSTDIR\PyQt5"
+  RMDir /r "$INSTDIR\src"
+  RMDir "$INSTDIR\" ; We should only delete the install directory if it is empty after prev command
 
   ; Shortcuts
-  ;RMDir "$SMPROGRAMS\Merlink" ; To use a directory (also see install list)
   Delete "$SMPROGRAMS\Merlink\Uninstall.lnk"
   Delete "$SMPROGRAMS\Merlink\Website.lnk"
   Delete "$QUICKLAUNCH.lnk"
