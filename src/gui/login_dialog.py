@@ -133,7 +133,10 @@ class LoginDialog(QDialog):
             show_error_dialog('ERROR: Invalid username or password.')
             self.password_field.setText('')
         elif result == 'sms_auth':
-            self.get_tfa_dialog()
+            while not self.browser.get_tfa_success():
+                self.get_tfa_dialog()
+                if self.twofactor_dialog.result() == QDialog.Rejected:
+                    break
         elif result == 'auth_success':
             self.close()
         else:
@@ -141,49 +144,40 @@ class LoginDialog(QDialog):
 
     def get_tfa_dialog(self):
         # QDialog that gets 6 digit two-factor code
-        tfa_dialog = QDialog()
-        tfa_dialog.setWindowTitle("Two-Factor Authentication")
-        tfa_dialog_layout = QVBoxLayout()
-        tfa_code_layout = QHBoxLayout()
-        tfa_code_label = QLabel("Enter verification code")
-        get_tfa_code = QLineEdit()
+        self.twofactor_dialog = QDialog()
+        self.twofactor_dialog.setWindowTitle("Two-Factor Authentication")
+        dialog_layout = QVBoxLayout()
+        twofactor_code_layout = QHBoxLayout()
+        self.twofactor_code_label = QLabel("Enter verification code")
+        self.get_twofactor_code = QLineEdit()
 
-        # 'Remember choice' checkbox doesn't quite work yet
-        # get_remember_choice = QCheckBox("Remember verification "
-        #                                "for this computer for 30 days.")
-
-        tfa_dialog_yesno = QHBoxLayout()
+        self.twofactor_dialog_yesno = QHBoxLayout()
         yesbutton = QPushButton("Verify")
-        yesbutton.setToolTip(
-            "Attempt connection with this two-factor code")
+        yesbutton.setToolTip("Attempt connection with this two-factor code")
         nobutton = QPushButton("Cancel")
         yesbutton.setToolTip("Quit")
-        tfa_dialog_yesno.addWidget(yesbutton)
-        tfa_dialog_yesno.addWidget(nobutton)
+        self.twofactor_dialog_yesno.addWidget(yesbutton)
+        self.twofactor_dialog_yesno.addWidget(nobutton)
 
         # Layout code
-        tfa_code_layout.addWidget(tfa_code_label)
-        tfa_code_layout.addWidget(get_tfa_code)
-        tfa_dialog_layout.addLayout(tfa_code_layout)
+        twofactor_code_layout.addWidget(self.twofactor_code_label)
+        twofactor_code_layout.addWidget(self.get_twofactor_code)
+        dialog_layout.addLayout(twofactor_code_layout)
         # dialog_layout.addWidget(self.get_remember_choice)
-        tfa_dialog_layout.addLayout(tfa_dialog_yesno)
-        tfa_dialog.setLayout(tfa_dialog_layout)
+        dialog_layout.addLayout(self.twofactor_dialog_yesno)
+        self.twofactor_dialog.setLayout(dialog_layout)
 
-        # Forces you to interact with the dialog (desired behavior)
-        # `self.twofactor_dialog.setModal(True)`
-        # Wait on user to submit information to go here
-        yesbutton.clicked.connect(
-            self.browser.tfa_submit_info(get_tfa_code.text()))
-        # wait on user to submit information to go here
-        nobutton.clicked.connect(tfa_dialog.close())
-        tfa_dialog.exec_()
+        yesbutton.clicked.connect(self.tfa_verify)
+        nobutton.clicked.connect(self.tfa_cancel)
+        self.twofactor_dialog.exec_()
 
-        if self.browser.get_tfa_success():  # if success
-            # Kill the dialog because we don't need it any longer
-            tfa_dialog.close()
-            tfa_dialog.accept()
-
+    def tfa_verify(self):
+        self.browser.tfa_submit_info(self.get_twofactor_code.text())
+        if self.browser.get_tfa_success():
+            self.twofactor_dialog.accept()
+            self.close()
         else:
-            self.show_error_dialog('ERROR: Invalid verification code')
-            # Try again. There is a recursion risk here.
-            self.show_login()
+            show_error_dialog('ERROR: Invalid verification code')
+
+    def tfa_cancel(self):
+        self.twofactor_dialog.reject()

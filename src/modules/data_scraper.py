@@ -68,7 +68,8 @@ class DataScraper:
 
     def tfa_submit_info(self, tfa_code):
         form = self.browser.select_form()
-        self.browser["code"] = tfa_code
+        print(self.browser.get_url())
+        self.browser['code'] = tfa_code
         form.choose_submit('commit')  # Click 'Verify' button
         self.browser.submit_selected()
 
@@ -76,6 +77,9 @@ class DataScraper:
         # Will return -1 if it is not found
         if current_page.find("Invalid verification code") == -1:
             self.tfa_success = True
+            print("TFA Success")
+        else:
+            print("TFA Failure")
 
     # TODO merlink_gui #########################################################
 
@@ -231,7 +235,6 @@ class DataScraper:
                 print(self.network_list[i])
 
         self.refresh_network_dropdown()
-
 
     def scrape_vars(self):
         """
