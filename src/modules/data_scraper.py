@@ -29,6 +29,13 @@ class DataScraper:
         # Set tfa_success to false
         self.tfa_success = False
 
+        # By default, you have access to 0 orgs
+        self.org_qty = 0
+        # Initialize organization dictionary {Name: Link} and
+        # list for easier access. org_list is org_links.keys()
+        self.org_links = {}
+        self.org_list = []
+
     def get_url(self):
         print("browser url in get_url" + str(self.browser.get_url()))
         return self.browser.get_url()
@@ -81,7 +88,23 @@ class DataScraper:
         else:
             print("TFA Failure")
 
-    # TODO merlink_gui #########################################################
+    def from_initmainui(self):
+        if self.org_qty > 0:
+            # Autochoose first organization
+            self.current_org = self.org_list[0]
+            self.browser.open(list(self.org_links.values())[0])
+        else:
+            self.current_org = 'Org Placeholder'  # Org name placeholder
+            self.network_admin_only = True
+
+        # Get the data we need and remove the cruft we don't
+        self.get_networks()
+        self.network_dropdown.clear()
+        # We get org information from administered_orgs for network admins
+        for i in range(len(self.org_list)):
+            print(self.org_list[i])
+        self.org_dropdown.addItems(self.org_list)
+
 
     # This function will get the organizations
     # and then save them as a dict of names and links

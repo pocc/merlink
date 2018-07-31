@@ -30,8 +30,10 @@ class Controller:
             self.app.setQuitOnLastWindowClosed(False)
             self.interface = MainWindow()
             self.login = LoginDialog()
-            if self.login.exec_():
-                self.browser = self.login.get_browser()
+            self.login.exec_()
+            # Assuming that if this executes properly, we'll have a
+            # browser that has the required cookies
+            self.browser = self.login.browser
 
         else:
             self.interface = MainCli()  # After 'Main Window' convention

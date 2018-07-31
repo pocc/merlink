@@ -32,9 +32,9 @@ class MainWindow(QMainWindow):
             print("Main Window")
 
         """
-        # Shelving this code as it prevents creating multiple processes using an IDE 
+        # Shelving this code as it prevents multiple processes using an IDE 
         if is_online():
-            error_dialog('ERROR: You already have a running instance of merlink!'
+            error_dialog('ERROR: You already have a running merlink instance!'
                          '\nThis application will now close.')
             self.close()  # In lieu of sys.exit(app.exec_())
         """
@@ -44,12 +44,6 @@ class MainWindow(QMainWindow):
         self.network_admin_only = False
         # By default, we choose the first org to display
         self.current_org_index = 0
-        # By default, you have access to 0 orgs
-        self.org_qty = 0
-        # Initialize organization dictionary {Name: Link} and
-        # list for easier access. org_list is org_links.keys()
-        self.org_links = {}
-        self.org_list = []
         # We use cwd in multiple places, so fetch current working directory once
         self.cwd = getcwd()
         self.validation_list = QListWidget()
@@ -89,6 +83,88 @@ class MainWindow(QMainWindow):
         # self.cw.setMinimumWidth(400)
 
         self.menu_bars()
+
+        # MAIN INIT UI
+        # Create a horizontal line above the status bar to highlight it
+        self.hline = QFrame()
+        self.hline.setFrameShape(QFrame.HLine)
+        self.hline.setFrameShadow(QFrame.Sunken)
+
+        self.status = QStatusBar()
+        self.status.showMessage("Status: Select organization")
+        self.status.setStyleSheet("Background: white")
+
+        # Title is an NSIS uninstall reference (see Modern.nsh)
+        self.setWindowTitle('Merlink - VPN Client for Meraki firewalls')
+        self.org_dropdown = QComboBox()
+        self.org_dropdown.addItems(["-- Select an Organzation --"])
+        self.network_dropdown = QComboBox()
+        self.network_dropdown.setEnabled(False)
+
+        self.user_auth_section = QVBoxLayout()
+        self.radio_user_layout = QHBoxLayout()
+        self.user_auth_section.addLayout(self.radio_user_layout)
+        self.radio_dashboard_admin_user = QRadioButton("Dashboard Admin")
+        # Default is to have dashboard user
+        self.radio_dashboard_admin_user.setChecked(True)
+        self.radio_guest_user = QRadioButton("Guest User")
+        self.radio_user_layout.addWidget(self.radio_dashboard_admin_user)
+        self.radio_user_layout.addWidget(self.radio_guest_user)
+        self.set_dashboard_user_layout()  # Default is to use dashboard user
+        self.radio_dashboard_admin_user.toggled.connect(
+            self.set_dashboard_user_layout)
+        self.radio_guest_user.toggled.connect(self.set_guest_user_layout)
+
+        self.user_auth_section.addWidget(self.radio_username_label)
+        self.user_auth_section.addWidget(self.radio_username_textfield)
+        self.user_auth_section.addWidget(self.radio_password_label)
+        self.user_auth_section.addWidget(self.radio_password_textfield)
+
+        # Ask the user for int/str values if they want to enter them
+        self.idle_disconnect_layout = QHBoxLayout()
+        self.idle_disconnect_chkbox = QCheckBox("Idle disconnect seconds?")
+        self.idle_disconnect_spinbox = QSpinBox()
+        self.idle_disconnect_spinbox.setValue(0)
+        # Negative seconds aren't useful here
+        self.idle_disconnect_spinbox.setMinimum(0)
+        self.idle_disconnect_layout.addWidget(self.idle_disconnect_chkbox)
+        self.idle_disconnect_layout.addWidget(self.idle_disconnect_spinbox)
+
+        self.dns_suffix_layout = QHBoxLayout()
+        self.dns_suffix_chkbox = QCheckBox("DNS Suffix?")  # Add a textbox here
+        self.dns_suffix_txtbox = QLineEdit('-')
+        self.dns_suffix_layout.addWidget(self.dns_suffix_chkbox)
+        self.dns_suffix_layout.addWidget(self.dns_suffix_txtbox)
+
+        # Boolean asks of the user
+        self.split_tunneled_chkbox = QCheckBox("Split-Tunnel?")
+        self.remember_credential_chkbox = QCheckBox("Remember Credentials?")
+        self.use_winlogon_chkbox = QCheckBox("Use Windows Logon Credentials")
+
+        self.connect_btn = QPushButton("Connect")
+
+        vert_layout = QVBoxLayout()
+
+        # Add Dashboard Entry-only dropdowns
+        vert_layout.addWidget(self.org_dropdown)
+        vert_layout.addWidget(self.network_dropdown)
+        vert_layout.addLayout(self.user_auth_section)
+        vert_layout.addWidget(self.validation_list)
+
+        # Add layouts for specialized params
+        vert_layout.addLayout(self.idle_disconnect_layout)
+        vert_layout.addLayout(self.dns_suffix_layout)
+
+        # Add checkboxes
+        vert_layout.addWidget(self.split_tunneled_chkbox)
+        vert_layout.addWidget(self.remember_credential_chkbox)
+        vert_layout.addWidget(self.use_winlogon_chkbox)
+
+        # Add stuff at bottom
+        vert_layout.addWidget(self.connect_btn)
+        vert_layout.addWidget(self.hline)
+        vert_layout.addWidget(self.status)
+        self.cw.setLayout(vert_layout)
 
     def show_main_menu(self, username, password):
         self.username = username
@@ -173,103 +249,6 @@ class MainWindow(QMainWindow):
                                 + self.current_network + ".")
 
     def main_init_ui(self):
-        # Create a horizontal line above the status bar to highlight it
-        self.hline = QFrame()
-        self.hline.setFrameShape(QFrame.HLine)
-        self.hline.setFrameShadow(QFrame.Sunken)
-
-        self.status = QStatusBar()
-        self.status.showMessage("Status: Select organization")
-        self.status.setStyleSheet("Background: white")
-
-        # Title is an NSIS uninstall reference (see Modern.nsh)
-        self.setWindowTitle('Merlink - VPN Client for Meraki firewalls')
-        self.org_dropdown = QComboBox()
-        self.org_dropdown.addItems(["-- Select an Organzation --"])
-        self.network_dropdown = QComboBox()
-        self.network_dropdown.setEnabled(False)
-
-        self.user_auth_section = QVBoxLayout()
-        self.radio_user_layout = QHBoxLayout()
-        self.user_auth_section.addLayout(self.radio_user_layout)
-        self.radio_dashboard_admin_user = QRadioButton("Dashboard Admin")
-        # Default is to have dashboard user
-        self.radio_dashboard_admin_user.setChecked(True)
-        self.radio_guest_user = QRadioButton("Guest User")
-        self.radio_user_layout.addWidget(self.radio_dashboard_admin_user)
-        self.radio_user_layout.addWidget(self.radio_guest_user)
-        self.set_dashboard_user_layout()  # Default is to use dashboard user
-        self.radio_dashboard_admin_user.toggled.connect(
-            self.set_dashboard_user_layout)
-        self.radio_guest_user.toggled.connect(self.set_guest_user_layout)
-
-        self.user_auth_section.addWidget(self.radio_username_label)
-        self.user_auth_section.addWidget(self.radio_username_textfield)
-        self.user_auth_section.addWidget(self.radio_password_label)
-        self.user_auth_section.addWidget(self.radio_password_textfield)
-
-        if self.org_qty > 0:
-            # Autochoose first organization
-            self.current_org = self.org_list[0]
-            self.browser.open(list(self.org_links.values())[0])
-        else:
-            self.current_org = 'Org Placeholder'  # Org name placeholder
-            self.network_admin_only = True
-
-        # Ask the user for int/str values if they want to enter them
-        self.idle_disconnect_layout = QHBoxLayout()
-        self.idle_disconnect_chkbox = QCheckBox("Idle disconnect seconds?")
-        self.idle_disconnect_spinbox = QSpinBox()
-        self.idle_disconnect_spinbox.setValue(0)
-        # Negative seconds aren't useful here
-        self.idle_disconnect_spinbox.setMinimum(0)
-        self.idle_disconnect_layout.addWidget(self.idle_disconnect_chkbox)
-        self.idle_disconnect_layout.addWidget(self.idle_disconnect_spinbox)
-
-        self.dns_suffix_layout = QHBoxLayout()
-        self.dns_suffix_chkbox = QCheckBox("DNS Suffix?")  # Add a textbox here
-        self.dns_suffix_txtbox = QLineEdit('-')
-        self.dns_suffix_layout.addWidget(self.dns_suffix_chkbox)
-        self.dns_suffix_layout.addWidget(self.dns_suffix_txtbox)
-
-        # Boolean asks of the user
-        self.split_tunneled_chkbox = QCheckBox("Split-Tunnel?")
-        self.remember_credential_chkbox = QCheckBox("Remember Credentials?")
-        self.use_winlogon_chkbox = QCheckBox("Use Windows Logon Credentials")
-
-        self.connect_btn = QPushButton("Connect")
-
-        vert_layout = QVBoxLayout()
-
-        # Add Dashboard Entry-only dropdowns
-        vert_layout.addWidget(self.org_dropdown)
-        vert_layout.addWidget(self.network_dropdown)
-        vert_layout.addLayout(self.user_auth_section)
-        vert_layout.addWidget(self.validation_list)
-
-        # Add layouts for specialized params
-        vert_layout.addLayout(self.idle_disconnect_layout)
-        vert_layout.addLayout(self.dns_suffix_layout)
-
-        # Add checkboxes
-        vert_layout.addWidget(self.split_tunneled_chkbox)
-        vert_layout.addWidget(self.remember_credential_chkbox)
-        vert_layout.addWidget(self.use_winlogon_chkbox)
-
-        # Add stuff at bottom
-        vert_layout.addWidget(self.connect_btn)
-        vert_layout.addWidget(self.hline)
-        vert_layout.addWidget(self.status)
-        self.cw.setLayout(vert_layout)
-
-        # Get the data we need and remove the cruft we don't
-        self.get_networks()
-        self.network_dropdown.clear()
-        # We get org information from administered_orgs for network admins
-        for i in range(len(self.org_list)):
-            print(self.org_list[i])
-        self.org_dropdown.addItems(self.org_list)
-
         # When we have the organization, we can scrape networks
         # When the user changes the organization dropdown, call the scrap
         # networks method. Only change organization when there are more than 1
