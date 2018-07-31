@@ -22,6 +22,7 @@ class LoginDialog(QDialog):
 
         self.browser = DataScraper()
 
+        # LOGIN WINDOW UI SETUP
         self.meraki_img = QLabel('<a href=https://meraki.cisco.com/products/'
                                  'wireless#mr-new>MR advertisement</a>')
         self.meraki_img.setOpenExternalLinks(True)
@@ -106,6 +107,32 @@ class LoginDialog(QDialog):
         self.setLayout(layout_main)
         self.setWindowTitle('Meraki Client VPN')
 
+        # TWOFACTOR_DIALOG UI SETUP #
+        # QDialog that gets 6 digit two-factor code
+        self.twofactor_dialog = QDialog()
+        self.twofactor_dialog.setWindowTitle("Two-Factor Authentication")
+        dialog_layout = QVBoxLayout()
+        twofactor_code_layout = QHBoxLayout()
+        self.twofactor_code_label = QLabel("Enter verification code")
+        self.get_twofactor_code = QLineEdit()
+
+        self.twofactor_dialog_yesno = QHBoxLayout()
+        self.yesbutton = QPushButton("Verify")
+        self.yesbutton.setToolTip("Attempt connection with this tfa code")
+        self.nobutton = QPushButton("Cancel")
+        self.yesbutton.setToolTip("Quit")
+        self.twofactor_dialog_yesno.addWidget(self.yesbutton)
+        self.twofactor_dialog_yesno.addWidget(self.nobutton)
+
+        # Layout code
+        twofactor_code_layout.addWidget(self.twofactor_code_label)
+        twofactor_code_layout.addWidget(self.get_twofactor_code)
+        dialog_layout.addLayout(twofactor_code_layout)
+        # dialog_layout.addWidget(self.get_remember_choice)
+        dialog_layout.addLayout(self.twofactor_dialog_yesno)
+        self.twofactor_dialog.setLayout(dialog_layout)
+
+        # INIT THIS OBJECT
         self.show_login()
 
     def show_login(self):
@@ -143,32 +170,8 @@ class LoginDialog(QDialog):
             show_error_dialog("ERROR: Invalid authentication type!")
 
     def get_tfa_dialog(self):
-        # QDialog that gets 6 digit two-factor code
-        self.twofactor_dialog = QDialog()
-        self.twofactor_dialog.setWindowTitle("Two-Factor Authentication")
-        dialog_layout = QVBoxLayout()
-        twofactor_code_layout = QHBoxLayout()
-        self.twofactor_code_label = QLabel("Enter verification code")
-        self.get_twofactor_code = QLineEdit()
-
-        self.twofactor_dialog_yesno = QHBoxLayout()
-        yesbutton = QPushButton("Verify")
-        yesbutton.setToolTip("Attempt connection with this two-factor code")
-        nobutton = QPushButton("Cancel")
-        yesbutton.setToolTip("Quit")
-        self.twofactor_dialog_yesno.addWidget(yesbutton)
-        self.twofactor_dialog_yesno.addWidget(nobutton)
-
-        # Layout code
-        twofactor_code_layout.addWidget(self.twofactor_code_label)
-        twofactor_code_layout.addWidget(self.get_twofactor_code)
-        dialog_layout.addLayout(twofactor_code_layout)
-        # dialog_layout.addWidget(self.get_remember_choice)
-        dialog_layout.addLayout(self.twofactor_dialog_yesno)
-        self.twofactor_dialog.setLayout(dialog_layout)
-
-        yesbutton.clicked.connect(self.tfa_verify)
-        nobutton.clicked.connect(self.tfa_cancel)
+        self.yesbutton.clicked.connect(self.tfa_verify)
+        self.nobutton.clicked.connect(self.tfa_cancel)
         self.twofactor_dialog.exec_()
 
     def tfa_verify(self):
