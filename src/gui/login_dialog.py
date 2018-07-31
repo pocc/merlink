@@ -106,6 +106,10 @@ class LoginDialog(QDialog):
         self.setLayout(layout_main)
         self.setWindowTitle('Meraki Client VPN')
 
+        self.show_login()
+
+    def show_login(self):
+        self.show()
         self.login_btn.clicked.connect(self.check_login_attempt)
         # Test connection with a virtual browser
 
@@ -120,29 +124,22 @@ class LoginDialog(QDialog):
     self.close. It may look weird if the login window closes due to the user
     incorrectly entering user/pass and then reopens"""
     def check_login_attempt(self):
-        print("check login attempt" + self.username_field.text() +
-              self.password_field.text())
-        self.browser.attempt_login(
+        result = self.browser.attempt_login(
             self.username_field.text(),
             self.password_field.text()
         )
-        # After setup, verify whether user authenticates correctly
-        result_url = self.browser.get_url()
-        # URL contains /login/login if login failed
-        if '/login/login' in result_url:
-            show_error_dialog(
-                'ERROR: Invalid username or password.')
+
+        if result == 'auth_error':
+            show_error_dialog('ERROR: Invalid username or password.')
             self.password_field.setText('')
-            return False
-
-        # Two-Factor redirect: https://account.meraki.com/login/sms_auth?go=%2F
-        elif 'sms_auth' in result_url:
+        elif result == 'sms_auth':
             self.get_tfa_dialog()
-        else:
+        elif result == 'auth_success':
             self.close()
-            return True
+        else:
+            show_error_dialog("ERROR: Invalid authentication type!")
 
-    def get_tfa_query(self):
+    def get_tfa_dialog(self):
         # QDialog that gets 6 digit two-factor code
         tfa_dialog = QDialog()
         tfa_dialog.setWindowTitle("Two-Factor Authentication")
@@ -189,4 +186,4 @@ class LoginDialog(QDialog):
         else:
             self.show_error_dialog('ERROR: Invalid verification code')
             # Try again. There is a recursion risk here.
-            self.browser.attempt_login()
+            self.show_login()

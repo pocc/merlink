@@ -52,7 +52,19 @@ class DataScraper:
         self.browser["password"] = self.password
         form.choose_submit('commit')  # Click login button
         self.browser.submit_selected()  # response should be '<Response [200]>'
-        print("browser url in attempt login" + str(self.browser.get_url()))
+        print("browser url in attempt login " + str(self.browser.get_url()))
+
+        # After setup, verify whether user authenticates correctly
+        result_url = self.browser.get_url()
+        # URL contains /login/login if login failed
+
+        if '/login/login' in result_url:
+            return 'auth_error'
+        # Two-Factor redirect: https://account.meraki.com/login/sms_auth?go=%2F
+        elif 'sms_auth' in result_url:
+            return 'sms_auth'
+        else:
+            return 'auth_success'
 
     def tfa_submit_info(self, tfa_code):
         form = self.browser.select_form()
