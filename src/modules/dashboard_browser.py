@@ -1,11 +1,14 @@
 #!/usr/bin/python3
 # This class provides a virtual browser to interact with the Meraki Dashboard
 
-# Python libraries
-import mechanicalsoup
+# Python built-ins
 import re
 import requests
 import json
+
+# Python libraries
+import mechanicalsoup
+import bs4
 
 DEBUG = True
 
@@ -38,7 +41,22 @@ class DataScraper:
         self.network_list = []
         self.base_url_list = []
         self.current_org = 'Org Placeholder'  # Org name placeholder
+        self.current_org_index = 0  # Default to first organization
         self.network_admin_only = False  # Most admins are org admins
+
+        # VPN VARS: Powershell Variables set to defaults
+        self.current_ddns = '-'  # set to default hyphen char as a failsafe
+        # Expected behavior is to have full-tunnel by default
+        self.split_tunnel = False
+        self.remember_credential = False
+        # If it's set to '', then powershell will skip reading that parameter.
+        self.DnsSuffix = '-'
+        # Powershell default for not disconnecting until after x seconds
+        self.IdleDisconnectSeconds = 0
+        self.UseWinlogonCredential = False
+        self.is_connected = False
+        self.username = ''
+        self.password = ''
 
     def get_url(self):
         print("browser url in get_url" + str(self.browser.get_url()))
@@ -50,6 +68,11 @@ class DataScraper:
     # Return browser with any username, password, and cookies with it
     def get_browser(self):
         return self.browser
+
+    # This function will return the array of networks from an organization
+    # [] == False
+    def org_has_networks(self, org_index):
+        return self.network_list[org_index]
 
     def attempt_login(self, username, password):
         # Set up required vars
@@ -148,6 +171,19 @@ class DataScraper:
         else:
             self.current_org = 'Org Placeholder'  # Org name placeholder
             self.network_admin_only = True
+        # We get org information from administered_orgs for network admins
+
+        for i in range(len(self.org_list)):
+            print(self.org_list[i])
+
+    def get_org_list(self):
+        return self.org_list
+
+    def get_current_org(self):
+        return self.current_org
+
+    def get_network_list(self):
+        return self.network_list[self.current_org_index]
 
     def get_networks(self):
         """ ASSERTS
@@ -207,6 +243,7 @@ class DataScraper:
             # scrape_orgs() so it runs once
             self.network_list = [[]] * self.org_qty
             self.base_url_list = [[]] * self.org_qty
+
         if DEBUG:
             print("org_qty " + str(self.org_qty))
         for i in range(self.org_qty):  # For every organization
@@ -241,7 +278,7 @@ class DataScraper:
             if DEBUG:
                 print("self.current_org_index " + str(self.current_org_index))
                 print(self.network_list)
-            if self.network_list[self.current_org_index] == []:
+            if self.network_list[self.current_org_index]:  # [] == False
                 if DEBUG:
                     print("Adding networks to list")
                 self.network_list[self.current_org_index] = network_names
@@ -250,9 +287,7 @@ class DataScraper:
             if DEBUG:
                 print(self.network_list[i])
 
-        self.refresh_network_dropdown()
-
-    def scrape_vars(self):
+    def scrape_network_vars(self, current_network_index):
         """
         This method will scrape two things
             + Primary WAN IP address
@@ -261,7 +296,7 @@ class DataScraper:
             + Is client VPN enabled in dashboard?
             - Is this a security appliance that is online?
         """
-        self.get_client_vpn_text()
+        self.get_client_vpn_text(current_network_index)
 
         self.psk = self.client_vpn_soup.find("input", {
             "id": "wired_config_client_vpn_secret", "value": True})['value']
@@ -275,27 +310,19 @@ class DataScraper:
         self.scrape_ddns_and_ip()
         # tshoot_vpn_fail_gui() MUST come after scrape_ddns_and_ip()
         # because it needs DDNS/IP address
-        self.tshoot_vpn_fail_gui()
 
-    def get_client_vpn_text(self):
-        if DEBUG:
-            print("network dropdown index: " +
-                  str(self.network_dropdown.currentIndex()-1))
-        # Because dropdown has first option 'select'
-        current_network_index = self.network_dropdown.currentIndex()-1
+    def get_client_vpn_text(self, current_network_index):
         self.current_network = str(
             self.network_list[self.current_org_index][current_network_index])
         self.client_vpn_url = \
             self.base_url_list[self.current_org_index][current_network_index] \
             + '/configure/client_vpn_settings'
-        self.status.showMessage("Status: Fetching network data for "
-                                + self.current_network + "...")
         print("Client VPN url " + self.client_vpn_url)
 
         self.client_vpn_text = self.browser.get(self.client_vpn_url).text
         self.client_vpn_soup = bs4.BeautifulSoup(self.client_vpn_text, 'lxml')
 
-    def scrape_ddns_and_ip(self):
+    def scrape_ddns_and_ip(self, current_network_index):
         """ ASSERTS
         * This method gets ddns and ip values for the current network
         * This method should ONLY be called
@@ -309,8 +336,7 @@ class DataScraper:
         """
         fw_status_url = \
             self.base_url_list[self.current_org_index][
-                self.network_dropdown.currentIndex()-1] \
-            + '/nodes/new_wired_status'
+                current_network_index] + '/nodes/new_wired_status'
         self.fw_status_text = self.browser.get(fw_status_url).text
 
         # ddns value can be found by searching for '"dynamic_dns_name"'
@@ -324,4 +350,4 @@ class DataScraper:
         # Using unique '{"public_ip":' to find primary IP address
         ip_start = self.fw_status_text.find("{\"public_ip\":")+14
         ip_end = self.fw_status_text[ip_start:].find('\"') + ip_start
-        self.current_primary_ip=self.fw_status_text[ip_start: ip_end]
+        self.current_primary_ip = self.fw_status_text[ip_start: ip_end]

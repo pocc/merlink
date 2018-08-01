@@ -26,7 +26,7 @@ DEBUG = True
 
 
 class MainWindow(QMainWindow):
-    # Telling PyCharm not to (incorrectly) inspect PyQt function args
+    # Telling PyCharm linter not to (incorrectly) inspect PyQt function args
     # noinspection PyArgumentList
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -46,11 +46,12 @@ class MainWindow(QMainWindow):
         self.dashboard_driver = DataScraper()
         self.platform = sys.platform
         self.network_admin_only = False
-        # By default, we choose the first org to display
-        self.current_org_index = 0
         # We use cwd in multiple places, so fetch current working directory once
         self.cwd = getcwd()
         self.validation_list = QListWidget()
+
+        self.username = ''
+        self.password = ''
 
         # Set the Window and Tray Icons
         self.setWindowIcon(QIcon(resource_path('src/media/miles.ico')))
@@ -63,21 +64,6 @@ class MainWindow(QMainWindow):
         self.radio_password_label.setStyleSheet("color: #606060")  # Gray
         self.radio_password_textfield = QLineEdit()
         self.radio_password_textfield.setEchoMode(QLineEdit.Password)
-
-        # Powershell Variables set to defaults
-        self.current_ddns = '-'  # set to default hyphen char as a failsafe
-        # Expected behavior is to have full-tunnel by default
-        self.split_tunnel = False
-        self.remember_credential = False
-        # If it's set to '', then powershell will skip reading that parameter.
-        self.DnsSuffix = '-'
-        # Powershell default for not disconnecting until after x seconds
-        self.IdleDisconnectSeconds = 0
-        self.UseWinlogonCredential = False
-        self.is_connected = False
-
-        self.username = ''
-        self.password = ''
 
         # QMainWindow requires that a central widget be set
         self.cw = QWidget(self)
@@ -170,20 +156,17 @@ class MainWindow(QMainWindow):
         vert_layout.addWidget(self.status)
         self.cw.setLayout(vert_layout)
 
-    def show_main_menu(self, username, password):
-        self.username = username
-        self.password = password
-
-        # We get org information from administered_orgs for network admins
-        for i in range(len(self.org_list)):
-            print(self.org_list[i])
-        self.org_dropdown.addItems(self.org_list)
+    def show_main_menu(self):
+        org_list = self.browser.get_org_list()
+        current_org = self.browser.get_current_org()
+        self.org_dropdown.addItems(org_list)
         # Get the data we need and remove the cruft we don't
         self.browser.get_networks()
         self.status.showMessage("Status: Fetching networks in " +
-                                self.current_org + "...")
+                                current_org + "...")
         # Remove all elements from the network UI dropdown
         self.network_dropdown.clear()
+        self.refresh_network_dropdown()
 
         # When we have the organization, we can scrape networks
         # When the user changes the organization dropdown, call the scrap
@@ -196,11 +179,15 @@ class MainWindow(QMainWindow):
         # "-- Select an Organization --"
 
         self.org_dropdown.currentIndexChanged.connect(self.change_organization)
-        self.network_dropdown.activated.connect(self.browser.scrape_vars)
+        self.network_dropdown.activated.connect(self.change_network)
 
-        self.connect_btn.clicked.connect(self.attempt_connection)
+        self.connect_btn.clicked.connect(self.connect_vpn)
+
+    def add_vpn(self): pass
 
     def show_result(self, vpn_result): pass
+
+    def get_user_action(self): pass
 
     def change_organization(self):
         # We only care if they've actually selected an organization
@@ -208,40 +195,56 @@ class MainWindow(QMainWindow):
             self.network_dropdown.setEnabled(True)
             self.status.showMessage("Status: Fetching organizations...")
             # Change primary organization
-            self.current_org = self.org_dropdown.currentText()
+            current_org = self.browser.get_current_org()
+            selected_org = self.org_dropdown.currentText()
             """
             If the organization index of network_list is empty (i.e. this 
             network list for this org has never been updated), then get the
             networks for this organization. This makes it so we don't need 
             to get the network list twice for the same organization
             """
-            self.current_org_index = self.org_list.index(self.current_org)
+            selected_org_index = self.org_list.index()
             print("In change_organization and this is network list "
                   + str(self.network_list))
-            # An empty array is False
-            lacking_org_info = self.network_list[self.current_org_index]
-            if lacking_org_info:
-                print("getting networks from change_organization")
-                print("we are getting new info for " + self.current_org +
-                      " at index" + str(self.current_org_index))
-                self.get_networks()
-            else:
-                print("we already have that info for " + self.current_org +
-                      " at index" + str(self.current_org_index))
+            # If we have network data for the selected org
+            selected_org_networks = self.browser.org_has_networks(
+                selected_org_index)
+            # [] == False, so any content means we have networks for that org
+            if selected_org_networks:
+                print("we already have that info for " + selected_org +
+                      " at index" + str(selected_org_index))
                 # If we already have the network list,
                 # remove the current entries in the network combobox
                 # And add the ones corresponding to the selected organization
                 self.refresh_network_dropdown()
 
+            else:
+                print("getting networks from change_organization")
+                print("we are getting new info for " + selected_org +
+                      " at index" + str(selected_org_index))
+                self.get_networks()
+
             self.status.showMessage("Status: Select network")
+
+    def change_network(self):
+        if DEBUG:
+            print("network dropdown index: " + str(
+                self.network_dropdown.currentIndex()-1))
+        # Because dropdown has first option 'select'
+        current_network_index = self.network_dropdown.currentIndex()-1
+        self.status.showMessage("Status: Fetching network data for "
+                                + self.current_network + "...")
+
+        self.browser.scrape_network_vars(current_network_index)
 
     def refresh_network_dropdown(self):
         # Remove previous contents of Networks QComboBox and
         # add new ones according to chosen organization
         self.network_dropdown.clear()
         self.network_dropdown.addItems(["-- Select a Network --"])
-        self.network_dropdown.addItems(
-            self.network_list[self.current_org_index])
+
+        current_org_network_list = self.browser.get_network_list()
+        self.network_dropdown.addItems(current_org_network_list)
 
     def tshoot_vpn_fail_gui(self):
         self.status.showMessage("Status: Verifying configuration for "
@@ -304,7 +307,7 @@ class MainWindow(QMainWindow):
         quit_action = QAction("Exit", self)
         hide_action = QAction("Hide", self)
         # Allow this if we're not connected
-        connect_action.triggered.connect(self.attempt_connection)
+        connect_action.triggered.connect(self.connect_vpn)
         disconnect_action.triggered.connect(self.disconnect)
         show_action.triggered.connect(self.show)
         hide_action.triggered.connect(self.hide)
@@ -506,7 +509,7 @@ class MainWindow(QMainWindow):
         about_popup.setMinimumSize(600, 200)
         about_popup.exec_()
 
-    def attempt_connection(self):
+    def connect_vpn(self):
         if DEBUG:
             print("entering attempt_connection function")
         # If they've selected organization and network

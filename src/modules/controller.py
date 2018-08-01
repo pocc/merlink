@@ -13,11 +13,10 @@ from src.cli.merlink_cli import MainCli
 
 
 class Controller:
+    # Telling PyCharm linter not to (incorrectly) inspect PyQt function args
+    # noinspection PyArgumentList
     def __init__(self):
         super(Controller, self).__init__()
-
-        self.username = ''
-        self.password = ''
 
         # If there is one argument, start GUI
         # Otherwise, start CLI
@@ -30,7 +29,7 @@ class Controller:
             self.login = LoginDialog()
             self.login.exec_()
             # Assuming that if this executes properly, we'll have a
-            # browser that has the required cookies
+            # browser from the login fn that has the required cookies
             self.interface.browser = self.login.browser
 
         else:
@@ -46,12 +45,26 @@ class Controller:
     def program_structure(self):
         # Get organization info so we have something to show user
         self.interface.browser.scrape_initial_org_info()
+        """ 
+        Main menu should show the following across interfaces:
+        1. Existing VPN connections that we can connect to
+        2. After list of VPN connections, have a "+ Add a connection" option
+        3. Indicate which VPN connections that are currently active (if any)
+        4. Route table (should change when a VPN connection is made)
+        5. Latency/loss/bandwidth graph used for a connected VPN
+        
+        It should return the next user action
+        """
+        self.interface.show_main_menu()
+        user_action = self.interface.get_user_action()
 
-        # vpn_vars is a list of all vpn variables, including options
-        vpn_vars = \
-            self.interface.show_main_menu(self.username, self.password)
-        # vpn_result will be 0 or the error code number
-        vpn_result = \
-            self.interface.attempt_vpn_connection(vpn_vars)
+        if user_action == 'add vpn':
+            self.interface.add_vpn()
+        elif user_action == 'connect vpn':
+            self.interface.connect_vpn()
+            self.interface.show_result()
+        elif user_action == 'troubleshoot vpn':
+            self.interface.troubleshoot_vpn()
+        elif user_action == 'quit':
+            exit()
 
-        self.interface.show_result(vpn_result)

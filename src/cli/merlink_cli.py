@@ -62,20 +62,17 @@ class MainCli:
     def login_provider(self):
         pass
 
-    def show_main_menu(self, username, password):
+    def show_main_menu(self):
         pass
 
-    def attempt_vpn_connection(self, *vpn_vars):
+    def get_user_action(self): pass
+
+    def add_vpn(self): pass
+
+    def connect_vpn(self, *vpn_vars):
         pass
 
     def show_result(self, result):
         pass
 
-    def show_error_dialog(self, message):
-        pass
-
-    def get_tfa_dialog(self):
-        pass
-
-    def login_success(self):
-        pass
+    def troubleshoot_vpn(self): pass
