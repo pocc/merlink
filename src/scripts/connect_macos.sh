@@ -1,5 +1,5 @@
 #!/bin/bash
-# This script takes 1 parameter - the name of a VPN connection that has already been created
+# This script the name of a VPN connection that has already been created
 /usr/sbin/networksetup -connectpppoeservice "$1"
 
 # Keeping this as backup in case Apple breaks networksetup
