@@ -518,8 +518,11 @@ class MainWindow(QMainWindow):
 
             # If the user is logging in as a guest user
             if self.radio_dashboard_admin_user.isChecked() == 0:
-                self.username = self.radio_username_textfield.text()
-                self.password = self.radio_password_textfield.text()
+                username = self.radio_username_textfield.text()
+                password = self.radio_password_textfield.text()
+            else:
+                username = self.browser.username
+                password = self.browser.password
 
             # Change status to reflect we're connecting.
             # For fast connections, you might not see this message
@@ -530,10 +533,10 @@ class MainWindow(QMainWindow):
             # Create VPN connection
             vpn_data = [
                 vpn_name,
-                self.current_ddns,
-                self.psk,
-                self.username,
-                self.password
+                self.browser.current_ddns,
+                self.browser.psk,
+                username,
+                password
             ]
             connection = VpnConnection(vpn_data)
 
