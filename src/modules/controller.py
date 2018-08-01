@@ -36,6 +36,7 @@ class Controller:
 
         else:
             self.interface = MainCli()  # MainCli After 'Main Window' convention
+            exit()
 
         self.program_structure()
         if self.gui_application:

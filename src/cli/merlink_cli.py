@@ -48,8 +48,32 @@ class MainCli:
     @staticmethod
     def parse_options():
         parser = argparse.ArgumentParser()
-        parser.add_argument("-v", "--verbose", help="increase output verbosity",
+        parser.add_argument("-v", "--verbose",
+                            help="increase output verbosity",
                             action="store_true")
+
+        required_group = parser.add_argument_group("required arguments")
+        required_group.add_argument(
+            "-o", "--organization-id",
+            help="The Dashboard organization id for the firewall (like "
+                 "'123456'). To get this value for your firewall, use the API",
+            required=True)
+        required_group.add_argument(
+            "-n", "--network-id",
+            help="The Dashboard network id for the firewall (like aBc123d). "
+                 "To get this value for your firewall, use the API.",
+            required=True)
+        required_group.add_argument(
+            "-u", "--username",
+            help="The Dashboard email account that you login with. This "
+                 "account should have access to the firewall to which "
+                 "you want to connect.",
+            required=True)
+        required_group.add_argument(
+            "-p", "--password",
+            help="Your Dashboard account password.",
+            required=True)
+
         args = parser.parse_args()
         if args.verbose:
             print("Welcome to Merlink Verbose!")
@@ -58,9 +82,7 @@ class MainCli:
             # 48w made by hand with ASCII characters
             with open("src/media/ascii-miles-48w.txt", 'r') as miles:
                 print(miles.read())
-
-    def list_vpns(self):
-        pass
+            exit()
 
     def show_main_menu(self):
         pass
