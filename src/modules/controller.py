@@ -7,8 +7,6 @@ from PyQt5.QtWidgets import QApplication
 # Local modules
 from src.gui.main_window import MainWindow
 from src.gui.login_dialog import LoginDialog
-from src.gui.modal_dialogs import show_error_dialog, show_question_dialog, \
-    show_feature_in_development_dialog
 from src.cli.merlink_cli import MainCli
 
 

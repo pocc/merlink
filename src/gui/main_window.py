@@ -43,15 +43,12 @@ class MainWindow(QMainWindow):
         """
 
         # Variables
-        self.dashboard_driver = DataScraper()
+        self.browser = DataScraper()
         self.platform = sys.platform
         self.network_admin_only = False
         # We use cwd in multiple places, so fetch current working directory once
         self.cwd = getcwd()
         self.validation_list = QListWidget()
-
-        self.username = ''
-        self.password = ''
 
         # Set the Window and Tray Icons
         self.setWindowIcon(QIcon(resource_path('src/media/miles.ico')))
@@ -100,7 +97,6 @@ class MainWindow(QMainWindow):
         self.radio_guest_user = QRadioButton("Guest User")
         self.radio_user_layout.addWidget(self.radio_dashboard_admin_user)
         self.radio_user_layout.addWidget(self.radio_guest_user)
-        self.set_dashboard_user_layout()  # Default is to use dashboard user
         self.radio_dashboard_admin_user.toggled.connect(
             self.set_dashboard_user_layout)
         self.radio_guest_user.toggled.connect(self.set_guest_user_layout)
@@ -158,6 +154,8 @@ class MainWindow(QMainWindow):
         self.show()
 
     def show_main_menu(self):
+        # Display dashboard username + password stars now that we have them
+        self.set_dashboard_user_layout()
         org_list = self.browser.get_org_list()
         current_org = self.browser.get_current_org()
         self.org_dropdown.addItems(org_list)
@@ -196,7 +194,6 @@ class MainWindow(QMainWindow):
             self.network_dropdown.setEnabled(True)
             self.status.showMessage("Status: Fetching organizations...")
             # Change primary organization
-            current_org = self.browser.get_current_org()
             selected_org = self.org_dropdown.currentText()
             """
             If the organization index of network_list is empty (i.e. this 
@@ -227,9 +224,6 @@ class MainWindow(QMainWindow):
             self.status.showMessage("Status: Select network")
 
     def change_network(self):
-        if DEBUG:
-            print("network dropdown index: " + str(
-                self.network_dropdown.currentIndex()-1))
         # Because dropdown has first option 'select'
         current_network_index = self.network_dropdown.currentIndex()-1
         network_list = self.browser.get_org_networks()
@@ -361,9 +355,9 @@ class MainWindow(QMainWindow):
         self.hide()
 
     def set_dashboard_user_layout(self):
-        self.radio_username_textfield.setText(self.username)
+        self.radio_username_textfield.setText(self.browser.username)
         self.radio_username_textfield.setReadOnly(True)
-        self.radio_password_textfield.setText(self.password)
+        self.radio_password_textfield.setText(self.browser.password)
         self.radio_password_textfield.setReadOnly(True)
 
     def set_guest_user_layout(self):
