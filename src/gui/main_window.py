@@ -21,6 +21,7 @@ from src.gui.modal_dialogs import show_error_dialog, show_question_dialog, \
 from src.modules.dashboard_browser import DataScraper
 from src.modules.vpn_connection import VpnConnection
 from src.modules.troubleshoot_vpn_failure import TroubleshootVpnFailure
+from src.gui.menu_bars import MenuBars
 
 DEBUG = True
 
@@ -41,6 +42,10 @@ class MainWindow(QMainWindow):
                          '\nThis application will now close.')
             self.close()  # In lieu of sys.exit(app.exec_())
         """
+
+        # Passing the self.menuBar() variable is critical for menu bars
+        self.menu_widget = MenuBars(self.menuBar())
+        self.menu_widget.generate_menu_bars()
 
         # Variables
         self.browser = DataScraper()
@@ -68,8 +73,6 @@ class MainWindow(QMainWindow):
         # CURRENT minimum width of Main Window
         # SUBJECT TO CHANGE as features are added
         # self.cw.setMinimumWidth(400)
-
-        self.menu_bars()
 
         # MAIN INIT UI
         # Create a horizontal line above the status bar to highlight it
@@ -365,145 +368,6 @@ class MainWindow(QMainWindow):
         self.radio_username_textfield.setReadOnly(False)
         self.radio_password_textfield.clear()
         self.radio_password_textfield.setReadOnly(False)
-
-    def menu_bars(self):
-        bar = self.menuBar()
-        # Menu bars
-        file_menu = bar.addMenu('&File')
-        edit_menu = bar.addMenu('&Edit')
-        view_menu = bar.addMenu('&View')
-        tshoot_menu = bar.addMenu('&Troubleshoot')
-        help_menu = bar.addMenu('&Help')
-
-        # File options
-        file_open = QAction('&Open', self)
-        file_open.setShortcut('Ctrl+O')
-        file_save = QAction('&Save', self)
-        file_save.setShortcut('Ctrl+S')
-        file_quit = QAction('&Quit', self)
-        file_quit.setShortcut('Ctrl+Q')
-
-        # Edit options
-        edit_preferences = QAction('&Prefrences', self)
-        edit_preferences.setShortcut('Ctrl+P')
-
-        # View options
-        view_interfaces = QAction('&Interfaces', self)
-        view_interfaces.setShortcut('Ctrl+I')
-        view_routing = QAction('&Routing', self)
-        view_routing.setShortcut('Ctrl+R')
-        view_connection_data = QAction('Connection &Data', self)
-        view_connection_data.setShortcut('Ctrl+D')
-
-        # Tshoot options
-        tshoot_errors = QAction('Tshoot &Errors', self)
-        tshoot_errors.setShortcut('Ctrl+E')
-        tshoot_pcap = QAction('Tshoot &with Pcaps', self)
-        tshoot_pcap.setShortcut('Ctrl+W')
-
-        # Help options
-        help_support = QAction('Get S&upport', self)
-        help_support.setShortcut('Ctrl+U')
-        help_about = QAction('A&bout', self)
-        help_about.setShortcut('Ctrl+B')
-
-        file_menu.addAction(file_open)
-        file_menu.addAction(file_save)
-        file_menu.addAction(file_quit)
-        edit_menu.addAction(edit_preferences)
-        view_menu.addAction(view_interfaces)
-        view_menu.addAction(view_routing)
-        view_menu.addAction(view_connection_data)
-        tshoot_menu.addAction(tshoot_errors)
-        tshoot_menu.addAction(tshoot_pcap)
-        help_menu.addAction(help_support)
-        help_menu.addAction(help_about)
-
-        file_open.triggered.connect(self.file_open_action)
-        file_save.triggered.connect(self.file_save_action)
-        file_quit.triggered.connect(self.file_quit_action)
-        edit_preferences.triggered.connect(self.edit_prefs_action)
-        view_interfaces.triggered.connect(self.view_interfaces_action)
-        view_routing.triggered.connect(self.view_routing_action)
-        view_connection_data.triggered.connect(self.view_data_action)
-        tshoot_errors.triggered.connect(self.tshoot_error_action)
-        tshoot_pcap.triggered.connect(self.tshoot_pcap_action)
-        help_support.triggered.connect(self.help_support_action)
-        help_about.triggered.connect(self.help_about_action)
-
-    def file_open_action(self):
-        # Might use this to open a saved vpn config
-        self.show_feature_in_development_dialog()
-        pass
-
-    def file_save_action(self):
-        # Might use this to save a vpn config
-        self.show_feature_in_development_dialog()
-        pass
-
-    def file_quit_action(self):
-        # Quit
-        self.close()
-
-    def edit_prefs_action(self):
-        # Preferences should go here.
-        # How many settings are here will depend on the feature set
-        self.prefs = QDialog()
-        layout = QVBoxLayout()
-        self.prefs_heading = QLabel('<h1>Preferences</h1>')
-        layout.addWidget(self.prefs_heading)
-        self.prefs.setLayout(layout)
-        self.prefs.show()
-
-    def view_interfaces_action(self):
-        # If linux/macos > ifconfig
-        # If Windows > ipconfig /all
-        self.show_feature_in_development_dialog()
-        pass
-
-    def view_routing_action(self):
-        # If linux/macos > netstat -rn
-        # If Windows > route print
-        self.show_feature_in_development_dialog()
-        pass
-
-    def view_data_action(self):
-        self.show_feature_in_development_dialog()
-        pass
-
-    def tshoot_error_action(self):
-        # In Windows, use powershell: get-eventlog
-        self.show_feature_in_development_dialog()
-        pass
-
-    def tshoot_pcap_action(self):
-        self.show_feature_in_development_dialog()
-        pass
-
-    @staticmethod
-    def help_support_action():
-        # Redirect to Meraki's support website
-        webbrowser.open('https://meraki.cisco.com/support')
-
-    @staticmethod
-    def help_about_action():
-        about_popup = QDialog()
-        about_popup.setWindowTitle("Meraki Client VPN: About")
-        about_program = QLabel()
-        about_program.setText("<h1>Meraki VPN Client 0.5.1</h1>\n"
-                              "Developed by Ross Jacobs<br><br><br>"
-                              "This project is licensed with the "
-                              "Apache License, which can be viewed below:")
-        license_text = open("LICENSE", 'r').read()
-        licenses = QTextEdit()
-        licenses.setText(license_text)
-        licenses.setReadOnly(True)  # People shouldn't be able to edit licenses!
-        popup_layout = QVBoxLayout()
-        popup_layout.addWidget(about_program)
-        popup_layout.addWidget(licenses)
-        about_popup.setLayout(popup_layout)
-        about_popup.setMinimumSize(600, 200)
-        about_popup.exec_()
 
     def connect_vpn(self):
         if DEBUG:
