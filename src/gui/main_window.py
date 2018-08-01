@@ -18,6 +18,7 @@ from os import getcwd, system
 from src.modules.pyinstaller_path_helper import resource_path
 from src.gui.modal_dialogs import show_error_dialog, show_question_dialog, \
     show_feature_in_development_dialog
+from src.modules.dashboard_browser import DataScraper
 from src.modules.vpn_connection import VpnConnection
 from src.modules.troubleshoot_vpn_failure import TroubleshootVpnFailure
 
@@ -25,6 +26,8 @@ DEBUG = True
 
 
 class MainWindow(QMainWindow):
+    # Telling PyCharm not to (incorrectly) inspect PyQt function args
+    # noinspection PyArgumentList
     def __init__(self):
         super(MainWindow, self).__init__()
 
@@ -40,6 +43,7 @@ class MainWindow(QMainWindow):
         """
 
         # Variables
+        self.dashboard_driver = DataScraper()
         self.platform = sys.platform
         self.network_admin_only = False
         # By default, we choose the first org to display
@@ -169,7 +173,32 @@ class MainWindow(QMainWindow):
     def show_main_menu(self, username, password):
         self.username = username
         self.password = password
-        self.main_init_ui()
+
+        # We get org information from administered_orgs for network admins
+        for i in range(len(self.org_list)):
+            print(self.org_list[i])
+        self.org_dropdown.addItems(self.org_list)
+        # Get the data we need and remove the cruft we don't
+        self.browser.get_networks()
+        self.status.showMessage("Status: Fetching networks in " +
+                                self.current_org + "...")
+        # Remove all elements from the network UI dropdown
+        self.network_dropdown.clear()
+
+        # When we have the organization, we can scrape networks
+        # When the user changes the organization dropdown, call the scrap
+        # networks method. Only change organization when there are more than 1
+        # organization to change
+
+        self.systray_icon()
+
+        # We don't need to change organization if the user chooses
+        # "-- Select an Organization --"
+
+        self.org_dropdown.currentIndexChanged.connect(self.change_organization)
+        self.network_dropdown.activated.connect(self.browser.scrape_vars)
+
+        self.connect_btn.clicked.connect(self.attempt_connection)
 
     def show_result(self, vpn_result): pass
 
@@ -189,7 +218,9 @@ class MainWindow(QMainWindow):
             self.current_org_index = self.org_list.index(self.current_org)
             print("In change_organization and this is network list "
                   + str(self.network_list))
-            if self.network_list[self.current_org_index] == []:
+            # An empty array is False
+            lacking_org_info = self.network_list[self.current_org_index]
+            if lacking_org_info:
                 print("getting networks from change_organization")
                 print("we are getting new info for " + self.current_org +
                       " at index" + str(self.current_org_index))
@@ -247,22 +278,6 @@ class MainWindow(QMainWindow):
 
         self.status.showMessage("Status: Ready to connect to "
                                 + self.current_network + ".")
-
-    def main_init_ui(self):
-        # When we have the organization, we can scrape networks
-        # When the user changes the organization dropdown, call the scrap
-        # networks method. Only change organization when there are more than 1
-        # organization to change
-
-        self.systray_icon()
-
-        # We don't need to change organization if the user chooses
-        # "-- Select an Organization --"
-
-        self.org_dropdown.currentIndexChanged.connect(self.change_organization)
-        self.network_dropdown.activated.connect(self.scrape_vars)
-
-        self.connect_btn.clicked.connect(self.attempt_connection)
 
     def close_window(self):
         self.close()
@@ -466,11 +481,13 @@ class MainWindow(QMainWindow):
         self.show_feature_in_development_dialog()
         pass
 
-    def help_support_action(self):
+    @staticmethod
+    def help_support_action():
         # Redirect to Meraki's support website
         webbrowser.open('https://meraki.cisco.com/support')
 
-    def help_about_action(self):
+    @staticmethod
+    def help_about_action():
         about_popup = QDialog()
         about_popup.setWindowTitle("Meraki Client VPN: About")
         about_program = QLabel()
@@ -590,9 +607,9 @@ class MainWindow(QMainWindow):
         self.troubleshoot_connection()
 
     @staticmethod
-    def troubleshoot_connection(self):
+    def troubleshoot_connection():
         print("ACTIVELY troubleshooting connection")
-        self.show_error_dialog('VPN Connection Failed!')
+        show_error_dialog('VPN Connection Failed!')
 
     def disconnect(self):
         if self.is_vpn_connected():
@@ -615,4 +632,3 @@ class MainWindow(QMainWindow):
     @staticmethod
     def get_debug_status():
         return DEBUG
-

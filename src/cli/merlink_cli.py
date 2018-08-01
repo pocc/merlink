@@ -34,6 +34,7 @@ error and it may be wise to use organization_id/network_id instead.
 
 import argparse
 from src.cli.modal_prompts import ModalPrompts
+from src.modules.dashboard_browser import DataScraper
 
 
 class MainCli:
@@ -42,6 +43,7 @@ class MainCli:
 
         self.parse_options()
         self.messages = ModalPrompts()
+        self.browser = DataScraper()
 
     @staticmethod
     def parse_options():

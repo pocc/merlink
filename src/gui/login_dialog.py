@@ -12,11 +12,13 @@ from PyQt5.QtGui import QPixmap
 
 # Local modules
 from src.modules.pyinstaller_path_helper import resource_path
-from src.modules.data_scraper import DataScraper
+from src.modules.dashboard_browser import DataScraper
 from src.gui.modal_dialogs import show_error_dialog
 
 
 class LoginDialog(QDialog):
+    # Telling PyCharm not to (incorrectly) inspect PyQt function args
+    # noinspection PyArgumentList
     def __init__(self):
         super(LoginDialog, self).__init__()
 

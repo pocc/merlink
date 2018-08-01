@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# This class will provide all the functionality for getting data from websites
+# This class provides a virtual browser to interact with the Meraki Dashboard
 
 # Python libraries
 import mechanicalsoup
@@ -22,9 +22,9 @@ class DataScraper:
             soup_config={'features': 'lxml'},  # Use the lxml HTML parser
             raise_on_404=True,
             # User Agent String is for the Nintendo Switch because why not
-            user_agent=
-            'Mozilla/5.0 (Nintendo Switch; ShareApplet) AppleWebKit/601.6 '
-            '(KHTML, like Gecko) NF/4.0.0.5.9 NintendoBrowser/5.1.0.13341',
+            user_agent='Mozilla/5.0 (Nintendo Switch; ShareApplet) '
+                       'AppleWebKit/601.6 (KHTML, like Gecko) '
+                       'NF/4.0.0.5.9 NintendoBrowser/5.1.0.13341',
         )
         # Set tfa_success to false
         self.tfa_success = False
@@ -35,6 +35,10 @@ class DataScraper:
         # list for easier access. org_list is org_links.keys()
         self.org_links = {}
         self.org_list = []
+        self.network_list = []
+        self.base_url_list = []
+        self.current_org = 'Org Placeholder'  # Org name placeholder
+        self.network_admin_only = False  # Most admins are org admins
 
     def get_url(self):
         print("browser url in get_url" + str(self.browser.get_url()))
@@ -88,27 +92,10 @@ class DataScraper:
         else:
             print("TFA Failure")
 
-    def from_initmainui(self):
-        if self.org_qty > 0:
-            # Autochoose first organization
-            self.current_org = self.org_list[0]
-            self.browser.open(list(self.org_links.values())[0])
-        else:
-            self.current_org = 'Org Placeholder'  # Org name placeholder
-            self.network_admin_only = True
-
-        # Get the data we need and remove the cruft we don't
-        self.get_networks()
-        self.network_dropdown.clear()
-        # We get org information from administered_orgs for network admins
-        for i in range(len(self.org_list)):
-            print(self.org_list[i])
-        self.org_dropdown.addItems(self.org_list)
-
-
-    # This function will get the organizations
-    # and then save them as a dict of names and links
-    def scrape_orgs(self):
+    # This function will get the organizations and then save them as a dict
+    # of names and links. Gestalt, this function gets info so there is
+    # something to show the user when we first show the 'connect' part of the ui
+    def scrape_initial_org_info(self):
         """ ASSERTS
         Don't set data for network-only admins as they don't have org-access.
         Network-only admin data is added in get_networks().
@@ -122,9 +109,9 @@ class DataScraper:
         # Use pagetext variable so we can have a string we can use slices with
         pagetext = page.text
         # Found in HTML for administrators with access to only 1 org
-        is_one_org_admin_index = pagetext.find("org_str")
+        is_one_org_admin = pagetext.find("org_str")
         # org_str is ONLY found for one org admins
-        if is_one_org_admin_index != -1:
+        if is_one_org_admin != -1:
             self.org_qty = 1
         else:
             # Get a list of all org links
@@ -153,6 +140,15 @@ class DataScraper:
         self.network_list = [[]] * self.org_qty
         self.base_url_list = [[]] * self.org_qty
 
+        if self.org_qty > 0:
+            # Autochoose first organization
+            self.current_org = self.org_list[0]
+            # Open the first link so the browser object is prepared
+            self.browser.open(list(self.org_links.values())[0])
+        else:
+            self.current_org = 'Org Placeholder'  # Org name placeholder
+            self.network_admin_only = True
+
     def get_networks(self):
         """ ASSERTS
         * get_networks should only be called on initial startup or if a
@@ -163,9 +159,6 @@ class DataScraper:
         """
         if DEBUG:
             print("In get_networks")
-
-        self.status.showMessage("Status: Fetching networks in " +
-                                self.current_org + "...")
 
         # If we're dealing with org admins
         if not self.network_admin_only:
@@ -184,8 +177,8 @@ class DataScraper:
         url_network_part = current_url[lower_url_index + 4:upper_url_index + 7]
         # For this URL, it doesn't matter which network in an org
         # we get it from because it will be the same
-        administered_orgs = url_domain_part + url_network_part + \
-                            '/organization/administered_orgs'
+        administered_orgs = url_domain_part + url_network_part \
+            + '/organization/administered_orgs'
         self.browser.open(administered_orgs)
         if DEBUG:
             print(administered_orgs)

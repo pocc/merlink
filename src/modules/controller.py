@@ -10,14 +10,12 @@ from src.gui.login_dialog import LoginDialog
 from src.gui.modal_dialogs import show_error_dialog, show_question_dialog, \
     show_feature_in_development_dialog
 from src.cli.merlink_cli import MainCli
-from src.modules.data_scraper import DataScraper
 
 
 class Controller:
     def __init__(self):
         super(Controller, self).__init__()
 
-        self.browser = DataScraper()
         self.username = ''
         self.password = ''
 
@@ -33,7 +31,7 @@ class Controller:
             self.login.exec_()
             # Assuming that if this executes properly, we'll have a
             # browser that has the required cookies
-            self.browser = self.login.browser
+            self.interface.browser = self.login.browser
 
         else:
             self.interface = MainCli()  # After 'Main Window' convention
@@ -47,7 +45,7 @@ class Controller:
 
     def program_structure(self):
         # Get organization info so we have something to show user
-        self.browser.scrape_orgs()
+        self.interface.browser.scrape_initial_org_info()
 
         # vpn_vars is a list of all vpn variables, including options
         vpn_vars = \
