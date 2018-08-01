@@ -67,7 +67,8 @@ class VpnConnection:
         # Email CANNOT have spaces, but password can.
         return subprocess.call(
             [powershell_path, '-ExecutionPolicy', 'Unrestricted',
-             resource_path('src\scripts\connect_windows.ps1'), *self.vpn_data, *self.vpn_options])
+             resource_path('src\scripts\connect_windows.ps1'), *self.vpn_data,
+             *self.vpn_options])
         # subprocess.Popen([], creationflags=subprocess.CREATE_NEW_CONSOLE)
         #  open ps window
 

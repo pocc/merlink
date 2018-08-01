@@ -6,12 +6,7 @@
 
 
 # Python modules
-from PyQt5.QtWidgets import (QLineEdit, QWidget, QPushButton, QDialog,
-                             QLabel, QVBoxLayout, QHBoxLayout, QMessageBox)
-from PyQt5.QtGui import QPixmap
-
-# Local modules
-from src.modules.pyinstaller_path_helper import resource_path
+from PyQt5.QtWidgets import QMessageBox
 
 
 def show_error_dialog(message):

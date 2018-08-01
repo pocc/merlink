@@ -26,16 +26,16 @@ class Controller:
             self.interface = MainWindow()
             # Make main window grayed out while user logs in
             self.interface.setEnabled(False)
-            self.login = LoginDialog()
-            self.login.exec_()
+            login = LoginDialog()
+            login.exec_()
             # Assuming that if this executes properly, we'll have a
             # browser from the login fn that has the required cookies
-            self.interface.browser = self.login.browser
+            self.interface.browser = login.browser
             # Make main window active again
             self.interface.setEnabled(True)
 
         else:
-            self.interface = MainCli()  # After 'Main Window' convention
+            self.interface = MainCli()  # MainCli After 'Main Window' convention
 
         self.program_structure()
         if self.gui_application:
@@ -59,10 +59,9 @@ class Controller:
         """
         self.interface.show_main_menu()
         user_action = self.interface.get_user_action()
-
-        if user_action == 'add vpn':
+        # Default right now is to combine them
+        if user_action == 'add vpn' or user_action == 'connect vpn':
             self.interface.add_vpn()
-        elif user_action == 'connect vpn':
             self.interface.connect_vpn()
             self.interface.show_result()
         elif user_action == 'troubleshoot vpn':

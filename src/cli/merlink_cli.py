@@ -59,7 +59,7 @@ class MainCli:
             with open("src/media/ascii-miles-48w.txt", 'r') as miles:
                 print(miles.read())
 
-    def login_provider(self):
+    def list_vpns(self):
         pass
 
     def show_main_menu(self):
