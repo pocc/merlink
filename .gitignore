@@ -1,10 +1,10 @@
-/.idea
+.idea/
 examples/
-/vendor
-/venv
-/build
-/bin
-/dist
+vendor/
+venv/
+build/
+bin/
+dist/
 __pycache__/
 
 # no vim cruft

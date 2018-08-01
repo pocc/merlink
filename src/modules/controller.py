@@ -26,11 +26,15 @@ class Controller:
             # We want to be able to be connected with VPN with systray icon
             self.app.setQuitOnLastWindowClosed(False)
             self.interface = MainWindow()
+            # Make main window grayed out while user logs in
+            self.interface.setEnabled(False)
             self.login = LoginDialog()
             self.login.exec_()
             # Assuming that if this executes properly, we'll have a
             # browser from the login fn that has the required cookies
             self.interface.browser = self.login.browser
+            # Make main window active again
+            self.interface.setEnabled(True)
 
         else:
             self.interface = MainCli()  # After 'Main Window' convention

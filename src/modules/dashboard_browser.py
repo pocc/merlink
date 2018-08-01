@@ -72,6 +72,7 @@ class DataScraper:
     # This function will return the array of networks from an organization
     # [] == False
     def org_has_networks(self, org_index):
+        print("Network list: " + str(self.network_list))
         return self.network_list[org_index]
 
     def attempt_login(self, username, password):
@@ -159,10 +160,6 @@ class DataScraper:
                 self.org_list.append(org_str[39:-4])
                 print(org_str[39:-4] + self.org_links[org_str[39:-4]])
 
-        # Create as many network lists in the network list as there are orgs
-        self.network_list = [[]] * self.org_qty
-        self.base_url_list = [[]] * self.org_qty
-
         if self.org_qty > 0:
             # Autochoose first organization
             self.current_org = self.org_list[0]
@@ -182,10 +179,14 @@ class DataScraper:
     def get_current_org(self):
         return self.current_org
 
-    def get_network_list(self):
+    def set_current_org(self, current_org_index):
+        self.current_org_index = current_org_index
+        self.current_org = self.org_list[current_org_index]
+
+    def get_org_networks(self):
         return self.network_list[self.current_org_index]
 
-    def get_networks(self):
+    def scrape_org_networks(self):
         """ ASSERTS
         * get_networks should only be called on initial startup or if a
           different organization has been chosen
@@ -193,6 +194,7 @@ class DataScraper:
         * browser should have clicked on an org in the org selection page so we
           can browse relative paths of an org
         """
+
         if DEBUG:
             print("In get_networks")
 
@@ -241,12 +243,16 @@ class DataScraper:
             # running this code multiple times as it's dependent on
             # administerd_orgs json. For org admins, we keep it in
             # scrape_orgs() so it runs once
-            self.network_list = [[]] * self.org_qty
-            self.base_url_list = [[]] * self.org_qty
 
         if DEBUG:
             print("org_qty " + str(self.org_qty))
         for i in range(self.org_qty):  # For every organization
+            # Start out with no network names or network base urls for each org
+            self.network_list.append([])
+            self.base_url_list.append([])
+            network_names = []
+            network_base_urls = []
+
             this_org = list(orgs_dict)[i]  # get this org's id
             # int of num networks
             num_networks = orgs_dict[this_org]['num_networks']
@@ -255,12 +261,8 @@ class DataScraper:
             # List of network ids in base64.
             # These network ids are keys for network data dict that is the value
             network_base64_ids = list(node_groups.keys())
-            # Start out with no network names or network base urls
-            # for each organization
-            network_names = []
-            network_base_urls = []
             # For orgs that are not the current org,
-            # we will get the number of networks, but get node_groups of {}
+            # we will get the number off networks, but get node_groups of {}
             if node_groups == {}:
                 num_networks = 0
             for j in range(num_networks):
@@ -274,17 +276,15 @@ class DataScraper:
                         url_domain_part + '/' + node_group_data['t'] +
                         '/n/' + node_group_data['eid'] + '/manage')
 
-            # If that network list is empty, then fill it with the network names
-            if DEBUG:
-                print("self.current_org_index " + str(self.current_org_index))
-                print(self.network_list)
-            if self.network_list[self.current_org_index]:  # [] == False
+            # If this is [], fill it with the network names, [] == False
+            if not self.network_list[self.current_org_index]:
                 if DEBUG:
                     print("Adding networks to list")
                 self.network_list[self.current_org_index] = network_names
-                self.base_url_list[self.current_org_index] = network_base_urls
-
+                self.base_url_list[
+                    self.current_org_index] = network_base_urls
             if DEBUG:
+                print("self.current_org_index " + str(self.current_org_index))
                 print(self.network_list[i])
 
     def scrape_network_vars(self, current_network_index):
@@ -307,7 +307,7 @@ class DataScraper:
         print(self.client_vpn_text[
               client_vpn_value_index:client_vpn_value_index+27])
 
-        self.scrape_ddns_and_ip()
+        self.scrape_ddns_and_ip(current_network_index)
         # tshoot_vpn_fail_gui() MUST come after scrape_ddns_and_ip()
         # because it needs DDNS/IP address
 

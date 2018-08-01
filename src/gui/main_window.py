@@ -155,13 +155,14 @@ class MainWindow(QMainWindow):
         vert_layout.addWidget(self.hline)
         vert_layout.addWidget(self.status)
         self.cw.setLayout(vert_layout)
+        self.show()
 
     def show_main_menu(self):
         org_list = self.browser.get_org_list()
         current_org = self.browser.get_current_org()
         self.org_dropdown.addItems(org_list)
         # Get the data we need and remove the cruft we don't
-        self.browser.get_networks()
+        self.browser.scrape_org_networks()
         self.status.showMessage("Status: Fetching networks in " +
                                 current_org + "...")
         # Remove all elements from the network UI dropdown
@@ -203,27 +204,26 @@ class MainWindow(QMainWindow):
             networks for this organization. This makes it so we don't need 
             to get the network list twice for the same organization
             """
-            selected_org_index = self.org_list.index()
+            # -1 accounting for first option being -- Select --
+            selected_org_index = self.org_dropdown.currentIndex() - 1
             print("In change_organization and this is network list "
-                  + str(self.network_list))
+                  + str(self.browser.get_org_networks()))
             # If we have network data for the selected org
             selected_org_networks = self.browser.org_has_networks(
                 selected_org_index)
             # [] == False, so any content means we have networks for that org
+            # If we've already scraped networks for that org, do nothing
             if selected_org_networks:
                 print("we already have that info for " + selected_org +
                       " at index" + str(selected_org_index))
-                # If we already have the network list,
-                # remove the current entries in the network combobox
-                # And add the ones corresponding to the selected organization
-                self.refresh_network_dropdown()
-
             else:
                 print("getting networks from change_organization")
                 print("we are getting new info for " + selected_org +
                       " at index" + str(selected_org_index))
-                self.get_networks()
+                self.browser.set_current_org(selected_org_index)
+                self.browser.scrape_org_networks()
 
+            self.refresh_network_dropdown()
             self.status.showMessage("Status: Select network")
 
     def change_network(self):
@@ -232,8 +232,10 @@ class MainWindow(QMainWindow):
                 self.network_dropdown.currentIndex()-1))
         # Because dropdown has first option 'select'
         current_network_index = self.network_dropdown.currentIndex()-1
+        network_list = self.browser.get_org_networks()
+        current_network = network_list[current_network_index]
         self.status.showMessage("Status: Fetching network data for "
-                                + self.current_network + "...")
+                                + current_network + "...")
 
         self.browser.scrape_network_vars(current_network_index)
 
@@ -243,7 +245,7 @@ class MainWindow(QMainWindow):
         self.network_dropdown.clear()
         self.network_dropdown.addItems(["-- Select a Network --"])
 
-        current_org_network_list = self.browser.get_network_list()
+        current_org_network_list = self.browser.get_org_networks()
         self.network_dropdown.addItems(current_org_network_list)
 
     def tshoot_vpn_fail_gui(self):

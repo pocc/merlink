@@ -21,6 +21,7 @@ class LoginDialog(QDialog):
     # noinspection PyArgumentList
     def __init__(self):
         super(LoginDialog, self).__init__()
+        self.setModal(True)  # Make the login window to be prevent program usage
 
         self.browser = DataScraper()
 
