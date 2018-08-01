@@ -3,25 +3,21 @@ import sys
 import webbrowser
 
 # Qt5
-from PyQt5.QtWidgets \
-    import (QWidget, QPushButton, QLabel, QSystemTrayIcon, QTextEdit, QLineEdit,
-            qApp, QVBoxLayout, QComboBox, QMainWindow, QAction, QDialog,
-            QMessageBox, QSpinBox, QMenu, QStatusBar, QFrame, QListWidget,
-            QListWidgetItem, QCheckBox, QHBoxLayout, QRadioButton)
-from PyQt5.QtGui import QIcon, QFont
+from PyQt5.QtWidgets import QMainWindow
 
 # OS modules
 import subprocess
 from os import getcwd, system
 
 # Import the login_window file
-from src.modules.pyinstaller_path_helper import resource_path
-from src.gui.modal_dialogs import show_error_dialog, show_question_dialog, \
-    show_feature_in_development_dialog
+from src.gui.modal_dialogs import show_error_dialog, vpn_success_dialog
 from src.modules.dashboard_browser import DataScraper
 from src.modules.vpn_connection import VpnConnection
 from src.modules.troubleshoot_vpn_failure import TroubleshootVpnFailure
 from src.gui.menu_bars import MenuBars
+from src.gui.main_window_ui import MainWindowUi
+from src.gui.systray import SystrayIcon
+from src.gui.tshoot_failed_vpn_dialog import tshoot_failed_vpn_dialog
 
 DEBUG = True
 
@@ -53,112 +49,13 @@ class MainWindow(QMainWindow):
         self.network_admin_only = False
         # We use cwd in multiple places, so fetch current working directory once
         self.cwd = getcwd()
-        self.validation_list = QListWidget()
+        self.tray_icon = SystrayIcon(self)
 
-        # Set the Window and Tray Icons
-        self.setWindowIcon(QIcon(resource_path('src/media/miles.ico')))
-
-        # Set initial vars for username/password fields for dasboard/guest user
-        self.radio_username_label = QLabel("Email")
-        self.radio_username_label.setStyleSheet("color: #606060")  # Gray
-        self.radio_username_textfield = QLineEdit()
-        self.radio_password_label = QLabel("Password")
-        self.radio_password_label.setStyleSheet("color: #606060")  # Gray
-        self.radio_password_textfield = QLineEdit()
-        self.radio_password_textfield.setEchoMode(QLineEdit.Password)
-
-        # QMainWindow requires that a central widget be set
-        self.cw = QWidget(self)
-        self.setCentralWidget(self.cw)
-        # CURRENT minimum width of Main Window
-        # SUBJECT TO CHANGE as features are added
-        # self.cw.setMinimumWidth(400)
-
-        # MAIN INIT UI
-        # Create a horizontal line above the status bar to highlight it
-        self.hline = QFrame()
-        self.hline.setFrameShape(QFrame.HLine)
-        self.hline.setFrameShadow(QFrame.Sunken)
-
-        self.status = QStatusBar()
-        self.status.showMessage("Status: Select organization")
-        self.status.setStyleSheet("Background: white")
-
-        # Title is an NSIS uninstall reference (see Modern.nsh)
-        self.setWindowTitle('Merlink - VPN Client for Meraki firewalls')
-        self.org_dropdown = QComboBox()
-        self.org_dropdown.addItems(["-- Select an Organzation --"])
-        self.network_dropdown = QComboBox()
-        self.network_dropdown.setEnabled(False)
-
-        self.user_auth_section = QVBoxLayout()
-        self.radio_user_layout = QHBoxLayout()
-        self.user_auth_section.addLayout(self.radio_user_layout)
-        self.radio_dashboard_admin_user = QRadioButton("Dashboard Admin")
-        # Default is to have dashboard user
-        self.radio_dashboard_admin_user.setChecked(True)
-        self.radio_guest_user = QRadioButton("Guest User")
-        self.radio_user_layout.addWidget(self.radio_dashboard_admin_user)
-        self.radio_user_layout.addWidget(self.radio_guest_user)
-        self.radio_dashboard_admin_user.toggled.connect(
-            self.set_dashboard_user_layout)
-        self.radio_guest_user.toggled.connect(self.set_guest_user_layout)
-
-        self.user_auth_section.addWidget(self.radio_username_label)
-        self.user_auth_section.addWidget(self.radio_username_textfield)
-        self.user_auth_section.addWidget(self.radio_password_label)
-        self.user_auth_section.addWidget(self.radio_password_textfield)
-
-        # Ask the user for int/str values if they want to enter them
-        self.idle_disconnect_layout = QHBoxLayout()
-        self.idle_disconnect_chkbox = QCheckBox("Idle disconnect seconds?")
-        self.idle_disconnect_spinbox = QSpinBox()
-        self.idle_disconnect_spinbox.setValue(0)
-        # Negative seconds aren't useful here
-        self.idle_disconnect_spinbox.setMinimum(0)
-        self.idle_disconnect_layout.addWidget(self.idle_disconnect_chkbox)
-        self.idle_disconnect_layout.addWidget(self.idle_disconnect_spinbox)
-
-        self.dns_suffix_layout = QHBoxLayout()
-        self.dns_suffix_chkbox = QCheckBox("DNS Suffix?")  # Add a textbox here
-        self.dns_suffix_txtbox = QLineEdit('-')
-        self.dns_suffix_layout.addWidget(self.dns_suffix_chkbox)
-        self.dns_suffix_layout.addWidget(self.dns_suffix_txtbox)
-
-        # Boolean asks of the user
-        self.split_tunneled_chkbox = QCheckBox("Split-Tunnel?")
-        self.remember_credential_chkbox = QCheckBox("Remember Credentials?")
-        self.use_winlogon_chkbox = QCheckBox("Use Windows Logon Credentials")
-
-        self.connect_btn = QPushButton("Connect")
-
-        vert_layout = QVBoxLayout()
-
-        # Add Dashboard Entry-only dropdowns
-        vert_layout.addWidget(self.org_dropdown)
-        vert_layout.addWidget(self.network_dropdown)
-        vert_layout.addLayout(self.user_auth_section)
-        vert_layout.addWidget(self.validation_list)
-
-        # Add layouts for specialized params
-        vert_layout.addLayout(self.idle_disconnect_layout)
-        vert_layout.addLayout(self.dns_suffix_layout)
-
-        # Add checkboxes
-        vert_layout.addWidget(self.split_tunneled_chkbox)
-        vert_layout.addWidget(self.remember_credential_chkbox)
-        vert_layout.addWidget(self.use_winlogon_chkbox)
-
-        # Add stuff at bottom
-        vert_layout.addWidget(self.connect_btn)
-        vert_layout.addWidget(self.hline)
-        vert_layout.addWidget(self.status)
-        self.cw.setLayout(vert_layout)
+        MainWindowUi(self)
         self.show()
 
     def show_main_menu(self):
         # Display dashboard username + password stars now that we have them
-        self.set_dashboard_user_layout()
         org_list = self.browser.get_org_list()
         current_org = self.browser.get_current_org()
         self.org_dropdown.addItems(org_list)
@@ -174,8 +71,6 @@ class MainWindow(QMainWindow):
         # When the user changes the organization dropdown, call the scrap
         # networks method. Only change organization when there are more than 1
         # organization to change
-
-        self.systray_icon()
 
         # We don't need to change organization if the user chooses
         # "-- Select an Organization --"
@@ -246,128 +141,27 @@ class MainWindow(QMainWindow):
         self.network_dropdown.addItems(current_org_network_list)
 
     def tshoot_vpn_fail_gui(self):
-        self.status.showMessage("Status: Verifying configuration for "
-                                + self.current_network + "...")
         result = \
             TroubleshootVpnFailure(self.fw_status_text, self.client_vpn_text,
                                    self.current_ddns, self.current_primary_ip)
-        has_passed_validation = result.get_test_results()
-        validation_textlist = [
-            "Is the MX online?",
-            "Can the client ping the firewall's public IP?",
-            "Is the user behind the firewall?",
-            "Is Client VPN enabled?",
-            "Is authentication type Meraki Auth?",
-            "Are UDP ports 500/4500 port forwarded through firewall?"]
-        # "Is the user authorized for Client VPN?",
-        # For as many times as items in the validation_textlist
-        for i in range(len(validation_textlist)):
-            # Initialize a QListWidgetItem out of a string
-            item = QListWidgetItem(validation_textlist[i])
-            self.validation_list.addItem(item)  # Add the item to the QListView
-
-        for i in range(len(validation_textlist)):
-            print("has passed" + str(i) + str(has_passed_validation[i]))
-            if has_passed_validation[i]:
-                self.validation_list.item(i).setIcon(
-                    QIcon(resource_path('src/media/checkmark-16.png')))
-            else:
-                self.validation_list.item(i).setIcon(
-                    QIcon(resource_path('src/media/x-mark-16.png')))
-
-            # Once we know what the error dialog landscape looks like down here,
-            # we might want to turn this into an error method with params
-
+        tshoot_failed_vpn_dialog(result.get_test_results())
         self.status.showMessage("Status: Ready to connect to "
                                 + self.current_network + ".")
 
     def close_window(self):
         self.close()
 
-    def systray_icon(self):
-        # Init QSystemTrayIcon
-        self.tray_icon = QSystemTrayIcon(self)
-        self.tray_icon.setIcon(QIcon(resource_path('src/media/miles.ico')))
-        if self.is_vpn_connected():
-            connection_status = 'VPN connected'
-        else:
-            connection_status = 'VPN disconnected'
-        self.tray_icon.setToolTip("Merlink - " + connection_status)
-
-        # TODO this should be a drop down of saved connections
-        connect_action = QAction("Connect to ...", self)
-        # These 3 lines are to make "Connect to ..." bold
-        f = QFont()
-        f.setBold(True)
-        connect_action.setFont(f)
-
-        disconnect_action = QAction("Disconnect", self)
-        show_action = QAction("Show", self)
-        quit_action = QAction("Exit", self)
-        hide_action = QAction("Hide", self)
-        # Allow this if we're not connected
-        connect_action.triggered.connect(self.connect_vpn)
-        disconnect_action.triggered.connect(self.disconnect)
-        show_action.triggered.connect(self.show)
-        hide_action.triggered.connect(self.hide)
-        quit_action.triggered.connect(qApp.quit)
-
-        tray_menu = QMenu()
-        tray_menu.addAction(connect_action)
-        tray_menu.addAction(disconnect_action)
-        tray_menu.addSeparator()
-        tray_menu.addAction(show_action)
-        tray_menu.addAction(hide_action)
-        tray_menu.addAction(quit_action)
-        self.tray_icon.setContextMenu(tray_menu)
-        self.tray_icon.show()
-
-        # If systray icon is clicked
-        # If they click on the connected message, show them the VPN connection
-        self.tray_icon.activated.connect(self.icon_activated)
-
     @staticmethod
     def open_vpn_settings(self):
         # Opens Windows 10 Settings > Network & Internet > VPN
         system('start ms-settings:network-vpn')
 
-    def icon_activated(self, reason):
-        if reason in (QSystemTrayIcon.Trigger, QSystemTrayIcon.DoubleClick):
-            self.show()  # So it will show up in taskbar
-            self.raise_()  # for macOS
-            self.activateWindow()  # for Windows
-
-        elif reason == QSystemTrayIcon.MiddleClick:
-            # Go to Security Appliance that we've connected to
-            # TODO This is going to need more legwork as we need to pass the
-            # TODO cookie when we open the browser
-            webbrowser.open("https://meraki.cisco.com/")
-
-        # Override closeEvent, to intercept the window closing event
-        # The window will be closed if there is no check mark in the check box
-
     def closeEvent(self, event):
         event.ignore()
         # Show the user the message so they know where the program went
-        self.tray_icon.showMessage(
-            "Merlink",
-            "Merlink is now minimized",
-            QSystemTrayIcon.Information,
-            1000
-        )
+        self.tray_icon.application_minimized()
+
         self.hide()
-
-    def set_dashboard_user_layout(self):
-        self.radio_username_textfield.setText(self.browser.username)
-        self.radio_username_textfield.setReadOnly(True)
-        self.radio_password_textfield.setText(self.browser.password)
-        self.radio_password_textfield.setReadOnly(True)
-
-    def set_guest_user_layout(self):
-        self.radio_username_textfield.clear()
-        self.radio_username_textfield.setReadOnly(False)
-        self.radio_password_textfield.clear()
-        self.radio_password_textfield.setReadOnly(False)
 
     def connect_vpn(self):
         if DEBUG:
@@ -440,42 +234,25 @@ class MainWindow(QMainWindow):
     def communicate_vpn_success(self):
         self.is_connected = True
         self.status.showMessage('Status: Connected')
-        success_message = QMessageBox()
-        success_message.setIcon(QMessageBox.Information)
-        success_message.setWindowTitle("Success!")
-        success_message.setText("Successfully Connected!")
-        success_message.exec_()
-
-        # There's no such thing as "minimize to system tray".
-        # What we're doing is hiding the window and
-        # then adding an icon to the system tray
+        vpn_success_dialog()
 
         # Show this when connected
-        self.tray_icon.setIcon(QIcon(resource_path(
-            'src/media/connected_miles.ico')))
-        # If user wants to know more about connection,
-        # they can click on message and be redirected
-        self.tray_icon.messageClicked.connect(self.open_vpn_settings)
-        # Show the user the message so they know where the program went
-        self.tray_icon.showMessage(
-            "Merlink",
-            "Succesfully connected!",
-            QSystemTrayIcon.Information,
-            2000
-        )
+        self.tray_icon.set_vpn_success()
+
         self.hide()
 
     def communicate_vpn_failure(self):
         self.is_connected = False
         self.status.showMessage('Status: Connection Failed')
         self.error_dialog("Connection Failed")
-        self.tray_icon.setIcon(QIcon(resource_path('src/media/unmiles.ico')))
+        self.tray_icon.set_vpn_failure()
         self.troubleshoot_connection()
 
-    @staticmethod
-    def troubleshoot_connection():
+    def troubleshoot_connection(self):
         print("ACTIVELY troubleshooting connection")
         show_error_dialog('VPN Connection Failed!')
+        self.status.showMessage("Status: Verifying configuration for "
+                                + self.current_network + "...")
 
     def disconnect(self):
         if self.is_vpn_connected():
@@ -494,7 +271,3 @@ class MainWindow(QMainWindow):
             pass
         elif self.platform.startswith('linux'):
             pass
-
-    @staticmethod
-    def get_debug_status():
-        return DEBUG

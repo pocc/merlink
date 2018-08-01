@@ -6,6 +6,7 @@ from sys import platform
 from os import system
 
 # Local imports
+from src.gui.modal_dialogs import show_error_dialog
 
 
 class TroubleshootVpnFailure:

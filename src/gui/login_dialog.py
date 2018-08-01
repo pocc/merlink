@@ -108,7 +108,7 @@ class LoginDialog(QDialog):
         layout_main.addWidget(login_widget)
         layout_main.addWidget(self.meraki_img)
         self.setLayout(layout_main)
-        self.setWindowTitle('Meraki Client VPN')
+        self.setWindowTitle('MerLink')
 
         # TWOFACTOR_DIALOG UI SETUP #
         # QDialog that gets 6 digit two-factor code
