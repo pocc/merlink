@@ -1,6 +1,7 @@
 # Python libraries
 import sys
 from PyQt5.QtWidgets import QMainWindow
+from PyQt5
 import subprocess
 from os import getcwd, system
 
@@ -50,7 +51,7 @@ class MainWindow(QMainWindow):
         self.show()
 
     def show_main_menu(self):
-        # Dashboard email/redacted password shown by default
+        # Set entered dashboard email/redacted password to be shown by default
         self.main_window_ui.set_dashboard_user_layout()
 
         org_list = self.browser.get_org_list()
@@ -141,6 +142,7 @@ class MainWindow(QMainWindow):
 
     def close_window(self):
         self.close()
+        self.sub
 
     def closeEvent(self, event):
         event.ignore()

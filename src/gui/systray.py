@@ -11,14 +11,14 @@ class SystrayIcon:
         # Init QSystemTrayIcon
         # Set the Window and Tray Icons
         self.app = app
-        app.setWindowIcon(QIcon(resource_path('src/media/miles.ico')))
-        self.app.tray_icon = QSystemTrayIcon(app)
-        self.app.tray_icon.setIcon(QIcon(resource_path('src/media/miles.ico')))
+        self.app.setWindowIcon(QIcon(resource_path('src/media/miles.ico')))
+        self.tray_icon = QSystemTrayIcon(app)
+        self.tray_icon.setIcon(QIcon(resource_path('src/media/miles.ico')))
         if app.is_vpn_connected():
             connection_status = 'VPN connected'
         else:
             connection_status = 'VPN disconnected'
-        self.app.tray_icon.setToolTip("Merlink - " + connection_status)
+        self.tray_icon.setToolTip("Merlink - " + connection_status)
     
         # TODO this should be a drop down of saved connections
         connect_action = QAction("Connect to ...", app)
@@ -45,12 +45,12 @@ class SystrayIcon:
         tray_menu.addAction(show_action)
         tray_menu.addAction(hide_action)
         tray_menu.addAction(quit_action)
-        self.app.tray_icon.setContextMenu(tray_menu)
-        self.app.tray_icon.show()
+        self.tray_icon.setContextMenu(tray_menu)
+        self.tray_icon.show()
     
         # If systray icon is clicked
         # If they click on the connected message, show them the VPN connection
-        self.app.tray_icon.activated.connect(self.icon_activated)
+        self.tray_icon.activated.connect(self.icon_activated)
 
     def icon_activated(self, reason):
         if reason in (QSystemTrayIcon.Trigger, QSystemTrayIcon.DoubleClick):
@@ -68,7 +68,7 @@ class SystrayIcon:
         # The window will be closed if there is no check mark in the check box
 
     def application_minimized(self):
-        self.app.tray_icon.showMessage(
+        self.tray_icon.showMessage(
             "Merlink",
             "Merlink is now minimized",
             QSystemTrayIcon.Information,
@@ -82,13 +82,13 @@ class SystrayIcon:
     # What we're doing is hiding the window and
     # then adding an icon to the system tray
     def set_vpn_success(self):
-        self.app.tray_icon.setIcon(QIcon(resource_path(
+        self.tray_icon.setIcon(QIcon(resource_path(
             'src/media/connected_miles.ico')))
         # If user wants to know more about connection,
         # they can click on message and be redirected
-        self.app.tray_icon.messageClicked.connect(self.app.open_vpn_settings)
+        self.tray_icon.messageClicked.connect(self.app.open_vpn_settings)
         # Show the user the message so they know where the program went
-        self.app.tray_icon.showMessage(
+        self.tray_icon.showMessage(
             "Merlink",
             "Succesfully connected!",
             QSystemTrayIcon.Information,

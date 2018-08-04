@@ -59,6 +59,8 @@ class Controller:
         It should return the next user action
         """
         self.interface.show_main_menu()
+
+        """
         user_action = self.interface.get_user_action()
         # Default right now is to combine them
         if user_action == 'add vpn' or user_action == 'connect vpn':
@@ -69,4 +71,4 @@ class Controller:
             self.interface.troubleshoot_vpn()
         elif user_action == 'quit':
             exit()
-
+        """
