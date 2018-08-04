@@ -56,7 +56,7 @@ class MainWindowUi:
         app.radio_dashboard_admin_user.toggled.connect(
             self.set_dashboard_user_layout)
         app.radio_guest_user.toggled.connect(self.set_guest_user_layout)
-        
+
         app.user_auth_section.addWidget(app.radio_username_label)
         app.user_auth_section.addWidget(app.radio_username_textfield)
         app.user_auth_section.addWidget(app.radio_password_label)
@@ -84,8 +84,6 @@ class MainWindowUi:
         app.use_winlogon_chkbox = QCheckBox("Use Windows Logon Credentials")
         
         app.connect_btn = QPushButton("Connect")
-        self.set_dashboard_user_layout()  # Dashboard user by default is shown
-
         vert_layout = QVBoxLayout()
 
         # Add Dashboard Entry-only dropdowns

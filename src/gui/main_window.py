@@ -1,11 +1,6 @@
-# Utilities
+# Python libraries
 import sys
-import webbrowser
-
-# Qt5
 from PyQt5.QtWidgets import QMainWindow
-
-# OS modules
 import subprocess
 from os import getcwd, system
 
@@ -51,11 +46,13 @@ class MainWindow(QMainWindow):
         self.cwd = getcwd()
         self.tray_icon = SystrayIcon(self)
 
-        MainWindowUi(self)
+        self.main_window_ui = MainWindowUi(self)
         self.show()
 
     def show_main_menu(self):
-        # Display dashboard username + password stars now that we have them
+        # Dashboard email/redacted password shown by default
+        self.main_window_ui.set_dashboard_user_layout()
+
         org_list = self.browser.get_org_list()
         current_org = self.browser.get_current_org()
         self.org_dropdown.addItems(org_list)
@@ -79,12 +76,6 @@ class MainWindow(QMainWindow):
         self.network_dropdown.activated.connect(self.change_network)
 
         self.connect_btn.clicked.connect(self.connect_vpn)
-
-    def add_vpn(self): pass
-
-    def show_result(self, vpn_result): pass
-
-    def get_user_action(self): pass
 
     def change_organization(self):
         # We only care if they've actually selected an organization
@@ -151,17 +142,12 @@ class MainWindow(QMainWindow):
     def close_window(self):
         self.close()
 
-    @staticmethod
-    def open_vpn_settings(self):
-        # Opens Windows 10 Settings > Network & Internet > VPN
-        system('start ms-settings:network-vpn')
-
     def closeEvent(self, event):
         event.ignore()
         # Show the user the message so they know where the program went
         self.tray_icon.application_minimized()
 
-        self.hide()
+        self.showMinimized()
 
     def connect_vpn(self):
         if DEBUG:
