@@ -4,6 +4,7 @@
 # "A modal dialog is a window that forces the user to interact with it
 # before they can go back to using the parent application."
 
+
 # Python modules
 from PyQt5.QtWidgets import QMessageBox
 
@@ -32,3 +33,11 @@ def show_feature_in_development_dialog():
     fid_message.setWindowTitle("Meraki Client VPN: Features in Progress")
     fid_message.setText('This feature is currently in progress.')
     fid_message.exec_()
+
+
+def vpn_success_dialog():
+    success_message = QMessageBox()
+    success_message.setIcon(QMessageBox.Information)
+    success_message.setWindowTitle("Success!")
+    success_message.setText("Successfully Connected!")
+    success_message.exec_()

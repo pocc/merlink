@@ -1,9 +1,11 @@
 #!/bin/bash
 # This bash file will create and connect an L2TP VPN connection on linux
 # 5 required params to use this script
-if [[ -z $1 ]] || [[ -z $2 ]] || [[ -z $3 ]] || [[ -z $4 ]] || [[ -z $5 ]] ; then
+if [[ -z $1 ]] || [[ -z $2 ]] || [[ -z $3 ]] || [[ -z $4 ]] || [[ -z $5 ]];
+    then
     echo "Incorrect number of arguments, expecting 5"
-    echo "Correct usage:\n  bash ./connect_linux.sh 'MyVpnName' 'MyServerAddress' 'MyPsk' 'MyUsername' 'MyPassword'"
+    echo "Correct usage:\n  bash ./connect_linux.sh 'MyVpnName' \
+    'MyServerAddress' 'MyPsk' 'MyUsername' 'MyPassword'"
     sleep 5
     exit 5
 fi
@@ -12,7 +14,8 @@ fi
 # Verify that we have network-manager
 if [ $(which nmcli) != '/usr/bin/nmcli' ]; then
     echo "ERROR: nmcli is not installed!"
-    echo "Please install Network Manager (https://wiki.gnome.org/Projects/NetworkManager)"
+    echo "Please install Network Manager. \
+    (https://wiki.gnome.org/Projects/NetworkManager)"
     sleep 5
     exit 1
 fi
@@ -21,27 +24,32 @@ fi
 # Checking for deb and rpm because they come as prebuilt packages
 # https://github.com/nm-l2tp/network-manager-l2tp/wiki/Prebuilt-Packages
 # deb-based systems
-# TODO see if presence of this file is cleaner indicator of l2tp plugin: /etc/NetworkManager/VPN/nm-l2tp-service.name
-if [ -f /etc/debian_version ] && [[ -z $(dpkg -l network-manager-l2tp 2>/dev/null) ]]; then
-	echo "ERROR: network-manager-l2tp must be installed on this debian-based system"
+# The presence of this file may be a cleaner indicator of l2tp plugin:
+# /etc/NetworkManager/VPN/nm-l2tp-service.name
+if [[ -f /etc/debian_version ]] &&
+   [[ -z $(dpkg -l network-manager-l2tp 2>/dev/null) ]]; then
+	echo "ERROR: network-manager-l2tp must be installed"
 	sleep 5
 	exit 2
 # rpm-based systems
-elif [ -f /etc/redhat-release ] && [[ -z $(rpm -qa NetworkManager-l2tp 2>/dev/null) ]]; then
-	echo "ERROR: NetworkManager-l2tp must be installed on this redhat-based system"
+elif [[ -f /etc/redhat-release ]] &&
+     [[ -z $(rpm -qa NetworkManager-l2tp 2>/dev/null) ]]; then
+	echo "ERROR: NetworkManager-l2tp must be installed"
 	sleep 5
 	exit 3
 fi
 
-# Linux Mint doesn't come with strongswan-plugin-openssl, which is required. Error out if
-if [[ $(cat /etc/os-release | grep Mint) ]] && [[ -z $(dpkg -l strongswan-plugin-agent) ]]; then
+# Linux Mint doesn't come with strongswan-plugin-openssl, which is required.
+if [[ $(cat /etc/os-release | grep Mint) ]] &&
+   [[ -z $(dpkg -l strongswan-plugin-agent) ]]; then
 	echo "ERROR: strongswan-plugin-openssl must be installed. Exiting..."
 	sleep 5
 	exit 4
 fi
 
 # Set variables from params
-# Remove special characters [`!$'" ]. vpn_name has max of 15 chars, so cut off vpn_name if longer.
+# Remove special characters [`!$'" ]
+# vpn_name has max of 15 chars, so cut off vpn_name if longer.
 vpn_name="$(echo $1 | sed 's/[\`\!\$\/'\''\"\ ]//g' | cut -c1-15)"
 echo 'vpn_name: '${vpn_name}
 # If the vpn_name is now empty due to these removals, name it l2tp
@@ -107,7 +115,6 @@ sudo service xl2tpd stop
 sudo systemctl disable xl2tpd 2>/dev/null
 
 # Connect
-# NOTE: If you start or enable either of these at any point, the connection will fail
 sudo nmcli con up id ${vpn_name}
 
 # Disconnect

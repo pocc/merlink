@@ -97,6 +97,9 @@ Adapting [Git Branching](http://nvie.com/posts/a-successful-git-branching-model/
 #### General Documentation
 * [Powershell VPN Client docs](https://docs.microsoft.com/en-us/powershell/module/vpnclient/?view=win10-ps) - Collection of manpages for VPN Client-specific powershell functions.
 
+#### Style Guide
+* [Google Python Style Guide (2018)](https://github.com/google/styleguide/blob/gh-pages/pyguide.md)
+
 #### Building
 * [PyInstaller](https://pyinstaller.readthedocs.io/en/v3.3.1/) - Python bundler used as part of this project 
     * [PyInstaller Recipes](https://github.com/pyinstaller/pyinstaller/wiki/Recipes) - Useful example code

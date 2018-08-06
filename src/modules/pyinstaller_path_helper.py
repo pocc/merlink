@@ -2,7 +2,7 @@
 
 # So that PyInstaller will bundle necessary files as part of temporary _MEIPASS2
 # This is for the --onefile option, and doesn't affect packaging with --onedir
-# Source: https://stackoverflow.com/questions/7674790/bundling-data-files-with-pyinstaller-onefile/7675014#7675014
+# Source: https://stackoverflow.com/questions/7674790
 
 import os
 import sys
