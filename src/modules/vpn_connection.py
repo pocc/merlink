@@ -1,8 +1,7 @@
-#!/usr/bin/python3
-
+# encoding=UTF-8
 from src.modules.pyinstaller_path_helper import resource_path
+import sys
 import subprocess
-from sys import platform
 from os import system
 
 """
@@ -31,6 +30,7 @@ class VpnConnection:
         super(VpnConnection, self).__init__()
         self.vpn_data = vpn_data
         self.vpn_options = []
+        self.vpn_name = ''
 
     # Sanitize variables for powershell/bash input
     def sanitize_variables(self):
@@ -83,8 +83,8 @@ class VpnConnection:
         # This is why it's added directly to the osacript request.
         # Connection name with forced quotes in case it has spaces.
 
-        vpn_name = self.vpn_data[0]
-        scutil_string = 'scutil --nc select ' + '\'' + vpn_name + '\''
+        self.vpn_name = self.vpn_data[0]
+        scutil_string = 'scutil --nc select ' + '\'' + self.vpn_name + '\''
         print("scutil_string: " + scutil_string)
         # Create an applescript execution string so we don't
         # need to bother with parsing arguments with Popen
@@ -110,7 +110,7 @@ class VpnConnection:
         return subprocess.call(
             ['bash',
              'src/scripts/connect_macos.sh',
-             vpn_name]
+             self.vpn_name]
         )
 
     def attempt_linux_vpn(self, vpn_options):
@@ -127,3 +127,19 @@ class VpnConnection:
         system('chmod a+x ' + resource_path('src/scripts/connect_linux.sh'))
         return subprocess.Popen(['pkexec', resource_path(
             'src/scripts/connect_linux.sh'), *self.vpn_data])
+
+    def disconnect(self):
+        if self.is_vpn_connected():
+            system('rasdial ' + self.vpn_name + ' /disconnect')
+
+    def is_vpn_connected(self):
+        if sys.platform == 'win32':
+            rasdial_status = \
+                subprocess.Popen(['rasdial'], stdout=subprocess.PIPE
+                                 ).communicate()[0].decode('utf-8')
+            return 'Connected to' in rasdial_status
+        elif sys.platform == 'darwin':
+            pass
+        elif sys.platform.startswith('linux'):
+            pass
+

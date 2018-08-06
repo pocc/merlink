@@ -3,7 +3,6 @@
 
 block_cipher = None
 
-# Adding runtime hooks per https://github.com/pyinstaller/pyinstaller/issues/1713
 a = Analysis(['merlink.py'],
              binaries=[],
              datas=[('src', 'src'), ('LICENSE.txt', '.')],

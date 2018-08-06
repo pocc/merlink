@@ -1,4 +1,8 @@
-#!/usr/bin/python3
+# coding=UTF-8
+"""
+    :parameter
+    :returns
+"""
 
 # Python modules
 from PyQt5.QtWidgets import (QLineEdit, QWidget, QPushButton, QDialog,

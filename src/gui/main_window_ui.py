@@ -1,3 +1,4 @@
+# coding=UTF-8
 from PyQt5.QtWidgets import \
     (QFrame, QStatusBar, QComboBox, QVBoxLayout, QHBoxLayout, QRadioButton, 
      QCheckBox, QSpinBox, QLineEdit, QPushButton, QWidget, QLabel)

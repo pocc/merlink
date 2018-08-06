@@ -242,21 +242,3 @@ class MainWindow(QMainWindow):
         show_error_dialog('VPN Connection Failed!')
         self.status.showMessage("Status: Verifying configuration for "
                                 + self.current_network + "...")
-
-    def disconnect(self):
-        if self.is_vpn_connected():
-            system('rasdial ' + self.vpn_name + ' /disconnect')
-        else:
-            self.show_error_dialog(
-                "ERROR: You cannot disconnect if you are not connected!")
-
-    def is_vpn_connected(self):
-        if self.platform == 'win32':
-            rasdial_status = \
-                subprocess.Popen(['rasdial'], stdout=subprocess.PIPE
-                                 ).communicate()[0].decode('utf-8')
-            return 'Connected to' in rasdial_status
-        elif self.platform == 'darwin':
-            pass
-        elif self.platform.startswith('linux'):
-            pass
