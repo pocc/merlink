@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import \
     (QFrame, QStatusBar, QComboBox, QVBoxLayout, QHBoxLayout, QRadioButton, 
-     QCheckBox, QSpinBox, QLineEdit, QPushButton, QWidget, QListWidget, QLabel)
+     QCheckBox, QSpinBox, QLineEdit, QPushButton, QWidget, QLabel)
 
 
 class MainWindowUi:

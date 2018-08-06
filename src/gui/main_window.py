@@ -1,7 +1,6 @@
 # Python libraries
 import sys
 from PyQt5.QtWidgets import QMainWindow
-from PyQt5
 import subprocess
 from os import getcwd, system
 
@@ -43,9 +42,10 @@ class MainWindow(QMainWindow):
         self.browser = DataScraper()
         self.platform = sys.platform
         self.network_admin_only = False
-        # We use cwd in multiple places, so fetch current working directory once
+        # We use cwd in multiple places, so fetch current working dir once
         self.cwd = getcwd()
         self.tray_icon = SystrayIcon(self)
+        self.is_connected = False
 
         self.main_window_ui = MainWindowUi(self)
         self.show()
@@ -142,7 +142,6 @@ class MainWindow(QMainWindow):
 
     def close_window(self):
         self.close()
-        self.sub
 
     def closeEvent(self, event):
         event.ignore()
@@ -200,12 +199,14 @@ class MainWindow(QMainWindow):
 
             elif self.platform == 'darwin':
                 macos_options = []
-                successful_attempt = connection.attempt_macos_vpn(macos_options)
+                successful_attempt = \
+                    connection.attempt_macos_vpn(macos_options)
 
             # linux, linux2 are valid for linux distros
             elif self.platform.startswith('linux'):
                 linux_options = []
-                successful_attempt = connection.attempt_linux_vpn(linux_options)
+                successful_attempt = \
+                    connection.attempt_linux_vpn(linux_options)
 
             else:
                 successful_attempt = False

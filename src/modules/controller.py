@@ -35,7 +35,8 @@ class Controller:
             self.interface.setEnabled(True)
 
         else:
-            self.interface = MainCli()  # MainCli After 'Main Window' convention
+            # MainCli After 'Main Window' convention
+            self.interface = MainCli()
             exit()
 
         self.program_structure()

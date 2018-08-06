@@ -58,6 +58,15 @@ class DataScraper:
         self.username = ''
         self.password = ''
 
+        self.current_network = ''
+        self.client_vpn_url = ''
+        self.client_vpn_text = ''
+        self.client_vpn_soup = bs4.BeautifulSoup()
+        self.psk = ''
+
+        self.fw_status_text = ''
+        self.current_primary_ip = ''
+
     def get_url(self):
         print("browser url in get_url" + str(self.browser.get_url()))
         return self.browser.get_url()
@@ -118,7 +127,7 @@ class DataScraper:
 
     # This function will get the organizations and then save them as a dict
     # of names and links. Gestalt, this function gets info so there is
-    # something to show the user when we first show the 'connect' part of the ui
+    # something to show the user as part of the initial ui
     def scrape_initial_org_info(self):
         """ ASSERTS
         Don't set data for network-only admins as they don't have org-access.
@@ -133,8 +142,9 @@ class DataScraper:
         # Use pagetext variable so we can have a string we can use slices with
         pagetext = page.text
         # Found in HTML for administrators with access to only 1 org
-        is_one_org_admin = pagetext.find("org_str")
         # org_str is ONLY found for one org admins
+        is_one_org_admin = pagetext.find("org_str")
+        org_names = []
         if is_one_org_admin != -1:
             self.org_qty = 1
         else:
@@ -147,7 +157,7 @@ class DataScraper:
         if self.org_qty == 1:  # org admin with one org
             # This should be present in EVERY dashboard page
             org_name_start = pagetext.find("Mkiconf.org_name") + 20
-            org_name_end = org_name_start + pagetext[org_name_start:].find('\"')
+            org_name_end = org_name_start + pagetext[org_name_start:].find('"')
             one_org_name = pagetext[org_name_start: org_name_end]
             self.org_links[one_org_name] = self.browser.get_url()
             self.org_list.append(one_org_name)
@@ -259,7 +269,7 @@ class DataScraper:
             # Inner dict that contains base64 network name and all network info
             node_groups = orgs_dict[this_org]['node_groups']
             # List of network ids in base64.
-            # These network ids are keys for network data dict that is the value
+            # These networkIds are keys for network data dict that is the value
             network_base64_ids = list(node_groups.keys())
             # For orgs that are not the current org,
             # we will get the number off networks, but get node_groups of {}
@@ -342,8 +352,9 @@ class DataScraper:
         # ddns value can be found by searching for '"dynamic_dns_name"'
         ddns_value_start = self.fw_status_text.find("dynamic_dns_name")+19
         ddns_value_end = self.fw_status_text[ddns_value_start:].find('\"') \
-                         + ddns_value_start
-        self.current_ddns=self.fw_status_text[ddns_value_start: ddns_value_end]
+            + ddns_value_start
+        self.current_ddns = self.fw_status_text[ddns_value_start:
+                                                ddns_value_end]
 
         # Primary will always come first, so using find should
         # find it's IP address, even if there's a warm spare

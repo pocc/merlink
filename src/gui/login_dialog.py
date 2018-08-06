@@ -1,10 +1,5 @@
 #!/usr/bin/python3
 
-# ~ https://ux.stackexchange.com/questions/12045/what-is-a-modal-dialog-window
-# "A modal dialog is a window that forces the user to interact with it
-# before they can go back to using the parent application."
-
-
 # Python modules
 from PyQt5.QtWidgets import (QLineEdit, QWidget, QPushButton, QDialog,
                              QLabel, QVBoxLayout, QHBoxLayout)
@@ -21,7 +16,7 @@ class LoginDialog(QDialog):
     # noinspection PyArgumentList
     def __init__(self):
         super(LoginDialog, self).__init__()
-        self.setModal(True)  # Make the login window to be prevent program usage
+        self.setModal(True)  # Make the login window prevent program usage
 
         self.browser = DataScraper()
 

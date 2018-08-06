@@ -4,6 +4,8 @@ from src.gui.modal_dialogs import show_feature_in_development_dialog
 
 
 class MenuBars:
+    # Telling PyCharm linter not to (incorrectly) inspect PyQt function args
+    # noinspection PyArgumentList
     def __init__(self, bar):
         super(MenuBars, self).__init__()
         self.bar = bar
@@ -70,51 +72,59 @@ class MenuBars:
         help_support.triggered.connect(self.help_support_action)
         help_about.triggered.connect(self.help_about_action)
 
-    def file_open_action(self):
+    @staticmethod
+    def file_open_action():
         # Might use this to open a saved vpn config
         show_feature_in_development_dialog()
         pass
 
-    def file_save_action(self):
+    @staticmethod
+    def file_save_action():
         # Might use this to save a vpn config
         show_feature_in_development_dialog()
         pass
 
-    def file_quit_action(self):
+    @staticmethod
+    def file_quit_action():
         exit()
 
     def edit_prefs_action(self):
         # Preferences should go here.
         # How many settings are here will depend on the feature set
-        self.prefs = QDialog()
+        prefs = QDialog()
         layout = QVBoxLayout()
-        self.prefs_heading = QLabel('<h1>Preferences</h1>')
-        layout.addWidget(self.prefs_heading)
-        self.prefs.setLayout(layout)
-        self.prefs.show()
+        prefs_heading = QLabel('<h1>Preferences</h1>')
+        layout.addWidget(prefs_heading)
+        prefs.setLayout(layout)
+        prefs.show()
 
-    def view_interfaces_action(self):
+    @staticmethod
+    def view_interfaces_action():
         # If linux/macos > ifconfig
         # If Windows > ipconfig /all
         show_feature_in_development_dialog()
         pass
 
-    def view_routing_action(self):
+    @staticmethod
+    def view_routing_action():
         # If linux/macos > netstat -rn
         # If Windows > route print
         show_feature_in_development_dialog()
         pass
 
-    def view_data_action(self):
+    @staticmethod
+    def view_data_action():
         show_feature_in_development_dialog()
         pass
 
-    def tshoot_error_action(self):
+    @staticmethod
+    def tshoot_error_action():
         # In Windows, use powershell: get-eventlog
         show_feature_in_development_dialog()
         pass
 
-    def tshoot_pcap_action(self):
+    @staticmethod
+    def tshoot_pcap_action():
         show_feature_in_development_dialog()
         pass
 
@@ -135,7 +145,8 @@ class MenuBars:
         license_text = open("LICENSE", 'r').read()
         licenses = QTextEdit()
         licenses.setText(license_text)
-        licenses.setReadOnly(True)  # People shouldn't be able to edit licenses!
+        # People shouldn't be able to edit licenses!
+        licenses.setReadOnly(True)
         popup_layout = QVBoxLayout()
         popup_layout.addWidget(about_program)
         popup_layout.addWidget(licenses)
