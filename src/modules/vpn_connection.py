@@ -1,31 +1,45 @@
-# encoding=UTF-8
+# -*- coding: utf-8 -*-
+# Copyright 2018 Ross Jacobs All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Given VPN vars, uses OS built-ins to create/connect a L2TP/IPSEC VPN."""
 from src.modules.pyinstaller_path_helper import resource_path
 import sys
 import subprocess
 from os import system
 
-"""
-VpnConnection list arguments
-    vpn_data
-        vpn_name
-        ddns
-        psk
-        username
-        password
-    windows_options
-        dns_suffix
-        idle_disconnect_seconds
-        split_tunneled
-        remember_credentials
-        use_winlogon
-        
-VpnConnection takes 2 lists as args: vpn_data and vpn_options
-    Required VPN parameters will arrive in vpn_data
-    Any OS-specific VPN parameters will go into vpn_options 
-"""
-
 
 class VpnConnection:
+    """
+    VpnConnection list arguments
+        vpn_data
+            vpn_name
+            ddns
+            psk
+            username
+            password
+        windows_options
+            dns_suffix
+            idle_disconnect_seconds
+            split_tunneled
+            remember_credentials
+            use_winlogon
+
+    VpnConnection takes 2 lists as args: vpn_data and vpn_options
+        Required VPN parameters will arrive in vpn_data
+        Any OS-specific VPN parameters will go into vpn_options """
+
     def __init__(self, vpn_data):
         super(VpnConnection, self).__init__()
         self.vpn_data = vpn_data

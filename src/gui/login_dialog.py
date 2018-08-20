@@ -1,21 +1,35 @@
-# coding=UTF-8
-"""
-    :parameter
-    :returns
-"""
+# -*- coding: utf-8 -*-
+# Copyright 2018 Ross Jacobs All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-# Python modules
-from PyQt5.QtWidgets import (QLineEdit, QWidget, QPushButton, QDialog,
-                             QLabel, QVBoxLayout, QHBoxLayout)
+"""Login dialog GUI elements."""
+from PyQt5.QtWidgets import QLineEdit
+from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QPushButton
+from PyQt5.QtWidgets import QDialog
+from PyQt5.QtWidgets import QLabel
+from PyQt5.QtWidgets import QVBoxLayout
+from PyQt5.QtWidgets import QHBoxLayout
 from PyQt5.QtGui import QPixmap
 
-# Local modules
 from src.modules.pyinstaller_path_helper import resource_path
 from src.modules.dashboard_browser import DataScraper
 from src.gui.modal_dialogs import show_error_dialog
 
 
 class LoginDialog(QDialog):
+    """This class provides dialog GUI elements."""
     # Telling PyCharm linter not to (incorrectly) inspect PyQt function args
     # noinspection PyArgumentList
     def __init__(self):
