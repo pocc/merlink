@@ -1,7 +1,6 @@
----
-title: pyinstaller_usage
----
-# Building from Source
+*This file holds information that may be useful for maintainers.*
+# Using PyInstaller
+
 **NOTE**: Make sure you install the latest PyIntstaller directly
 `pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip`
 
@@ -22,3 +21,11 @@ title: pyinstaller_usage
 *Same as Windows, but with : and / instead of ; and \.*
 
 `pyinstaller -y --windowed --icon=./src/media/miles.ico --clean --add-data="src:src" --add-data="LICENSE.txt:." ./merlink.py`
+
+## Python Path
+Note that python path changes with the following:
+* root/sudo vs user
+* python vs python3
+* virtual environment
+
+When in doubt, use a virtual environment to build and avoid sudo

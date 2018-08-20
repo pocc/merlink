@@ -1,13 +1,8 @@
-## Problem name
-### Problem statement (one sentence)
-### Expected behavior
-### Supporting evidence
-* Any relevant logs or error messages
-* Screenshots where appropriate
+## < Problem name >
+### Problem Description
 ### Steps to reproduce
 ### Version info
-* Platform you're using Merlink on
-* Major version number of OS you're on
-* Version of Merlink you're using
+* OS, major version
+* MerLink version
 
 ***Check existing/closed issues before submitting***

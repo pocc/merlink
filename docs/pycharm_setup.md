@@ -1,7 +1,8 @@
 ---
 title: pycharm_setup
 ---
-This setup guide should work for Windows 10. If you experience any problems with setup, ping Ross.
+This is a PyCharm setup for contributors that are new to python. Also a 
+reminder to myself if I forget how to set up my environment.
 
 1. Install Git
     1. [Download](https://git-scm.com/download/win) 64-bit git for windows
@@ -11,17 +12,22 @@ This setup guide should work for Windows 10. If you experience any problems with
     2. When prompted, install bash and markdown support
     3. Othrewise hit next for everything
 3. Install Python 3
-    1. [Download](https://www.python.org/downloads/windows/) and choose the latest python 3 'Windows x86-64 executable installer' 
+    1. [Download](https://www.python.org/downloads/windows/) and choose the 
+    latest python 3 'Windows x86-64 executable installer' 
 3. In git, type ```git clone https://github.com/pocc/merlink```
 4. Open PyCharm and open a project in the merlink folder you cloned
 5. Set Python Intepreter
-    1. Go to Edit > Settings > Project > Interpreter > Click on the gear icon in the upper-right-hand corner
+    1. Go to Edit > Settings > Project > Interpreter > Click on the gear 
+     icon in the upper-right-hand corner
     2. Hit "Add..."
-    2. Choose New Environment
-    3. In base interpreter, click on the ellipses to the right and enter ```%appdata%\local\programs\python``` in open window. You should see an executable you can select.
+    3. Choose New Environment
+    4. In base interpreter, click on the ellipses to the right and enter 
+     ```%appdata%\local\programs\python``` in open window. You should see an
+       executable you can select.
 6. Install missing packages
     1. Click on requirements.txt on the left hand side
-    2. Once you click on its text, PyCharm should prompt you to install the missing libraries
+    2. Once you click on its text, PyCharm should prompt you to install the 
+     missing libraries
     3. OK those installs
 7. Run application
     1. Go to the /src folder and click on 'merlink.py'

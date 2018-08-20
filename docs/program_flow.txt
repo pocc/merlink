@@ -1,5 +1,8 @@
+% This is very out-of-date, so use with a grain of salt
+
 % This is based on mermaid.js syntax. More info can be found at https://mermaidjs.github.io/
 % Mermaid live editor: https://mermaidjs.github.io/mermaid-live-editor
+% You should be able to paste this directly into the live editor to get a graph
 
 graph TD
 	ERR(USER: FIX ISSUE)
