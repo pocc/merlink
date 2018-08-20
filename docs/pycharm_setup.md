@@ -1,3 +1,6 @@
+---
+title: pycharm_setup
+---
 This setup guide should work for Windows 10. If you experience any problems with setup, ping Ross.
 
 1. Install Git

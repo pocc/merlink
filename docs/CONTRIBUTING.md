@@ -1,3 +1,6 @@
+---
+title: contributing
+---
 # How to contribute to Merlink
 
 ## Contributing Code

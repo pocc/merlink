@@ -1,3 +1,6 @@
+---
+title: installation
+---
 # INSTALLATION
 ## Windows
 * Use the installer and hit next a bunch of times
