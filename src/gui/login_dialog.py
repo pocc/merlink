@@ -29,7 +29,11 @@ from src.gui.modal_dialogs import show_error_dialog
 
 
 class LoginDialog(QDialog):
-    """This class provides dialog GUI elements."""
+    """This class provides dialog GUI elements.
+
+    Attributes:
+
+    """
     # Telling PyCharm linter not to (incorrectly) inspect PyQt function args
     # noinspection PyArgumentList
     def __init__(self):

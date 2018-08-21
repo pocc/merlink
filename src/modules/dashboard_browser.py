@@ -85,7 +85,7 @@ class DataScraper:
         self.current_network = ''
         self.client_vpn_url = ''
         self.client_vpn_text = ''
-        self.client_vpn_soup = bs4.BeautifulSoup()
+        self.client_vpn_soup = ''
         self.psk = ''
 
         self.fw_status_text = ''

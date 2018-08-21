@@ -6,11 +6,15 @@
 Welcome to MerLink's documentation!
 ===================================
 
+# Use this is some capacity: https://www.divio.com/blog/documentation/
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
    cli
+   gui
+   modules
 
 Indices and tables
 ==================

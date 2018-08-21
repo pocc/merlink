@@ -19,12 +19,20 @@ from PyQt5.QtWidgets import QDialog
 from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QTextEdit
-import webbrowser
-
-from src.gui.modal_dialogs import show_feature_in_development_dialog
 
 
 class MenuBars:
+    """Menubars of the GUI
+
+    This class contains mostly boilerplate Qt UI.
+
+    Attributes:
+        bar (QMenuBar): The Main Window's built-in menu bar object
+        file_menu (QAction): File menu
+        edit_menu (QAction): Edit menu
+        help_menu (QAction): Help menu
+    """
+
     # Telling PyCharm linter not to (incorrectly) inspect PyQt function args
     # noinspection PyArgumentList
     def __init__(self, bar):
@@ -32,14 +40,12 @@ class MenuBars:
         self.bar = bar
         self.file_menu = bar.addMenu('&File')
         self.edit_menu = bar.addMenu('&Edit')
-        self.view_menu = bar.addMenu('&View')
-        self.tshoot_menu = bar.addMenu('&Troubleshoot')
         self.help_menu = bar.addMenu('&Help')
 
     def generate_menu_bars(self):
         """Short desc
 
-        Extended desc
+        NOTE: Some of the menu additions here are ideas and not implemented.
 
         Args:
         Returns:
@@ -58,101 +64,34 @@ class MenuBars:
         edit_preferences = QAction('&Prefrences', self.bar)
         edit_preferences.setShortcut('Ctrl+P')
 
-        # View options
-        view_interfaces = QAction('&Interfaces', self.bar)
-        view_interfaces.setShortcut('Ctrl+I')
-        view_routing = QAction('&Routing', self.bar)
-        view_routing.setShortcut('Ctrl+R')
-        view_connection_data = QAction('Connection &Data', self.bar)
-        view_connection_data.setShortcut('Ctrl+D')
-
-        # Tshoot options
-        tshoot_errors = QAction('Tshoot &Errors', self.bar)
-        tshoot_errors.setShortcut('Ctrl+E')
-        tshoot_pcap = QAction('Tshoot &with Pcaps', self.bar)
-        tshoot_pcap.setShortcut('Ctrl+W')
-
         # Help options
         help_support = QAction('Get S&upport', self.bar)
         help_support.setShortcut('Ctrl+U')
         help_about = QAction('A&bout', self.bar)
         help_about.setShortcut('Ctrl+B')
 
-        self.file_menu.addAction(file_open)
-        self.file_menu.addAction(file_save)
         self.file_menu.addAction(file_quit)
         self.edit_menu.addAction(edit_preferences)
-        self.view_menu.addAction(view_interfaces)
-        self.view_menu.addAction(view_routing)
-        self.view_menu.addAction(view_connection_data)
-        self.tshoot_menu.addAction(tshoot_errors)
-        self.tshoot_menu.addAction(tshoot_pcap)
-        self.help_menu.addAction(help_support)
         self.help_menu.addAction(help_about)
 
-        file_open.triggered.connect(self.file_open_action)
-        file_save.triggered.connect(self.file_save_action)
         file_quit.triggered.connect(self.file_quit_action)
         edit_preferences.triggered.connect(self.edit_prefs_action)
-        view_interfaces.triggered.connect(self.view_interfaces_action)
-        view_routing.triggered.connect(self.view_routing_action)
-        view_connection_data.triggered.connect(self.view_data_action)
-        tshoot_errors.triggered.connect(self.tshoot_error_action)
-        tshoot_pcap.triggered.connect(self.tshoot_pcap_action)
-        help_support.triggered.connect(self.help_support_action)
         help_about.triggered.connect(self.help_about_action)
 
     @staticmethod
-    def file_open_action():
-        """Short desc
-
-        Extended desc
-
-        Args:
-        Returns:
-        Returns:
-        """
-
-        # Might use this to open a saved vpn config
-        show_feature_in_development_dialog()
-        pass
-
-    @staticmethod
-    def file_save_action():
-        """Short desc
-
-        Extended desc
-
-        Args:
-        Returns:
-        Returns:
-        """
-
-        # Might use this to save a vpn config
-        show_feature_in_development_dialog()
-        pass
-
-    @staticmethod
     def file_quit_action():
-        """Short desc
-
-        Extended desc
-
-        Args:
-        Returns:
-        Returns:
-        """
-
+        """Forces application to exit"""
         exit()
 
-    def edit_prefs_action(self):
-        """Short desc
+    @staticmethod
+    def edit_prefs_action():
+        """Shows the preferences
 
-        Extended desc
+        Currently, it merely shows an HTML heading, but the hope is be able
+        to control more settings from this pane.
 
-        Args:
-        Returns:
-        Returns:
+        > It may be worthwhile to use a QSettings object here instead
+        (http://doc.qt.io/qt-5/qsettings.html).
         """
 
         # Preferences should go here.
@@ -165,113 +104,16 @@ class MenuBars:
         prefs.show()
 
     @staticmethod
-    def view_interfaces_action():
-        """Short desc
-
-        Extended desc
-
-        Args:
-        Returns:
-        Returns:
-        """
-
-        # If linux/macos > ifconfig
-        # If Windows > ipconfig /all
-        show_feature_in_development_dialog()
-        pass
-
-    @staticmethod
-    def view_routing_action():
-        """Short desc
-
-        Extended desc
-
-        Args:
-        Returns:
-        Returns:
-        """
-
-        # If linux/macos > netstat -rn
-        # If Windows > route print
-        show_feature_in_development_dialog()
-        pass
-
-    @staticmethod
-    def view_data_action():
-        """Short desc
-
-        Extended desc
-
-        Args:
-        Returns:
-        Returns:
-        """
-
-        show_feature_in_development_dialog()
-        pass
-
-    @staticmethod
-    def tshoot_error_action():
-        """Short desc
-
-        Extended desc
-
-        Args:
-        Returns:
-        Returns:
-        """
-
-        # In Windows, use powershell: get-eventlog
-        show_feature_in_development_dialog()
-        pass
-
-    @staticmethod
-    def tshoot_pcap_action():
-        """Short desc
-
-        Extended desc
-
-        Args:
-        Returns:
-        Returns:
-        """
-
-        show_feature_in_development_dialog()
-        pass
-
-    @staticmethod
-    def help_support_action():
-        """Short desc
-
-        Extended desc
-
-        Args:
-        Returns:
-        Returns:
-        """
-
-        # Redirect to Meraki's support website
-        webbrowser.open('https://meraki.cisco.com/support')
-
-    @staticmethod
     def help_about_action():
-        """Short desc
-
-        Extended desc
-
-        Args:
-        Returns:
-        Returns:
-        """
-
+        """Shows an about dialog containing the license."""
         about_popup = QDialog()
         about_popup.setWindowTitle("Meraki Client VPN: About")
         about_program = QLabel()
-        about_program.setText("<h1>Meraki VPN Client 0.5.1</h1>\n"
+        about_program.setText("<h1>Meraki VPN Client 0.8.5</h1>\n"
                               "Developed by Ross Jacobs<br><br><br>"
                               "This project is licensed with the "
                               "Apache License, which can be viewed below:")
-        license_text = open("LICENSE", 'r').read()
+        license_text = open("LICENSE").read()
         licenses = QTextEdit()
         licenses.setText(license_text)
         # People shouldn't be able to edit licenses!

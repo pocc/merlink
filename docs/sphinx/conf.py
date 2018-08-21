@@ -53,6 +53,10 @@ extensions = [
 # Force Sphinx to interpret docstrings as google docstring type
 napoleon_google_docstring = True
 
+# Recognize __init__() documentation
+autodoc_docstring_signature = True
+autoclass_content = 'init'
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 

@@ -26,13 +26,10 @@ from PyQt5.QtWidgets import QMessageBox
 
 
 def show_error_dialog(message):
-    """Short desc
-
-    Extended desc
+    """Show an error dialog with a message.
 
     Args:
-    Returns:
-    Returns:
+        message (string): A message telling the user what is wrong.
     """
 
     error_dialog = QMessageBox()
@@ -43,34 +40,26 @@ def show_error_dialog(message):
 
 
 def show_question_dialog(message):
-    """Short desc
-
-    Extended desc
+    """Send the user a question and record their decision.
 
     Args:
+        message (string): A question asking the user what they want to do.
     Returns:
-    Returns:
+        result (QDialog.DialogCode): Returns a QDialog code of Rejected (no) |
+        Accepted (yes) depending on user input.
     """
-
     question_dialog = QMessageBox()
     question_dialog.setIcon(QMessageBox.Question)
     question_dialog.setWindowTitle("Error!")
     question_dialog.setText(message)
     question_dialog.setStandardButtons(QMessageBox.No | QMessageBox.Yes)
     question_dialog.setDefaultButton(QMessageBox.Yes)
-    return question_dialog.exec_()
+    decision = question_dialog.exec_()
+    return decision
 
 
 def show_feature_in_development_dialog():
-    """Short desc
-
-    Extended desc
-
-    Args:
-    Returns:
-    Returns:
-    """
-
+    """Informs the user that something is a feature in development."""
     fid_message = QMessageBox()
     fid_message.setIcon(QMessageBox.Information)
     fid_message.setWindowTitle("Meraki Client VPN: Features in Progress")
@@ -79,15 +68,7 @@ def show_feature_in_development_dialog():
 
 
 def vpn_success_dialog():
-    """Short desc
-
-    Extended desc
-
-    Args:
-    Returns:
-    Returns:
-    """
-
+    """Tells the user that the VPN connection has been successful."""
     success_message = QMessageBox()
     success_message.setIcon(QMessageBox.Information)
     success_message.setWindowTitle("Success!")

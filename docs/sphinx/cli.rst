@@ -1,21 +1,14 @@
 cli package
 ===========
 
-**module** cli\_modal\_prompts
+the "cli\_modal\_prompts" module
 ----------------------------------
 
 .. automodule:: src.cli.cli_modal_prompts
     :members:
 
-**module** merlink\_cli
+the "merlink\_cli" module
 ---------------------------
 
 .. automodule:: src.cli.merlink_cli
-    :members:
-
-
-Module contents
----------------
-
-.. automodule:: cli
     :members:

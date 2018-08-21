@@ -33,14 +33,6 @@ class MainWindowUi:
     # Telling PyCharm linter not to (incorrectly) inspect PyQt function args
     # noinspection PyArgumentList
     def __init__(self, app):
-        """Short desc
-
-        Extended desc
-
-        Args:
-        Returns:
-        Returns:
-        """
 
         # MAIN INIT UI
         # QMainWindow requires that a central app be set
@@ -141,14 +133,10 @@ class MainWindowUi:
         app.cw.setLayout(vert_layout)
 
     def set_dashboard_user_layout(self):
-        """Short desc
+        """Set the dashboard user layout
 
-        Extended desc
-
-        Args:
-        Returns:
-        Returns:
-        """
+        Hides guest user layout as we will only be connecting with one user.
+        The user will see the username/obfuscated password they entered."""
 
         self.app.radio_username_textfield.setText(self.app.browser.username)
         self.app.radio_username_textfield.setReadOnly(True)
@@ -156,14 +144,11 @@ class MainWindowUi:
         self.app.radio_password_textfield.setReadOnly(True)
 
     def set_guest_user_layout(self):
-        """Short desc
+        """Set the guest user layout
 
-        Extended desc
-
-        Args:
-        Returns:
-        Returns:
-        """
+        Hides dashboard user layout as we will only be connecting with one user.
+        The user will see blank user/pass text fields where they can enter
+        information for a guest user."""
 
         self.app.radio_username_textfield.clear()
         self.app.radio_username_textfield.setReadOnly(False)

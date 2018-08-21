@@ -13,8 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""WORK-IN-PROGRESS (i.e. code does nothing useful or is not used)
-CLI modal prompts to send information."""
+"""CLI modal prompts to send information to console."""
 
 
 class CliModalPrompts:

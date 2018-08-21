@@ -22,17 +22,8 @@ from src.modules.pyinstaller_path_helper import resource_path
 
 
 class SystrayIcon:
-    # Taking in 'app', which is the MainWindow object
+    """Taking in 'app', which is the MainWindow object"""
     def __init__(self, app):
-        """Short desc
-
-        Extended desc
-
-        Args:
-        Returns:
-        Returns:
-        """
-
         # Init QSystemTrayIcon
         # Set the Window and Tray Icons
         self.app = app
@@ -57,7 +48,7 @@ class SystrayIcon:
         quit_action = QAction("Exit", app)
         hide_action = QAction("Hide", app)
         # Allow this if we're not connected
-        connect_action.triggered.connect(app.connect_vpn)
+        connect_action.triggered.connect(app.setup_vpn)
         disconnect_action.triggered.connect(app.disconnect)
         show_action.triggered.connect(app.show)
         hide_action.triggered.connect(app.hide)

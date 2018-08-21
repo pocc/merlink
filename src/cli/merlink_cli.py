@@ -30,7 +30,7 @@ class MainCli:
 
     1. To enter all information manually
     Usage: merlink --name <vpn name> --address <server IP/FQDN> --psk <PSK>
-        --username <username> --password <password>
+    --username <username> --password <password>
 
     ex. merlink --name 'ACME VPN' --address 'acme.corp' --psk '@AnyCost'
         --username 'wile.e.coyote@acme.corp' --password 'SuperGenius!'
@@ -43,8 +43,8 @@ class MainCli:
 
     3. If username + password of dashboard admin, organization name, and
     network name are already known
-    Usage: merlink --username <username> --password <password>
-        --organization <organization> --network <network> --options <options>
+    Usage: merlink --username <username> --password <password> --organization
+    <organization> --network <network> --options <options>
 
     ex. merlink --username 'wile.e.coyote@acme.corp' --password 'SuperGenius!'
         --organization 'ACME Corp' --network 'Wild West'
@@ -64,27 +64,7 @@ class MainCli:
     def parse_options():
         """MainCli class constructor, inits with no params.
 
-        :param name: The name to use.
-        :type name: str
-        :param state: Current state to be in.
-        :type state: bool
-        :returns: int -- the return code.
-        :raises: AttributeError, KeyError
-        :param method: method for the new :class:`Request` object.
-        :param url: URL for the new :class:`Request` object.
-        :param params: (optional) Dictionary or bytes to be sent in the query string for the :class:`Request`.
-        :param data: (optional) Dictionary, bytes, or file-like object to send in the body of the :class:`Request`.
-        :param json: (optional) json data to send in the body of the :class:`Request`.
-        :param headers: (optional) Dictionary of HTTP Headers to send with the :class:`Request`.
-        :param cookies: (optional) Dict or CookieJar object to send with the :class:`Request`.
-
-        Parses argparse options
-
-        Args:
-
-        Returns:
-        Returns:
-        """
+        Parses argparse options"""
 
         parser = argparse.ArgumentParser()
         parser.add_argument("-v", "--verbose",
@@ -124,83 +104,43 @@ class MainCli:
             exit()
 
     def show_main_menu(self):
-        """Fetches rows from a Bigtable.
+        """Shows the main cli menu
 
-        Retrieves rows pertaining to the given keys from the Table instance
-        represented by big_table.  Silly things may happen if
-        other_silly_variable is not None.
-
-        Args:
-            big_table: An open Bigtable Table instance.
-            keys: A sequence of strings representing the key of each table row
-                to fetch.
-            other_silly_variable: Another optional variable, that has a much
-                longer name than the other args, and which does nothing.
-
-        Returns:
-            A dict mapping keys to the corresponding table row data
-            fetched. Each row is represented as a tuple of strings. For
-            example:
-
-            {'Serak': ('Rigel VII', 'Preparer'),
-             'Zim': ('Irk', 'Invader'),
-             'Lrrr': ('Omicron Persei 8', 'Emperor')}
-
-            If a key from the keys argument is missing from the dictionary,
-            then that row was not found in the table.
-
-        Raises:
-            IOError: An error occurred accessing the bigtable.Table object.
-        """
+        Currently not implemented but mirrored in main_window"""
 
         pass
 
     def get_user_action(self):
-        """Short desc
+        """Gets the user's next action
 
-        Extended desc
-
-        Args:
-        Returns:
-        Returns:
-        """
+        Currently not implemented but mirrored in main_window"""
 
         pass
 
     def add_vpn(self):
-        """Short desc
+        """Adds a vpn by name
 
-        Extended desc
-
-        Args:
-        Returns:
-        Returns:
-        """
+        Currently not implemented but mirrored in main_window"""
 
         pass
 
     def connect_vpn(self, *vpn_vars):
-        """Short desc
+        """Connects using the specified vpn connection
 
-        Extended desc
-
-        Args:
-        Returns:
-        Returns:
-        """
+        Currently not implemented but mirrored in main_window"""
 
         pass
 
     def show_result(self, result):
-        """Short desc
+        """Shows the result of the vpn connection to the console
 
-        Extended desc
-
-        Args:
-        Returns:
-        Returns:
-        """
+        Currently not implemented but mirrored in main_window"""
 
         pass
 
-    def troubleshoot_vpn(self): pass
+    def troubleshoot_vpn(self):
+        """Provides a
+
+        Currently not implemented but mirrored in main_window"""
+
+        pass
