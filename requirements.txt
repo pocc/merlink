@@ -14,7 +14,7 @@ psutil>=3.4.2
 beautifulsoup4>=4.6.0
 bs4>=0.0.1
 MechanicalSoup>=0.10.0
-PyQt5>=5.10.1
+PyQt5>=5.11
 sip>=4.19.8
 
 # Maintainers:
