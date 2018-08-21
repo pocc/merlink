@@ -5,9 +5,12 @@ venv/
 build/
 bin/
 dist/
-__pycache__/
 
 # no vim cruft
 *.swp
 *.swo
 *~
+
+# no compiled files
+__pycache__/
+*.pyc

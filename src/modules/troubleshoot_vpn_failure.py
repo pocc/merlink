@@ -23,6 +23,15 @@ from src.gui.modal_dialogs import show_error_dialog
 
 
 class TroubleshootVpnFailure:
+    """Short desc
+
+    Extended desc
+
+    Args:
+    Returns:
+    Returns:
+    """
+
     def __init__(self, fw_status_text, client_vpn_text, ddns, firewall_ip):
         super(TroubleshootVpnFailure, self).__init__()
 

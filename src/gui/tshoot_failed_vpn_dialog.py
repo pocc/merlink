@@ -22,6 +22,15 @@ from src.modules.pyinstaller_path_helper import resource_path
 
 
 def tshoot_failed_vpn_dialog(has_passed_validation):
+    """Short desc
+
+    Extended desc
+
+    Args:
+    Returns:
+    Returns:
+    """
+
     validation_list = QListWidget()
     validation_textlist = [
         "Is the MX online?",

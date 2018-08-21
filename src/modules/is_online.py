@@ -19,6 +19,15 @@ from sys import platform
 
 
 def is_online():
+    """Short desc
+
+    Extended desc
+
+    Args:
+    Returns:
+    Returns:
+    """
+
     # Initialize vars
     result = ''
     ping_command = ''

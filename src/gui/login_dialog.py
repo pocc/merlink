@@ -33,6 +33,7 @@ class LoginDialog(QDialog):
     # Telling PyCharm linter not to (incorrectly) inspect PyQt function args
     # noinspection PyArgumentList
     def __init__(self):
+        """Create UI vars necessary for login window to be shown."""
         super(LoginDialog, self).__init__()
         self.setModal(True)  # Make the login window prevent program usage
 
@@ -152,21 +153,32 @@ class LoginDialog(QDialog):
         self.show_login()
 
     def show_login(self):
+        """Shows the login window and records if the login button is pressed.
+
+        If the login button is pressed, check whether the credentials are
+        valid by sending them to the virtual browser.
+        """
+
         self.show()
         self.login_btn.clicked.connect(self.check_login_attempt)
-        # Test connection with a virtual browser
 
     def get_login_info(self):
+        """Returns the values currently in the user/pass text fields"""
         return self.username_field.text(), self.password_field.text()
 
     def get_browser(self):
+        """Returns the browser object that has the credentials cookie."""
         return self.browser
 
-    """Keeping this code in here even though it is interface-independent.
-    If we don't keep this here, then the login button will need to connect to
-    self.close. It may look weird if the login window closes due to the user
-    incorrectly entering user/pass and then reopens"""
     def check_login_attempt(self):
+        """Verifies whether entered username/password combination is correct
+
+        NOTE: Keeping this code in here even though it is interface-independent.
+        If we don't keep this here, then the login button will need to connect
+        to self.close. It may look weird if the login window closes due to
+        the user incorrectly entering user/pass and then reopens
+        """
+
         result = self.browser.attempt_login(
             self.username_field.text(),
             self.password_field.text()
@@ -186,11 +198,13 @@ class LoginDialog(QDialog):
             show_error_dialog("ERROR: Invalid authentication type!")
 
     def get_tfa_dialog(self):
+        """Shows the tfa dialog to get the tfa code"""
         self.yesbutton.clicked.connect(self.tfa_verify)
         self.nobutton.clicked.connect(self.tfa_cancel)
         self.twofactor_dialog.exec_()
 
     def tfa_verify(self):
+        """Submit the tfa code and communicate success/failure to user."""
         self.browser.tfa_submit_info(self.get_twofactor_code.text())
         if self.browser.get_tfa_success():
             self.twofactor_dialog.accept()
@@ -199,4 +213,5 @@ class LoginDialog(QDialog):
             show_error_dialog('ERROR: Invalid verification code')
 
     def tfa_cancel(self):
+        """Use the QDialog reject method to close the tfa window"""
         self.twofactor_dialog.reject()

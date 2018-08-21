@@ -30,6 +30,15 @@ class DataScraper:
     Dashboard"""
 
     def __init__(self):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         super(DataScraper, self).__init__()
 
         # Setup browser for use by other components
@@ -83,23 +92,68 @@ class DataScraper:
         self.current_primary_ip = ''
 
     def get_url(self):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         print("browser url in get_url" + str(self.browser.get_url()))
         return self.browser.get_url()
 
     def get_tfa_success(self):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         return self.tfa_success
 
     # Return browser with any username, password, and cookies with it
     def get_browser(self):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         return self.browser
 
     # This function will return the array of networks from an organization
     # [] == False
     def org_has_networks(self, org_index):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         print("Network list: " + str(self.network_list))
         return self.network_list[org_index]
 
     def attempt_login(self, username, password):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         # Set up required vars
         self.username = username
         self.password = password
@@ -126,6 +180,15 @@ class DataScraper:
             return 'auth_success'
 
     def tfa_submit_info(self, tfa_code):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         form = self.browser.select_form()
         print(self.browser.get_url())
         self.browser['code'] = tfa_code
@@ -144,6 +207,15 @@ class DataScraper:
     # of names and links. Gestalt, this function gets info so there is
     # something to show the user as part of the initial ui
     def scrape_initial_org_info(self):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         """ ASSERTS
         Don't set data for network-only admins as they don't have org-access.
         Network-only admin data is added in get_networks().
@@ -199,19 +271,64 @@ class DataScraper:
             print(self.org_list[i])
 
     def get_org_list(self):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         return self.org_list
 
     def get_current_org(self):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         return self.current_org
 
     def set_current_org(self, current_org_index):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         self.current_org_index = current_org_index
         self.current_org = self.org_list[current_org_index]
 
     def get_org_networks(self):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         return self.network_list[self.current_org_index]
 
     def scrape_org_networks(self):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         """ ASSERTS
         * get_networks should only be called on initial startup or if a
           different organization has been chosen
@@ -313,6 +430,15 @@ class DataScraper:
                 print(self.network_list[i])
 
     def scrape_network_vars(self, current_network_index):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         """
         This method will scrape two things
             + Primary WAN IP address
@@ -337,6 +463,15 @@ class DataScraper:
         # because it needs DDNS/IP address
 
     def get_client_vpn_text(self, current_network_index):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         self.current_network = str(
             self.network_list[self.current_org_index][current_network_index])
         self.client_vpn_url = \
@@ -348,6 +483,15 @@ class DataScraper:
         self.client_vpn_soup = bs4.BeautifulSoup(self.client_vpn_text, 'lxml')
 
     def scrape_ddns_and_ip(self, current_network_index):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         """ ASSERTS
         * This method gets ddns and ip values for the current network
         * This method should ONLY be called

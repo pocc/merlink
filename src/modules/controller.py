@@ -27,6 +27,15 @@ class Controller:
     # Telling PyCharm linter not to (incorrectly) inspect PyQt function args
     # noinspection PyArgumentList
     def __init__(self):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         super(Controller, self).__init__()
 
         # If there is one argument, start GUI
@@ -60,6 +69,15 @@ class Controller:
         sys.exit()
 
     def program_structure(self):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         # Get organization info so we have something to show user
         self.interface.browser.scrape_initial_org_info()
         """ 

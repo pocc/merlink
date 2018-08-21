@@ -16,7 +16,7 @@
 """Provides a CLI for MerLink"""
 import argparse
 
-from src.cli.modal_prompts import ModalPrompts
+from src.cli.cli_modal_prompts import CliModalPrompts
 from src.modules.dashboard_browser import DataScraper
 
 
@@ -30,7 +30,7 @@ class MainCli:
 
     1. To enter all information manually
     Usage: merlink --name <vpn name> --address <server IP/FQDN> --psk <PSK>
-       --username <username> --password <password>
+        --username <username> --password <password>
 
     ex. merlink --name 'ACME VPN' --address 'acme.corp' --psk '@AnyCost'
         --username 'wile.e.coyote@acme.corp' --password 'SuperGenius!'
@@ -57,11 +57,35 @@ class MainCli:
         super(MainCli, self).__init__()
 
         self.parse_options()
-        self.messages = ModalPrompts()
+        self.messages = CliModalPrompts()
         self.browser = DataScraper()
 
     @staticmethod
     def parse_options():
+        """MainCli class constructor, inits with no params.
+
+        :param name: The name to use.
+        :type name: str
+        :param state: Current state to be in.
+        :type state: bool
+        :returns: int -- the return code.
+        :raises: AttributeError, KeyError
+        :param method: method for the new :class:`Request` object.
+        :param url: URL for the new :class:`Request` object.
+        :param params: (optional) Dictionary or bytes to be sent in the query string for the :class:`Request`.
+        :param data: (optional) Dictionary, bytes, or file-like object to send in the body of the :class:`Request`.
+        :param json: (optional) json data to send in the body of the :class:`Request`.
+        :param headers: (optional) Dictionary of HTTP Headers to send with the :class:`Request`.
+        :param cookies: (optional) Dict or CookieJar object to send with the :class:`Request`.
+
+        Parses argparse options
+
+        Args:
+
+        Returns:
+        Returns:
+        """
+
         parser = argparse.ArgumentParser()
         parser.add_argument("-v", "--verbose",
                             help="increase output verbosity",
@@ -100,16 +124,83 @@ class MainCli:
             exit()
 
     def show_main_menu(self):
+        """Fetches rows from a Bigtable.
+
+        Retrieves rows pertaining to the given keys from the Table instance
+        represented by big_table.  Silly things may happen if
+        other_silly_variable is not None.
+
+        Args:
+            big_table: An open Bigtable Table instance.
+            keys: A sequence of strings representing the key of each table row
+                to fetch.
+            other_silly_variable: Another optional variable, that has a much
+                longer name than the other args, and which does nothing.
+
+        Returns:
+            A dict mapping keys to the corresponding table row data
+            fetched. Each row is represented as a tuple of strings. For
+            example:
+
+            {'Serak': ('Rigel VII', 'Preparer'),
+             'Zim': ('Irk', 'Invader'),
+             'Lrrr': ('Omicron Persei 8', 'Emperor')}
+
+            If a key from the keys argument is missing from the dictionary,
+            then that row was not found in the table.
+
+        Raises:
+            IOError: An error occurred accessing the bigtable.Table object.
+        """
+
         pass
 
-    def get_user_action(self): pass
+    def get_user_action(self):
+        """Short desc
 
-    def add_vpn(self): pass
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
+        pass
+
+    def add_vpn(self):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
+        pass
 
     def connect_vpn(self, *vpn_vars):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         pass
 
     def show_result(self, result):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         pass
 
     def troubleshoot_vpn(self): pass

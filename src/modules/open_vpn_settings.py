@@ -18,15 +18,42 @@ from os import system
 
 
 def open_windows_vpn_settings():
+    """Short desc
+
+    Extended desc
+
+    Args:
+    Returns:
+    Returns:
+    """
+
     # Opens Windows 10 Settings > Network & Internet > VPN
     system('start ms-settings:network-vpn')
 
 
 def open_macos_vpn_settings():
+    """Short desc
+
+    Extended desc
+
+    Args:
+    Returns:
+    Returns:
+    """
+
     # Opens macOS System Settings > Network
     system('open /System/Library/PreferencePanes/Network.prefPane/')
 
 
 def open_nm_vpn_settings():
+    """Short desc
+
+    Extended desc
+
+    Args:
+    Returns:
+    Returns:
+    """
+
     # Opens System Settings > Network
     system('nm-connections-editor')

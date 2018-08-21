@@ -19,6 +19,15 @@ import subprocess
 
 
 def list_vpns():
+    """Short desc
+
+    Extended desc
+
+    Args:
+    Returns:
+    Returns:
+    """
+
     if sys.platform == 'win32':
         return subprocess.check_output(['powershell', 'get-vpnconnection'])
     if sys.platform == 'darwin':

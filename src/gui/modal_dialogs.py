@@ -26,6 +26,15 @@ from PyQt5.QtWidgets import QMessageBox
 
 
 def show_error_dialog(message):
+    """Short desc
+
+    Extended desc
+
+    Args:
+    Returns:
+    Returns:
+    """
+
     error_dialog = QMessageBox()
     error_dialog.setIcon(QMessageBox.Critical)
     error_dialog.setWindowTitle("Error!")
@@ -34,6 +43,15 @@ def show_error_dialog(message):
 
 
 def show_question_dialog(message):
+    """Short desc
+
+    Extended desc
+
+    Args:
+    Returns:
+    Returns:
+    """
+
     question_dialog = QMessageBox()
     question_dialog.setIcon(QMessageBox.Question)
     question_dialog.setWindowTitle("Error!")
@@ -44,6 +62,15 @@ def show_question_dialog(message):
 
 
 def show_feature_in_development_dialog():
+    """Short desc
+
+    Extended desc
+
+    Args:
+    Returns:
+    Returns:
+    """
+
     fid_message = QMessageBox()
     fid_message.setIcon(QMessageBox.Information)
     fid_message.setWindowTitle("Meraki Client VPN: Features in Progress")
@@ -52,6 +79,15 @@ def show_feature_in_development_dialog():
 
 
 def vpn_success_dialog():
+    """Short desc
+
+    Extended desc
+
+    Args:
+    Returns:
+    Returns:
+    """
+
     success_message = QMessageBox()
     success_message.setIcon(QMessageBox.Information)
     success_message.setWindowTitle("Success!")

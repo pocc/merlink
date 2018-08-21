@@ -17,15 +17,22 @@
 CLI modal prompts to send information."""
 
 
-class ModalPrompts:
+class CliModalPrompts:
+    """Class documentation."""
     def __init__(self):
-        super(ModalPrompts, self).__init__()
+        """CliModalPrompts class constructor, inits with no params."""
+        super(CliModalPrompts, self).__init__()
 
-    def show_error_dialog(self, message):
-        print(message)
+    @staticmethod
+    def show_error_dialog(message):
+        """Prints an error message
 
-    def show_question_dialog(self, message):
-        print(message)
+        Args:
+            message: An error message to show to the user"""
 
-    def show_feature_in_development_dialog(self):
-        print("Feature in development")
+        print("ERROR:" + str(message))
+
+    @staticmethod
+    def show_feature_in_development_dialog():
+        """Prints a message if user encounters a work in progress feature."""
+        print("Thank you for your interest. This is a feature in development.")

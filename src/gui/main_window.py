@@ -32,6 +32,7 @@ DEBUG = True
 
 
 class MainWindow(QMainWindow):
+
     # Telling PyCharm linter not to (incorrectly) inspect PyQt function args
     # noinspection PyArgumentList
     def __init__(self):
@@ -65,6 +66,14 @@ class MainWindow(QMainWindow):
         self.show()
 
     def show_main_menu(self):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
         # Set entered dashboard email/redacted password to be shown by default
         self.main_window_ui.set_dashboard_user_layout()
 

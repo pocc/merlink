@@ -37,6 +37,15 @@ class MenuBars:
         self.help_menu = bar.addMenu('&Help')
 
     def generate_menu_bars(self):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         # File options
         file_open = QAction('&Open', self.bar)
         file_open.setShortcut('Ctrl+O')
@@ -95,21 +104,57 @@ class MenuBars:
 
     @staticmethod
     def file_open_action():
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         # Might use this to open a saved vpn config
         show_feature_in_development_dialog()
         pass
 
     @staticmethod
     def file_save_action():
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         # Might use this to save a vpn config
         show_feature_in_development_dialog()
         pass
 
     @staticmethod
     def file_quit_action():
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         exit()
 
     def edit_prefs_action(self):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         # Preferences should go here.
         # How many settings are here will depend on the feature set
         prefs = QDialog()
@@ -121,6 +166,15 @@ class MenuBars:
 
     @staticmethod
     def view_interfaces_action():
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         # If linux/macos > ifconfig
         # If Windows > ipconfig /all
         show_feature_in_development_dialog()
@@ -128,6 +182,15 @@ class MenuBars:
 
     @staticmethod
     def view_routing_action():
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         # If linux/macos > netstat -rn
         # If Windows > route print
         show_feature_in_development_dialog()
@@ -135,27 +198,72 @@ class MenuBars:
 
     @staticmethod
     def view_data_action():
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         show_feature_in_development_dialog()
         pass
 
     @staticmethod
     def tshoot_error_action():
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         # In Windows, use powershell: get-eventlog
         show_feature_in_development_dialog()
         pass
 
     @staticmethod
     def tshoot_pcap_action():
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         show_feature_in_development_dialog()
         pass
 
     @staticmethod
     def help_support_action():
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         # Redirect to Meraki's support website
         webbrowser.open('https://meraki.cisco.com/support')
 
     @staticmethod
     def help_about_action():
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         about_popup = QDialog()
         about_popup.setWindowTitle("Meraki Client VPN: About")
         about_program = QLabel()

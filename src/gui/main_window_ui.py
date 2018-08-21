@@ -33,6 +33,15 @@ class MainWindowUi:
     # Telling PyCharm linter not to (incorrectly) inspect PyQt function args
     # noinspection PyArgumentList
     def __init__(self, app):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         # MAIN INIT UI
         # QMainWindow requires that a central app be set
         self.app = app
@@ -132,12 +141,30 @@ class MainWindowUi:
         app.cw.setLayout(vert_layout)
 
     def set_dashboard_user_layout(self):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         self.app.radio_username_textfield.setText(self.app.browser.username)
         self.app.radio_username_textfield.setReadOnly(True)
         self.app.radio_password_textfield.setText(self.app.browser.password)
         self.app.radio_password_textfield.setReadOnly(True)
 
     def set_guest_user_layout(self):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         self.app.radio_username_textfield.clear()
         self.app.radio_username_textfield.setReadOnly(False)
         self.app.radio_password_textfield.clear()

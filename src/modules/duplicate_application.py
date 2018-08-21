@@ -18,8 +18,15 @@ import psutil
 
 
 def is_duplicate_application(program_name):
-    """ docstring pass1
+    """Short desc
+
+    Extended desc
+
+    Args:
+    Returns:
+    Returns:
     """
+
     count = 0
     for proc in psutil.process_iter():
         if proc.as_dict(attrs=['name'])['name'] == program_name:

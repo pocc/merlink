@@ -24,6 +24,15 @@ from src.modules.pyinstaller_path_helper import resource_path
 class SystrayIcon:
     # Taking in 'app', which is the MainWindow object
     def __init__(self, app):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         # Init QSystemTrayIcon
         # Set the Window and Tray Icons
         self.app = app
@@ -69,6 +78,15 @@ class SystrayIcon:
         self.tray_icon.activated.connect(self.icon_activated)
 
     def icon_activated(self, reason):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         if reason in (QSystemTrayIcon.Trigger, QSystemTrayIcon.DoubleClick):
             self.app.show()  # So it will show up in taskbar
             self.app.raise_()  # for macOS
@@ -84,6 +102,15 @@ class SystrayIcon:
         # The window will be closed if there is no check mark in the check box
 
     def application_minimized(self):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         self.tray_icon.showMessage(
             "Merlink",
             "Merlink is now minimized",
@@ -92,12 +119,30 @@ class SystrayIcon:
         )
 
     def set_vpn_failure(self):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         self.app.setIcon(QIcon(resource_path('src/media/unmiles.ico')))
 
     # There's no such thing as "minimize to system tray".
     # What we're doing is hiding the window and
     # then adding an icon to the system tray
     def set_vpn_success(self):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         self.tray_icon.setIcon(QIcon(resource_path(
             'src/media/connected_miles.ico')))
         # If user wants to know more about connection,

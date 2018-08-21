@@ -41,6 +41,15 @@ class VpnConnection:
         Any OS-specific VPN parameters will go into vpn_options """
 
     def __init__(self, vpn_data):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         super(VpnConnection, self).__init__()
         self.vpn_data = vpn_data
         self.vpn_options = []
@@ -48,6 +57,15 @@ class VpnConnection:
 
     # Sanitize variables for powershell/bash input
     def sanitize_variables(self):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         for i in range(len(self.vpn_data)):
             # Convert to string
             self.vpn_data[i] = str(self.vpn_data[i])
@@ -57,6 +75,15 @@ class VpnConnection:
             self.vpn_data[i] = '\"' + self.vpn_data[i] + '\"'
 
     def attempt_windows_vpn(self, vpn_options):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         self.sanitize_variables()
 
         self.vpn_options = vpn_options
@@ -87,6 +114,15 @@ class VpnConnection:
         #  open ps window
 
     def attempt_macos_vpn(self, vpn_options):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         self.vpn_options = vpn_options
         print("Creating macOS VPN")
         # scutil is required to add the VPN to the active set. Without this,
@@ -128,6 +164,15 @@ class VpnConnection:
         )
 
     def attempt_linux_vpn(self, vpn_options):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         self.vpn_options = vpn_options
         """
         sudo required to create a connection with nmcli
@@ -143,10 +188,28 @@ class VpnConnection:
             'src/scripts/connect_linux.sh'), *self.vpn_data])
 
     def disconnect(self):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         if self.is_vpn_connected():
             system('rasdial ' + self.vpn_name + ' /disconnect')
 
     def is_vpn_connected(self):
+        """Short desc
+
+        Extended desc
+
+        Args:
+        Returns:
+        Returns:
+        """
+
         if sys.platform == 'win32':
             rasdial_status = \
                 subprocess.Popen(['rasdial'], stdout=subprocess.PIPE
