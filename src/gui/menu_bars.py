@@ -53,10 +53,8 @@ class MenuBars:
         """
 
         # File options
-        file_open = QAction('&Open', self.bar)
-        file_open.setShortcut('Ctrl+O')
-        file_save = QAction('&Save', self.bar)
-        file_save.setShortcut('Ctrl+S')
+        file_sysprefs = QAction('&Open VPN System Prefs', self.bar)
+        file_sysprefs.setShortcut('Ctrl+O')
         file_quit = QAction('&Quit', self.bar)
         file_quit.setShortcut('Ctrl+Q')
 
@@ -70,13 +68,20 @@ class MenuBars:
         help_about = QAction('A&bout', self.bar)
         help_about.setShortcut('Ctrl+B')
 
+        self.file_menu.addAction(file_sysprefs)
         self.file_menu.addAction(file_quit)
         self.edit_menu.addAction(edit_preferences)
         self.help_menu.addAction(help_about)
 
+        file_quit.triggered.connect(self.file_sysprefs)
         file_quit.triggered.connect(self.file_quit_action)
         edit_preferences.triggered.connect(self.edit_prefs_action)
         help_about.triggered.connect(self.help_about_action)
+
+    @staticmethod
+    def file_sysprefs():
+        """Open system VPN settings"""
+        s
 
     @staticmethod
     def file_quit_action():

@@ -14,11 +14,13 @@
 # limitations under the License.
 
 """This class manages the system tray icon."""
-from PyQt5.QtWidgets import QAction, QMenu, QSystemTrayIcon
-from PyQt5.QtGui import QIcon, QFont
 import webbrowser
 
+from PyQt5.QtWidgets import QAction, QMenu, QSystemTrayIcon
+from PyQt5.QtGui import QIcon, QFont
+
 from src.modules.pyinstaller_path_helper import resource_path
+import src.modules.open_vpnsettings as sys_settings
 
 
 class SystrayIcon:
@@ -69,13 +71,15 @@ class SystrayIcon:
         self.tray_icon.activated.connect(self.icon_activated)
 
     def icon_activated(self, reason):
-        """Short desc
+        """The user has clicked on the systray icon, so respond
 
-        Extended desc
+        If single or double click, show the application
+        If middle click, go to meraki.cisco.com
+        Override closeEvent, to intercept the window closing event
 
         Args:
-        Returns:
-        Returns:
+            reason (QSystemTrayIcon.ActivationReason): An enum of
+            [0,4] of how the user interacted with the system tray
         """
 
         if reason in (QSystemTrayIcon.Trigger, QSystemTrayIcon.DoubleClick):
@@ -89,19 +93,8 @@ class SystrayIcon:
             # TODO cookie when we open the browser
             webbrowser.open("https://meraki.cisco.com/")
 
-        # Override closeEvent, to intercept the window closing event
-        # The window will be closed if there is no check mark in the check box
-
     def application_minimized(self):
-        """Short desc
-
-        Extended desc
-
-        Args:
-        Returns:
-        Returns:
-        """
-
+        """Minimize the window."""
         self.tray_icon.showMessage(
             "Merlink",
             "Merlink is now minimized",
@@ -110,39 +103,42 @@ class SystrayIcon:
         )
 
     def set_vpn_failure(self):
-        """Short desc
+        """Tell user that VPN connection was unsuccessful.
 
-        Extended desc
-
-        Args:
-        Returns:
-        Returns:
+        Show an icon of Miles with a red interdictory circle and let
+        the user know the connection failed.
         """
 
         self.app.setIcon(QIcon(resource_path('src/media/unmiles.ico')))
+        # Provide system VPN settings if the user wants more info
+        self.tray_icon.messageClicked.connect(sys_settings.open_vpnsettings)
+        # Show the user this message so they know where the program went
+        self.tray_icon.showMessage(
+            "Merlink",
+            "Connection failure!",
+            QSystemTrayIcon.Information,
+            1500
+        )
 
-    # There's no such thing as "minimize to system tray".
-    # What we're doing is hiding the window and
-    # then adding an icon to the system tray
     def set_vpn_success(self):
-        """Short desc
+        """Tell user that VPN connection was successful.
 
-        Extended desc
+        NOTE: There's no such thing as "minimize to system tray".
+        What we're doing is hiding the window and
+        then adding an icon to the system tray
 
-        Args:
-        Returns:
-        Returns:
+        This function will set the icon to Miles with 3D glasses and
+        show a message that the connection was successful.
         """
 
         self.tray_icon.setIcon(QIcon(resource_path(
             'src/media/connected_miles.ico')))
-        # If user wants to know more about connection,
-        # they can click on message and be redirected
-        self.tray_icon.messageClicked.connect(self.app.open_vpn_settings)
-        # Show the user the message so they know where the program went
+        # Provide system VPN settings if the user wants more info
+        self.tray_icon.messageClicked.connect(sys_settings.open_vpnsettings)
+        # Show the user this message so they know where the program went
         self.tray_icon.showMessage(
             "Merlink",
-            "Succesfully connected!",
+            "Connection success!",
             QSystemTrayIcon.Information,
-            2000
+            1500
         )

@@ -15,45 +15,17 @@
 
 """This will start the OS-dependent VPN settings window."""
 from os import system
+from sys import platform
 
 
-def open_windows_vpn_settings():
-    """Short desc
-
-    Extended desc
-
-    Args:
-    Returns:
-    Returns:
-    """
-
-    # Opens Windows 10 Settings > Network & Internet > VPN
-    system('start ms-settings:network-vpn')
-
-
-def open_macos_vpn_settings():
-    """Short desc
-
-    Extended desc
-
-    Args:
-    Returns:
-    Returns:
-    """
-
-    # Opens macOS System Settings > Network
-    system('open /System/Library/PreferencePanes/Network.prefPane/')
-
-
-def open_nm_vpn_settings():
-    """Short desc
-
-    Extended desc
-
-    Args:
-    Returns:
-    Returns:
-    """
-
-    # Opens System Settings > Network
-    system('nm-connections-editor')
+def open_vpnsettings():
+    """Opens OS-specific VPN settings."""
+    if platform == 'win32':
+        # Opens Windows 10 Settings > Network & Internet > VPN
+        system('start ms-settings:network-vpn')
+    elif platform == 'darwin':
+        # Opens macOS System Settings > Network
+        system('open /System/Library/PreferencePanes/Network.prefPane/')
+    elif platform.startswith('linux'):  # covers vaild 'linux', 'linux2'
+        # Opens System Settings > Network
+        system('nm-connections-editor')

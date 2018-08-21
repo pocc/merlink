@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""After a failure to connect, this function will guify the cause."""
+"""After a failure to connect, this function will GUIfy the cause."""
 from PyQt5.QtWidgets import QListWidgetItem, QListWidget
 from PyQt5.QtGui import QIcon
 
@@ -22,13 +22,15 @@ from src.modules.pyinstaller_path_helper import resource_path
 
 
 def tshoot_failed_vpn_dialog(has_passed_validation):
-    """Short desc
-
-    Extended desc
+    """After a failure to connect, this function will GUIfy the cause.
 
     Args:
+        has_passed_validation (list(bool)): A list of bools corresponding
+        to the success of 6 tests validating against common misconfigurations.
+
     Returns:
-    Returns:
+        (QListWidget): A QListWidget that has checkmark/X icons and
+        accompanying text according to whether that text's test passed.
     """
 
     validation_list = QListWidget()
@@ -54,3 +56,5 @@ def tshoot_failed_vpn_dialog(has_passed_validation):
         else:
             validation_list.item(i).setIcon(
                 QIcon(resource_path('src/media/x-mark-16.png')))
+
+    return validation_list
