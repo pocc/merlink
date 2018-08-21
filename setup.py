@@ -19,7 +19,7 @@ from setuptools import setup
 setup(
     name='merlink',
     version='0.8.5',
-    packages=['src', 'src.modules', 'src.scripts'],
+    packages=['src', 'src.cli', 'src.modules', 'src.gui'],
     url='pocc.github.io/merlink',
     license='Apache 2.0',
     author='Ross Jacobs',
