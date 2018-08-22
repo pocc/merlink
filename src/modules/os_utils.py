@@ -33,7 +33,6 @@ def is_duplicate_application(program_name):
 
 def is_online():
     """Detects whether the device is connected to the internet"""
-
     # Initialize vars
     result = ''
     ping_command = ''
@@ -62,6 +61,7 @@ def is_online():
 
     online_status = 'unreachable' not in result and 'timed out' \
                     not in result and 'failure' not in result
+
     return online_status
 
 

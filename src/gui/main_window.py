@@ -22,7 +22,7 @@ from PyQt5.QtWidgets import QMainWindow
 from src.gui.modal_dialogs import show_error_dialog, vpn_success_dialog
 from src.modules.dashboard_browser import DataScraper
 from src.modules.vpn_connection import VpnConnection
-from src.modules.troubleshoot_vpn_failure import TroubleshootVpnFailure
+from src.modules.vpn_tests import TroubleshootVpn
 from src.modules.os_utils import is_duplicate_application
 from src.gui.menu_bars import MenuBars
 from src.gui.main_window_ui import MainWindowUi
@@ -135,7 +135,7 @@ class MainWindow(QMainWindow):
             print("In change_organization and this is network list "
                   + str(self.browser.get_org_networks()))
             # If we have network data for the selected org
-            selected_org_networks = self.browser.org_has_networks(
+            selected_org_networks = self.browser.get_networks_by_org_index(
                 selected_org_index)
             # [] == False, so any content means we have networks for that org
             # If we've already scraped networks for that org, do nothing
@@ -182,10 +182,10 @@ class MainWindow(QMainWindow):
 
     def tshoot_vpn_fail_gui(self):
         """Troubleshoot VPN failure and then show the user the results."""
-        result = TroubleshootVpnFailure(self.fw_status_text,
-                                        self.client_vpn_text,
-                                        self.current_ddns,
-                                        self.current_primary_ip)
+        result = TroubleshootVpn(self.fw_status_text,
+                                 self.client_vpn_text,
+                                 self.current_ddns,
+                                 self.current_primary_ip)
         tshoot_failed_vpn_dialog(result.get_test_results())
         self.status.showMessage("Status: Ready to connect to "
                                 + self.current_network + ".")

@@ -22,7 +22,7 @@ from os import system
 from src.gui.modal_dialogs import show_error_dialog
 
 
-class TroubleshootVpnFailure:
+class TroubleshootVpn:
     """Short desc
 
     Extended desc
@@ -33,7 +33,7 @@ class TroubleshootVpnFailure:
     """
 
     def __init__(self, fw_status_text, client_vpn_text, ddns, firewall_ip):
-        super(TroubleshootVpnFailure, self).__init__()
+        super(TroubleshootVpn, self).__init__()
 
         # Set required variables from merlink_gui
         self.fw_status_text = fw_status_text
