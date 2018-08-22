@@ -15,7 +15,6 @@
 
 """Main Window is the controlling class for the GUI."""
 import sys
-from os import getcwd
 
 from PyQt5.QtWidgets import QMainWindow
 
@@ -36,37 +35,30 @@ class MainWindow(QMainWindow):
     """Main Window is the controlling class for the GUI.
 
     Attributes:
-        TODO Missing(missing):
+        menu_widget (MenuBars): Used to tie the menu bars to the MainWindow
+        browser (DataScraper): Browser used to store user credentials
+        tray_icon = SystrayIcon(self)
+        main_window_ui (MainWindowUi): Class to tie UI to Main Window (while
+        being in a different file for clarity).
     """
     # Telling PyCharm linter not to (incorrectly) inspect PyQt function args
     # noinspection PyArgumentList
     def __init__(self):
         super(MainWindow, self).__init__()
-
-        if DEBUG:
-            print("Main Window")
-
         # If there's  a duplicate instance, close this one
         if is_duplicate_application('merlink'):
             show_error_dialog('ERROR: You already have a running merlink '
-                              'instance!'
-                              '\nThis application will now close.')
+                              'instance!\nThis application will now close.')
             self.close()  # In lieu of sys.exit(app.exec_())
 
-        # Passing the self.menuBar() variable is critical for menu bars
+        self.browser = DataScraper()
+
+        # Tie the menu bars, tray_icon, and main window UI to this object.
         self.menu_widget = MenuBars(self.menuBar())
         self.menu_widget.generate_menu_bars()
-
-        # Variables
-        self.browser = DataScraper()
-        self.platform = sys.platform
-        self.network_admin_only = False
-        # We use cwd in multiple places, so fetch current working dir once
-        self.cwd = getcwd()
         self.tray_icon = SystrayIcon(self)
-        self.is_connected = False
-
         self.main_window_ui = MainWindowUi(self)
+
         self.show()
 
     def show_main_menu(self):
@@ -89,7 +81,7 @@ class MainWindow(QMainWindow):
         current_org = self.browser.get_current_org()
         self.org_dropdown.addItems(org_list)
         # Get the data we need and remove the cruft we don't
-        self.browser.scrape_org_networks()
+        self.browser.scrape_networks_by_org()
         self.status.showMessage("Status: Fetching networks in " +
                                 current_org + "...")
         # Remove all elements from the network UI dropdown
@@ -147,7 +139,7 @@ class MainWindow(QMainWindow):
                 print("we are getting new info for " + selected_org +
                       " at index" + str(selected_org_index))
                 self.browser.set_current_org(selected_org_index)
-                self.browser.scrape_org_networks()
+                self.browser.scrape_networks_by_org()
 
             self.refresh_network_dropdown()
             self.status.showMessage("Status: Select network")
@@ -237,14 +229,14 @@ class MainWindow(QMainWindow):
             # Create VPN connection
             vpn_data = [
                 vpn_name,
-                self.browser.current_ddns,
-                self.browser.psk,
+                self.browser.vpn_vars['current_ddns'],
+                self.browser.vpn_vars['psk'],
                 username,
                 password
             ]
             connection = VpnConnection(vpn_data)
 
-            if self.platform == 'win32':
+            if sys.platform == 'win32':
                 windows_options = [
                     DEBUG,
                     self.dns_suffix_txtbox.text(),
@@ -256,13 +248,13 @@ class MainWindow(QMainWindow):
                 successful_attempt = \
                     connection.attempt_windows_vpn(windows_options)
 
-            elif self.platform == 'darwin':
+            elif sys.platform == 'darwin':
                 macos_options = []
                 successful_attempt = \
                     connection.attempt_macos_vpn(macos_options)
 
             # linux, linux2 are valid for linux distros
-            elif self.platform.startswith('linux'):
+            elif sys.platform.startswith('linux'):
                 linux_options = []
                 successful_attempt = \
                     connection.attempt_linux_vpn(linux_options)
@@ -277,7 +269,6 @@ class MainWindow(QMainWindow):
 
     def communicate_vpn_success(self):
         """Let the user know that they are connected."""
-        self.is_connected = True
         self.status.showMessage('Status: Connected')
         vpn_success_dialog()
 
@@ -288,7 +279,6 @@ class MainWindow(QMainWindow):
 
     def communicate_vpn_failure(self):
         """Let the user know tha the VPN connection failed."""
-        self.is_connected = False
         self.status.showMessage('Status: Connection Failed')
         self.error_dialog("Connection Failed")
         self.tray_icon.set_vpn_failure()

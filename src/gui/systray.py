@@ -22,8 +22,18 @@ from PyQt5.QtGui import QIcon, QFont
 from src.modules.os_utils import pyinstaller_path
 from src.modules.os_utils import open_vpnsettings
 
+
 class SystrayIcon:
-    """Taking in 'app', which is the MainWindow object"""
+    """This class manages the system tray icon of the main program.
+
+    It will only trigger after login.
+
+    Args:
+        app (QMainWindow): Set to MainWindow object (required binding for Qt)
+        tray_icon (QSystemTrayIcon): System Tray object that has all of the
+          functionality that this class requires.
+    """
+
     def __init__(self, app):
         # Init QSystemTrayIcon
         # Set the Window and Tray Icons

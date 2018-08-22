@@ -30,6 +30,30 @@ class DataScraper:
         password (string): User-entered password, used to login
         browser (MechanicalSoup): Main browser object to send data to dashboard
 
+        ----
+
+        vpn_vars (dict): List of VPN variables (does the browser need access
+        to this?)
+
+        org_links (dict): A dict of org names and their links
+        org_list (list): A list of orgs (= org_links.keys())
+           ===> Probably want to get rid of this and use the equivalent instead.
+        network_list (list): List of netwoks?????
+        base_url_list (list): List of base urls?????
+
+        org_qty (int): Number of organizations someone has access to. Once
+          determined, it should be invariant.
+
+        current_org (string): Name of the org that is currently selecetd.
+        current_org_index (int): Org index (0 = select option), so start from 1.
+        network_admin_only (bool): Does the admin have no org-level access?
+
+        current_network (string): Name of the current network
+        fw_status_text (string): Text of the appliance status page
+        client_vpn_url (string): Client VPN url pivoted from current network
+        client_vpn_text (string): Text of the client vpn page
+        client_vpn_soup (BeautifulSoup): Soup object of the client VPN page
+
     TODO: Convert the other attributes to a dict
     """
     def __init__(self):
@@ -47,52 +71,45 @@ class DataScraper:
                        'AppleWebKit/601.6 (KHTML, like Gecko) '
                        'NF/4.0.0.5.9 NintendoBrowser/5.1.0.13341',
         )
-        # Set tfa_success to false
-        self.tfa_success = False
 
-        # By default, you have access to 0 orgs
-        self.org_qty = 0
         # Initialize organization dictionary {Name: Link} and
         # list for easier access. org_list is org_links.keys()
         self.org_links = {}
         self.org_list = []
         self.network_list = []
         self.base_url_list = []
-        self.current_org = 'Org Placeholder'  # Org name placeholder
+
+        self.org_qty = 0
+        self.current_org = 'Org Placeholder'
         self.current_org_index = 0  # Default to first organization
         self.network_admin_only = False  # Most admins are org admins
 
         # VPN VARS: Powershell Variables set to defaults
-        self.current_ddns = '-'  # set to default hyphen char as a failsafe
-        # Expected behavior is to have full-tunnel by default
-        self.split_tunnel = False
-        self.remember_credential = False
         # If it's set to '', then powershell will skip reading that parameter.
-        self.DnsSuffix = '-'
-        # Powershell default for not disconnecting until after x seconds
-        self.IdleDisconnectSeconds = 0
-        self.UseWinlogonCredential = False
+        self.vpn_vars = {
+            'current_ddns': '-',
+            'psk': '',
+            'current_primary_ip': '',
+
+            'split_tunnel': False,
+            'remember_credential': False,
+            'DnsSuffix': '-',
+            'IdleDisconnectSeconds': 0,  # Powershell default
+            'UseWinlogonCredential': False,
+        }
+
         self.is_connected = False
-        self.username = ''
-        self.password = ''
 
         self.current_network = ''
+        self.fw_status_text = ''
         self.client_vpn_url = ''
         self.client_vpn_text = ''
         self.client_vpn_soup = ''
-        self.psk = ''
-
-        self.fw_status_text = ''
-        self.current_primary_ip = ''
 
     def get_url(self):
         """Get the current URL"""
         print("browser url in get_url" + str(self.browser.get_url()))
         return self.browser.get_url()
-
-    def get_tfa_success(self):
-        """Get the TFA success bool"""
-        return self.tfa_success
 
     # Return browser with any username, password, and cookies with it
     def get_browser(self):
@@ -399,8 +416,8 @@ class DataScraper:
         ddns_value_start = self.fw_status_text.find("dynamic_dns_name")+19
         ddns_value_end = self.fw_status_text[ddns_value_start:].find('\"') \
             + ddns_value_start
-        self.current_ddns = self.fw_status_text[ddns_value_start:
-                                                ddns_value_end]
+        self.vpn_vars['current_ddns'] = \
+            self.fw_status_text[ddns_value_start:ddns_value_end]
 
         # Primary will always come first, so using find should
         # find it's IP address, even if there's a warm spare

@@ -32,7 +32,7 @@ class Controller:
 
     Attributes:
         interface (MainWindow | MainCli): Calls interface-dependent functions
-        (this is a primitive form of overloading).
+          (this is a primitive form of overloading).
         app (QApplication): Required for the Qt program flow, not used for CLI
 
     """

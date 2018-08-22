@@ -61,12 +61,12 @@ class VpnConnection:
 
         * Arguments sent to powershell MUST BE STRINGS
         * Each argument cannot be the empty string or null or PS will think
-        there's no param there!!!
+          there's no param there!!!
         * Last 3 ps params are bools converted to ints (0/1) converted to
-        strings. It's easy to force convert '0' and '1' to ints on
-        powershell side.
+          strings. It's easy to force convert '0' and '1' to ints on
+          powershell side.
         * Setting execution policy to unrestricted is necessary so that we
-        can access VPN functions
+          can access VPN functions
         * Email CANNOT have spaces, but password can.
         """
 
@@ -139,12 +139,12 @@ class VpnConnection:
     def attempt_linux_vpn(self, vpn_options):
         """Attempt to connect on linux.
 
-        sudo required to create a connection with nmcli
-        pkexec is built into latest Fedora, Debian, Ubuntu.
-        'pkexec <cmd>' correctly asks in GUI on Debian, Ubuntu but in
-        terminal on Fedora
-        pkexec is PolicyKit, which is the preferred means of asking for
-        permission on LSB
+        * sudo required to create a connection with nmcli
+        * pkexec is built into latest Fedora, Debian, Ubuntu.
+        * 'pkexec <cmd>' correctly asks in GUI on Debian, Ubuntu but in
+          terminal on Fedora
+        * pkexec is PolicyKit, which is the preferred means of asking for
+          permission on LSB
         """
 
         self.vpn_options = vpn_options

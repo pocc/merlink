@@ -29,7 +29,17 @@ from PyQt5.QtWidgets import QLabel
 
 
 class MainWindowUi:
-    """Taking in 'app', which is the MainWindow object"""
+    """Takes a MainWindow object and then decorates it like a cake.
+
+    This file exists to take much of the UI content of the MainWindow class
+    so that the MainWindow class can be cleaner. This is in lieu of having
+    created the UI files in Qt Designer, converted them to pyuic, and then
+    never touched the UI files again (not a route I chose to go).
+
+    Attributes:
+        app (MainWindow): The main window object that this class decorates.
+
+    """
     # Telling PyCharm linter not to (incorrectly) inspect PyQt function args
     # noinspection PyArgumentList
     def __init__(self, app):

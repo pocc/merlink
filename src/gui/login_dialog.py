@@ -32,18 +32,24 @@ class LoginDialog(QDialog):
     """This class provides dialog GUI elements.
 
     Attributes:
+        browser (MechanicalSoup): A browser in which to store user credentials.
 
+        ----
+
+        Please consider moving the brunt of the __init__ UI content to its
+        own file.
+
+    TODO: Convert the other attributes to a dict
     """
     # Telling PyCharm linter not to (incorrectly) inspect PyQt function args
     # noinspection PyArgumentList
     def __init__(self):
         """Create UI vars necessary for login window to be shown."""
         super(LoginDialog, self).__init__()
-        self.setModal(True)  # Make the login window prevent program usage
-
         self.browser = DataScraper()
 
         # LOGIN WINDOW UI SETUP
+        self.setModal(True)  # Make the login window prevent program usage
         self.meraki_img = QLabel('<a href=https://meraki.cisco.com/products/'
                                  'wireless#mr-new>MR advertisement</a>')
         self.meraki_img.setOpenExternalLinks(True)
