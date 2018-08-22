@@ -24,24 +24,27 @@ from src.cli.merlink_cli import MainCli
 
 
 class Controller:
+    """This is the MVC controller for both gui and cli interfaces.
+
+    This class will be called by /merlink.py and will control the application.
+    Controller uses an interface object whose methods are implemented by
+    both MainWindow and MainCli.
+
+    Attributes:
+        interface (MainWindow | MainCli): Calls interface-dependent functions
+        (this is a primitive form of overloading).
+        app (QApplication): Required for the Qt program flow, not used for CLI
+
+    """
     # Telling PyCharm linter not to (incorrectly) inspect PyQt function args
     # noinspection PyArgumentList
     def __init__(self):
-        """Short desc
-
-        Extended desc
-
-        Args:
-        Returns:
-        Returns:
-        """
-
         super(Controller, self).__init__()
 
         # If there is one argument, start GUI
         # Otherwise, start CLI
-        self.gui_application = (len(sys.argv) == 1)
-        if self.gui_application:
+        gui_application = (len(sys.argv) == 1)
+        if gui_application:
             self.app = QApplication(sys.argv)
             # We want to be able to be connected with VPN with systray icon
             self.app.setQuitOnLastWindowClosed(False)
@@ -62,37 +65,34 @@ class Controller:
             exit()
 
         self.program_structure()
-        if self.gui_application:
+        if gui_application:
             # Required Qt logic to start window
             self.app.exec_()
 
         sys.exit()
 
     def program_structure(self):
-        """Short desc
+        """Contains the interface-independent structure of the program.
 
-        Extended desc
+        Currently, it implements a couple functions that start the
+        GUI application while the CLI is still unwritten.
 
-        Args:
-        Returns:
-        Returns:
-        """
-
-        # Get organization info so we have something to show user
-        self.interface.browser.scrape_initial_org_info()
-        """ 
         Main menu should show the following across interfaces:
         1. Existing VPN connections that we can connect to
         2. After list of VPN connections, have a "+ Add a connection" option
         3. Indicate which VPN connections that are currently active (if any)
         4. Route table (should change when a VPN connection is made)
         5. Latency/loss/bandwidth graph used for a connected VPN
-        
+
         It should return the next user action
         """
+
+        # Get organization info so we have something to show user
+        self.interface.browser.scrape_initial_org_info()
         self.interface.show_main_menu()
 
         """
+        TODO: Uncomment this section or delete
         user_action = self.interface.get_user_action()
         # Default right now is to combine them
         if user_action == 'add vpn' or user_action == 'connect vpn':

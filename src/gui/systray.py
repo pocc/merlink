@@ -19,9 +19,8 @@ import webbrowser
 from PyQt5.QtWidgets import QAction, QMenu, QSystemTrayIcon
 from PyQt5.QtGui import QIcon, QFont
 
-from src.modules.pyinstaller_path_helper import resource_path
-import src.modules.open_vpnsettings as sys_settings
-
+from src.modules.os_utils import pyinstaller_path
+from src.modules.os_utils import open_vpnsettings
 
 class SystrayIcon:
     """Taking in 'app', which is the MainWindow object"""
@@ -29,9 +28,9 @@ class SystrayIcon:
         # Init QSystemTrayIcon
         # Set the Window and Tray Icons
         self.app = app
-        self.app.setWindowIcon(QIcon(resource_path('src/media/miles.ico')))
+        self.app.setWindowIcon(QIcon(pyinstaller_path('src/media/miles.ico')))
         self.tray_icon = QSystemTrayIcon(app)
-        self.tray_icon.setIcon(QIcon(resource_path('src/media/miles.ico')))
+        self.tray_icon.setIcon(QIcon(pyinstaller_path('src/media/miles.ico')))
         if app.is_vpn_connected():
             connection_status = 'VPN connected'
         else:
@@ -109,9 +108,9 @@ class SystrayIcon:
         the user know the connection failed.
         """
 
-        self.app.setIcon(QIcon(resource_path('src/media/unmiles.ico')))
+        self.app.setIcon(QIcon(pyinstaller_path('src/media/unmiles.ico')))
         # Provide system VPN settings if the user wants more info
-        self.tray_icon.messageClicked.connect(sys_settings.open_vpnsettings)
+        self.tray_icon.messageClicked.connect(open_vpnsettings)
         # Show the user this message so they know where the program went
         self.tray_icon.showMessage(
             "Merlink",
@@ -131,10 +130,10 @@ class SystrayIcon:
         show a message that the connection was successful.
         """
 
-        self.tray_icon.setIcon(QIcon(resource_path(
+        self.tray_icon.setIcon(QIcon(pyinstaller_path(
             'src/media/connected_miles.ico')))
         # Provide system VPN settings if the user wants more info
-        self.tray_icon.messageClicked.connect(sys_settings.open_vpnsettings)
+        self.tray_icon.messageClicked.connect(open_vpnsettings)
         # Show the user this message so they know where the program went
         self.tray_icon.showMessage(
             "Merlink",

@@ -23,7 +23,7 @@ from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QHBoxLayout
 from PyQt5.QtGui import QPixmap
 
-from src.modules.pyinstaller_path_helper import resource_path
+from src.modules.os_utils import pyinstaller_path
 from src.modules.dashboard_browser import DataScraper
 from src.gui.modal_dialogs import show_error_dialog
 
@@ -118,7 +118,7 @@ class LoginDialog(QDialog):
         layout_login.addWidget(self.about_lbl)
 
         self.meraki_img.setPixmap(
-            QPixmap(resource_path('src/media/new-mr.jpg')))
+            QPixmap(pyinstaller_path('src/media/new-mr.jpg')))
 
         # Background for program will be #Meraki green = #78be20
         self.setStyleSheet("background-color:#eee")

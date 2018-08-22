@@ -23,6 +23,7 @@ from src.gui.modal_dialogs import show_error_dialog, vpn_success_dialog
 from src.modules.dashboard_browser import DataScraper
 from src.modules.vpn_connection import VpnConnection
 from src.modules.troubleshoot_vpn_failure import TroubleshootVpnFailure
+from src.modules.os_utils import is_duplicate_application
 from src.gui.menu_bars import MenuBars
 from src.gui.main_window_ui import MainWindowUi
 from src.gui.systray import SystrayIcon
@@ -45,13 +46,12 @@ class MainWindow(QMainWindow):
         if DEBUG:
             print("Main Window")
 
-        """
-        # Shelving this code as it prevents multiple processes using an IDE 
-        if is_online():
-            error_dialog('ERROR: You already have a running merlink instance!'
-                         '\nThis application will now close.')
+        # If there's  a duplicate instance, close this one
+        if is_duplicate_application('merlink'):
+            show_error_dialog('ERROR: You already have a running merlink '
+                              'instance!'
+                              '\nThis application will now close.')
             self.close()  # In lieu of sys.exit(app.exec_())
-        """
 
         # Passing the self.menuBar() variable is critical for menu bars
         self.menu_widget = MenuBars(self.menuBar())
@@ -303,7 +303,7 @@ class MainWindow(QMainWindow):
 
     def is_vpn_connected(self):
         """Determines whether the VPN is connected.
-        
+
         TODO: Implement this function
 
         Returns:

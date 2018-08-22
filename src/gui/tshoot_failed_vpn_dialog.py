@@ -18,7 +18,7 @@ from PyQt5.QtWidgets import QListWidgetItem, QListWidget
 from PyQt5.QtGui import QIcon
 
 # Local modules
-from src.modules.pyinstaller_path_helper import resource_path
+from src.modules.os_utils import pyinstaller_path
 
 
 def tshoot_failed_vpn_dialog(has_passed_validation):
@@ -52,9 +52,9 @@ def tshoot_failed_vpn_dialog(has_passed_validation):
         print("has passed" + str(i) + str(has_passed_validation[i]))
         if has_passed_validation[i]:
             validation_list.item(i).setIcon(
-                QIcon(resource_path('src/media/checkmark-16.png')))
+                QIcon(pyinstaller_path('src/media/checkmark-16.png')))
         else:
             validation_list.item(i).setIcon(
-                QIcon(resource_path('src/media/x-mark-16.png')))
+                QIcon(pyinstaller_path('src/media/x-mark-16.png')))
 
     return validation_list

@@ -14,7 +14,7 @@
 # limitations under the License.
 
 """Given VPN vars, uses OS built-ins to create/connect a L2TP/IPSEC VPN."""
-from src.modules.pyinstaller_path_helper import resource_path
+from src.modules.os_utils import pyinstaller_path
 import sys
 import subprocess
 from os import system
@@ -108,7 +108,7 @@ class VpnConnection:
         # Email CANNOT have spaces, but password can.
         return subprocess.call(
             [powershell_path, '-ExecutionPolicy', 'Unrestricted',
-             resource_path('src\scripts\connect_windows.ps1'), *self.vpn_data,
+             pyinstaller_path('src\scripts\connect_windows.ps1'), *self.vpn_data,
              *self.vpn_options])
         # subprocess.Popen([], creationflags=subprocess.CREATE_NEW_CONSOLE)
         #  open ps window
@@ -183,8 +183,8 @@ class VpnConnection:
         permission on LSB
         """
         # set execution bit on bash script
-        system('chmod a+x ' + resource_path('src/scripts/connect_linux.sh'))
-        return subprocess.Popen(['pkexec', resource_path(
+        system('chmod a+x ' + pyinstaller_path('src/scripts/connect_linux.sh'))
+        return subprocess.Popen(['pkexec', pyinstaller_path(
             'src/scripts/connect_linux.sh'), *self.vpn_data])
 
     def disconnect(self):
