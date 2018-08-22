@@ -164,8 +164,8 @@ class DataScraper:
         current_page = self.browser.get_current_page().text
         # Will return -1 if it is not found
         if current_page.find("Invalid verification code") == -1:
-            self.tfa_success = True
             print("TFA Success")
+            return True
         else:
             print("TFA Failure")
 

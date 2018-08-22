@@ -128,30 +128,11 @@ class LoginDialog(QDialog):
         self.setLayout(layout_main)
         self.setWindowTitle('MerLink')
 
-        # TWOFACTOR_DIALOG UI SETUP #
-        # QDialog that gets 6 digit two-factor code
-        self.twofactor_dialog = QDialog()
-        self.twofactor_dialog.setWindowTitle("Two-Factor Authentication")
-        dialog_layout = QVBoxLayout()
-        twofactor_code_layout = QHBoxLayout()
-        self.twofactor_code_label = QLabel("Enter verification code")
+        # Required to have this class variables as it is not possible to
+        # return/pass values to/from triggered functions (self.tfa_verify)
+        self.tfa_success = False
         self.get_twofactor_code = QLineEdit()
-
-        self.twofactor_dialog_yesno = QHBoxLayout()
-        self.yesbutton = QPushButton("Verify")
-        self.yesbutton.setToolTip("Attempt connection with this tfa code")
-        self.nobutton = QPushButton("Cancel")
-        self.yesbutton.setToolTip("Quit")
-        self.twofactor_dialog_yesno.addWidget(self.yesbutton)
-        self.twofactor_dialog_yesno.addWidget(self.nobutton)
-
-        # Layout code
-        twofactor_code_layout.addWidget(self.twofactor_code_label)
-        twofactor_code_layout.addWidget(self.get_twofactor_code)
-        dialog_layout.addLayout(twofactor_code_layout)
-        # dialog_layout.addWidget(self.get_remember_choice)
-        dialog_layout.addLayout(self.twofactor_dialog_yesno)
-        self.twofactor_dialog.setLayout(dialog_layout)
+        self.twofactor_dialog = QDialog()
 
         # INIT THIS OBJECT
         self.show_login()
@@ -192,30 +173,54 @@ class LoginDialog(QDialog):
             show_error_dialog('ERROR: Invalid username or password.')
             self.password_field.setText('')
         elif result == 'sms_auth':
-            while not self.browser.get_tfa_success():
-                self.get_tfa_dialog()
-                if self.twofactor_dialog.result() == QDialog.Rejected:
-                    break
+            self.tfa_dialog_setup()
+            self.close()
         elif result == 'auth_success':
             self.close()
         else:
             show_error_dialog("ERROR: Invalid authentication type!")
 
-    def get_tfa_dialog(self):
-        """Shows the tfa dialog to get the tfa code"""
-        self.yesbutton.clicked.connect(self.tfa_verify)
-        self.nobutton.clicked.connect(self.tfa_cancel)
-        self.twofactor_dialog.exec_()
+    def tfa_dialog_setup(self):
+        """Create and execute the UI for the TFA dialog"""
+        # TWOFACTOR_DIALOG UI SETUP #
+        self.get_twofactor_code.clear()  # Clear if exists
+        # QDialog that gets 6 digit two-factor code
+        self.twofactor_dialog.setWindowTitle("Two-Factor Authentication")
+        dialog_layout = QVBoxLayout()
+        twofactor_code_layout = QHBoxLayout()
+
+        twofactor_code_label = QLabel("Enter verification code")
+        twofactor_dialog_yesno = QHBoxLayout()
+        yesbutton = QPushButton("Verify")
+        yesbutton.setToolTip("Attempt connection with this tfa code")
+        nobutton = QPushButton("Cancel")
+        yesbutton.setToolTip("Quit")
+        twofactor_dialog_yesno.addWidget(yesbutton)
+        twofactor_dialog_yesno.addWidget(nobutton)
+
+        # Layout code
+        twofactor_code_layout.addWidget(twofactor_code_label)
+        twofactor_code_layout.addWidget(self.get_twofactor_code)
+        dialog_layout.addLayout(twofactor_code_layout)
+        # dialog_layout.addWidget(self.get_remember_choice)
+        dialog_layout.addLayout(twofactor_dialog_yesno)
+        self.twofactor_dialog.setLayout(dialog_layout)
+
+        yesbutton.clicked.connect(self.tfa_verify)
+        nobutton.clicked.connect(self.twofactor_dialog.close)
+        while not self.tfa_success:
+            self.twofactor_dialog.exec_()
 
     def tfa_verify(self):
-        """Submit the tfa code and communicate success/failure to user."""
-        self.browser.tfa_submit_info(self.get_twofactor_code.text())
-        if self.browser.get_tfa_success():
-            self.twofactor_dialog.accept()
-            self.close()
-        else:
-            show_error_dialog('ERROR: Invalid verification code')
+        """Submit the tfa code and communicate success/failure to user.
 
-    def tfa_cancel(self):
-        """Use the QDialog reject method to close the tfa window"""
-        self.twofactor_dialog.reject()
+        This fn is partially required because we need a function to connect
+        to the button click signal.
+        """
+        self.tfa_success = self.browser.tfa_submit_info(
+            self.get_twofactor_code.text())
+        if self.tfa_success:
+            self.twofactor_dialog.accept()
+        else:
+            show_error_dialog('ERROR: Invalid verification code!')
+
