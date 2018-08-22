@@ -71,40 +71,16 @@ dashboard\_browser
 .. automodule:: src.modules.dashboard_browser
     :members:
 
-duplicate\_application
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: src.modules.duplicate_application
-    :members:
-
-is\_online
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: src.modules.is_online
-    :members:
-
-list\_vpns
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: src.modules.list_vpns
-    :members:
-
-open\_vpnsettings
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: src.modules.open_vpnsettings
-    :members:
-
-pyinstaller\_path\_helper
+os\_utils
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. automodule:: src.modules.pyinstaller_path_helper
+.. automodule:: src.modules.os_utils
     :members:
 
-troubleshoot\_vpn\_failure
+vpn\_tests
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. automodule:: src.modules.troubleshoot_vpn_failure
+.. automodule:: src.modules.vpn_tests
     :members:
 
 vpn\_connection

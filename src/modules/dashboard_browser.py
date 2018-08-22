@@ -245,8 +245,8 @@ class DataScraper:
         """Get an org's networks"""
         return self.network_list[self.current_org_index]
 
-    def scrape_org_networks(self):
-        """Short desc
+    def scrape_networks_by_org(self):
+        """Given an org, retrieve networks.
 
         * get_networks should only be called on initial startup or if a
           different organization has been chosen

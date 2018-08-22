@@ -62,9 +62,7 @@ class MainCli:
 
     @staticmethod
     def parse_options():
-        """MainCli class constructor, inits with no params.
-
-        Parses argparse options"""
+        """Parses argparse options and then calls other parts of program."""
 
         parser = argparse.ArgumentParser()
         parser.add_argument("-v", "--verbose",
