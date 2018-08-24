@@ -20,6 +20,7 @@ from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QTextEdit
 
+import src.modules.os_utils as os_utils
 
 class MenuBars:
     """Menubars of the GUI
@@ -81,7 +82,7 @@ class MenuBars:
     @staticmethod
     def file_sysprefs():
         """Open system VPN settings"""
-        s
+        os_utils.open_vpnsettings()
 
     @staticmethod
     def file_quit_action():

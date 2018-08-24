@@ -38,7 +38,8 @@ class VpnConnection:
 
     VpnConnection takes 2 lists as args: vpn_data and vpn_options
         Required VPN parameters will arrive in vpn_data
-        Any OS-specific VPN parameters will go into vpn_options """
+        Any OS-specific VPN parameters will go into vpn_options
+    """
 
     def __init__(self, vpn_data):
         super(VpnConnection, self).__init__()

@@ -34,7 +34,6 @@ class Controller:
         interface (MainWindow | MainCli): Calls interface-dependent functions
           (this is a primitive form of overloading).
         app (QApplication): Required for the Qt program flow, not used for CLI
-
     """
     # Telling PyCharm linter not to (incorrectly) inspect PyQt function args
     # noinspection PyArgumentList
@@ -88,7 +87,7 @@ class Controller:
         """
 
         # Get organization info so we have something to show user
-        self.interface.browser.scrape_initial_org_info()
+        self.interface.browser.count_admin_orgs()
         self.interface.show_main_menu()
 
         """

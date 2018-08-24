@@ -35,9 +35,9 @@ class MainWindow(QMainWindow):
     """Main Window is the controlling class for the GUI.
 
     Attributes:
-        menu_widget (MenuBars): Used to tie the menu bars to the MainWindow
         browser (DataScraper): Browser used to store user credentials
-        tray_icon = SystrayIcon(self)
+        menu_widget (MenuBars): Used to tie the menu bars to the MainWindow
+        tray_icon (SystrayIcon): Used to tie the tray icon to the MainWindow
         main_window_ui (MainWindowUi): Class to tie UI to Main Window (while
         being in a different file for clarity).
     """
@@ -81,7 +81,7 @@ class MainWindow(QMainWindow):
         current_org = self.browser.get_current_org()
         self.org_dropdown.addItems(org_list)
         # Get the data we need and remove the cruft we don't
-        self.browser.scrape_networks_by_org()
+        self.browser.scrape_administered_orgs()
         self.status.showMessage("Status: Fetching networks in " +
                                 current_org + "...")
         # Remove all elements from the network UI dropdown
@@ -139,7 +139,7 @@ class MainWindow(QMainWindow):
                 print("we are getting new info for " + selected_org +
                       " at index" + str(selected_org_index))
                 self.browser.set_current_org(selected_org_index)
-                self.browser.scrape_networks_by_org()
+                self.browser.scrape_administered_orgs()
 
             self.refresh_network_dropdown()
             self.status.showMessage("Status: Select network")
