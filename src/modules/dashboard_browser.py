@@ -87,7 +87,7 @@ class DataScraper:
         self.is_network_admin = False  # Most admins are org admins
         self.org_qty = 0
         self.this_org_index = 0  # Default to first organization
-        self.this_network_name = ''
+        self.this_network_index = ''
 
         # VPN VARS: Powershell Variables set to defaults
         # If it's set to '', then powershell will skip reading that parameter.
@@ -276,33 +276,6 @@ class DataScraper:
 
         return mki_dict
 
-    def get_org_list(self):
-        """Get this administrator's org list."""
-        return list(self.org_data.keys())
-
-    def org_dict_by_index(self, index):
-        """Return an org's dict by its index"""
-        return list(self.org_data.values())[index]
-
-    #def set_current_org(self, org_name):
-    #    self.
-
-    def get_current_org(self):
-        """Get the current org name."""
-        return self.get_org_list()[self.this_org_index]
-
-    def get_this_org_dict(self):
-        """Get the current org dict."""
-        return self.org_data[self.get_current_org()]
-
-    def get_this_network_dict(self):
-        """Get the current network dict."""
-        return self.get_this_org_dict()['networks'][self.this_network_name]
-
-    def get_org_networks(self, org_name):
-        """Get an org's networks."""
-        return self.org_data[org_name]['networks']
-
     def scrape_administered_orgs(self):
         """Given an org, retrieve the administered_orgs json blob
 
@@ -365,25 +338,21 @@ class DataScraper:
                     self.get_this_org_dict()['networks'][network_name] = \
                         network_base_url
 
-    def scrape_network_vars(self):
-        """Scrape primary WAN IP address and the Client VPN PSK
-        """
-
-        client_vpn_text = self.get_client_vpn_text()
-        client_vpn_soup = bs4.BeautifulSoup(client_vpn_text, 'lxml')
-        self.vpn_vars['psk'] = client_vpn_soup.find("input", {
-            "id": "wired_config_client_vpn_secret", "value": True})['value']
-
+    def scrape_network_vars(self, network_index):
+        """Change the current network."""
+        self.this_network_index = network_index
+        self.scrape_psk()
         self.scrape_ddns_and_ip()
 
-    def get_client_vpn_text(self):
-        """Get client vpn text."""
+    def scrape_psk(self):
+        """Scrape Client VPN PSK"""
         url_base = self.get_this_network_dict()['url']
         client_vpn_url = url_base + '/configure/client_vpn_settings'
         print("Client VPN URL " + client_vpn_url)
         client_vpn_text = self.browser.get(client_vpn_url).text
-
-        return client_vpn_text
+        client_vpn_soup = bs4.BeautifulSoup(client_vpn_text, 'lxml')
+        self.vpn_vars['psk'] = client_vpn_soup.find("input", {
+            "id": "wired_config_client_vpn_secret", "value": True})['value']
 
     def scrape_ddns_and_ip(self):
         """Scrape the ddns and primary ip address."
@@ -410,3 +379,35 @@ class DataScraper:
         self.vpn_vars['ip'] = fw_status_text[ip_start: ip_end]
         print('scraped ddns', self.vpn_vars['ddns'],
               'ip', self.vpn_vars['ip'])
+
+    def get_this_org_list(self):
+        """Get this administrator's org list."""
+        return list(self.org_data.keys())
+
+    def org_dict_by_index(self, index):
+        """Return an org's dict by its index"""
+        return list(self.org_data.values())[index]
+
+    def get_current_org_index(self):
+        """Return the org index."""
+        return self.this_org_index
+
+    def set_current_org_index(self, org_index):
+        """Set the the org index to the param."""
+        self.this_org_index = org_index
+
+    def get_current_org(self):
+        """Get the current org name."""
+        return self.get_this_org_list()[self.this_org_index]
+
+    def get_this_org_dict(self):
+        """Get the current org dict."""
+        return self.org_data[self.get_current_org()]
+
+    def get_this_network_dict(self):
+        """Get the current network dict."""
+        return self.get_this_org_dict()['networks'][self.this_network_index]
+
+    def get_org_networks_list(self):
+        """Get this administrator's networks as a list."""
+        return list(self.get_this_org_dict()['networks'].keys())

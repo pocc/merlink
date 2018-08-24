@@ -52,6 +52,8 @@ class MainWindow(QMainWindow):
             self.close()  # In lieu of sys.exit(app.exec_())
 
         self.browser = DataScraper()
+        self.dropdown_org_index = 0
+        self.dropdown_network_index = 0
 
         # Tie the menu bars, tray_icon, and main window UI to this object.
         self.menu_widget = MenuBars(self.menuBar())
@@ -77,7 +79,7 @@ class MainWindow(QMainWindow):
         # Set entered dashboard email/redacted password to be shown by default
         self.main_window_ui.set_dashboard_user_layout()
 
-        org_list = self.browser.get_org_list()
+        org_list = self.browser.get_this_org_list()
         current_org = self.browser.get_current_org()
         self.org_dropdown.addItems(org_list)
         # Get the data we need and remove the cruft we don't
@@ -125,7 +127,7 @@ class MainWindow(QMainWindow):
             # -1 accounting for first option being -- Select --
             selected_org_index = self.org_dropdown.currentIndex() - 1
             print("In change_organization and this is network list "
-                  + str(self.browser.get_org_networks()))
+                  + str(self.browser.get_org_networks_list()))
             # If we have network data for the selected org
             selected_org_networks = self.browser.get_networks_by_org_index(
                 selected_org_index)
@@ -138,7 +140,7 @@ class MainWindow(QMainWindow):
                 print("getting networks from change_organization")
                 print("we are getting new info for " + selected_org +
                       " at index" + str(selected_org_index))
-                self.browser.set_current_org(selected_org_index)
+                self.browser.set_current_org_index(selected_org_index)
                 self.browser.scrape_administered_orgs()
 
             self.refresh_network_dropdown()
@@ -153,7 +155,7 @@ class MainWindow(QMainWindow):
 
         # Because dropdown has first option 'select'
         current_network_index = self.network_dropdown.currentIndex()-1
-        network_list = self.browser.get_org_networks()
+        network_list = self.browser.get_org_networks_list()
         current_network = network_list[current_network_index]
         self.status.showMessage("Status: Fetching network data for "
                                 + current_network + "...")
@@ -169,7 +171,7 @@ class MainWindow(QMainWindow):
         self.network_dropdown.clear()
         self.network_dropdown.addItems(["-- Select a Network --"])
 
-        current_org_network_list = self.browser.get_org_networks()
+        current_org_network_list = self.browser.org_dict_by_index(0)
         self.network_dropdown.addItems(current_org_network_list)
 
     def tshoot_vpn_fail_gui(self):
