@@ -75,7 +75,6 @@ class MainWindowUi:
         
         # Title is an NSIS uninstall reference (see Modern.nsh)
         app.org_dropdown = QComboBox()
-        app.org_dropdown.addItems(["-- Select an Organzation --"])
         app.network_dropdown = QComboBox()
         app.network_dropdown.setEnabled(False)
         

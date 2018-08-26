@@ -79,11 +79,11 @@ class MainWindow(QMainWindow):
         # Set entered dashboard email/redacted password to be shown by default
         self.main_window_ui.set_dashboard_user_layout()
 
-        org_list = self.browser.get_this_org_list()
-        current_org = self.browser.get_current_org()
+        self.browser.scrape_administered_orgs()
+        current_org = self.browser.get_active_org_name()
+        org_list = self.browser.get_org_list()
         self.org_dropdown.addItems(org_list)
         # Get the data we need and remove the cruft we don't
-        self.browser.scrape_administered_orgs()
         self.status.showMessage("Status: Fetching networks in " +
                                 current_org + "...")
         # Remove all elements from the network UI dropdown
@@ -112,39 +112,37 @@ class MainWindow(QMainWindow):
           and let the user know to select one of the networks
         """
 
-        # We only care if they've actually selected an organization
-        if self.org_dropdown.currentIndex() != 0:
-            self.network_dropdown.setEnabled(True)
-            self.status.showMessage("Status: Fetching organizations...")
-            # Change primary organization
-            selected_org = self.org_dropdown.currentText()
-            """
-            If the organization index of network_list is empty (i.e. this 
-            network list for this org has never been updated), then get the
-            networks for this organization. This makes it so we don't need 
-            to get the network list twice for the same organization
-            """
-            # -1 accounting for first option being -- Select --
-            selected_org_index = self.org_dropdown.currentIndex() - 1
-            print("In change_organization and this is network list "
-                  + str(self.browser.get_org_networks_list()))
-            # If we have network data for the selected org
-            selected_org_networks = self.browser.get_networks_by_org_index(
-                selected_org_index)
-            # [] == False, so any content means we have networks for that org
-            # If we've already scraped networks for that org, do nothing
-            if selected_org_networks:
-                print("we already have that info for " + selected_org +
-                      " at index" + str(selected_org_index))
-            else:
-                print("getting networks from change_organization")
-                print("we are getting new info for " + selected_org +
-                      " at index" + str(selected_org_index))
-                self.browser.set_current_org_index(selected_org_index)
-                self.browser.scrape_administered_orgs()
+        self.network_dropdown.setEnabled(True)
+        self.status.showMessage("Status: Fetching organizations...")
+        # Change primary organization
+        selected_org = self.org_dropdown.currentText()
+        """
+        If the organization index of network_list is empty (i.e. this 
+        network list for this org has never been updated), then get the
+        networks for this organization. This makes it so we don't need 
+        to get the network list twice for the same organization
+        """
+        selected_org_index = self.org_dropdown.currentIndex()
+        self.browser.set_active_org_index(selected_org_index)
+        print("In change_organization and this is the network list "
+              + str(self.browser.get_active_org_networks()))
+        # If we have network data for the selected org
+        selected_org_has_networks = self.browser.get_active_org_networks()
+        # [] == False, so any content means we have networks for that org
+        # If we've already scraped networks for that org, do nothing
+        if selected_org_has_networks:
+            print("we already have that info for " + selected_org +
+                  " at index" + str(selected_org_index))
+        else:
+            print("getting networks from change_organization")
+            print("we are getting new info for " + selected_org +
+                  " at index" + str(selected_org_index))
+            self.browser.set_active_org_index(selected_org_index)
+            self.browser.scrape_administered_orgs()
 
-            self.refresh_network_dropdown()
-            self.status.showMessage("Status: Select network")
+        self.refresh_network_dropdown()
+        self.status.showMessage("Status: In org " +
+                                self.browser.get_active_org_name())
 
     def change_network(self):
         """Change the network to new value for both model and view
@@ -153,14 +151,16 @@ class MainWindow(QMainWindow):
         network info for this network and let user know.
         """
 
-        # Because dropdown has first option 'select'
-        current_network_index = self.network_dropdown.currentIndex()-1
-        network_list = self.browser.get_org_networks_list()
+        current_network_index = self.network_dropdown.currentIndex()
+        network_list = self.browser.get_active_org_networks()
+        print('main window network list', network_list)
         current_network = network_list[current_network_index]
         self.status.showMessage("Status: Fetching network data for "
                                 + current_network + "...")
 
         self.browser.scrape_network_vars(current_network_index)
+        self.status.showMessage("Status: Ready to connect to "
+                                + current_network + ".")
 
     def refresh_network_dropdown(self):
         """Remove old values of the network dropdown and add new ones.
@@ -169,9 +169,8 @@ class MainWindow(QMainWindow):
         add new ones according to chosen organization
         """
         self.network_dropdown.clear()
-        self.network_dropdown.addItems(["-- Select a Network --"])
 
-        current_org_network_list = self.browser.org_dict_by_index(0)
+        current_org_network_list = self.browser.get_active_org_networks()
         self.network_dropdown.addItems(current_org_network_list)
 
     def tshoot_vpn_fail_gui(self):
@@ -187,14 +186,6 @@ class MainWindow(QMainWindow):
     def close_window(self):
         """Closes the window object."""
         self.close()
-
-    def closeEvent(self, event):
-        """Intercept clicking the window's 'x' to minimize to the tray."""
-        event.ignore()
-        # Show the user the message so they know where the program went
-        self.tray_icon.application_minimized()
-
-        self.showMinimized()
 
     def setup_vpn(self):
         """Setup VPN vars and start OS-dependent connection scripts"""

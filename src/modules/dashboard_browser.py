@@ -35,14 +35,14 @@ class DataScraper:
         vpn_vars (dict): List of VPN variables (does the browser need access
         to this?)
 
-        org_data (list): A list of orgs (= org_links.keys())
+        org_dict (dict): A list of orgs/networks derived from administered_orgs
+            See method scrape_administered_orgs for more information
+
             = {
-                <org#1_eid>: {
+                <org#1_id>: {
                     'name'
-                    'url': <url>,
                     'networks': {
                         <network#1_name> : {
-                            'url': <url>
                             ...
                         }
                         <network2_name> : {}
@@ -50,18 +50,15 @@ class DataScraper:
                     }
                     ...
                 }
-                <org#2_name>: {}
+                <org#2_id>: {}
                 ...
             }
 
         org_qty (int): Number of organizations someone has access to. Once
             determined, it should be invariant.
-        this_org_index (int): Org index (0 = select option), so start from 1.
-            Using index as current org indicator because it interfaces well
-            with a GUI dropdown menu.
+        active_org_index (int): Index of active org.
+        active_network_index (int): Index of active network.
         is_network_admin (string): If admin has networks but no org access
-
-    TODO: Convert the other attributes to a dict
     """
     def __init__(self):
         super(DataScraper, self).__init__()
@@ -82,32 +79,17 @@ class DataScraper:
 
         # Initialize organization dictionary {Name: Link} and
         # list for easier access. org_list is org_links.keys()
-        self.org_data = {}
+        self.org_dict = {}
+        self.org_urls = []
 
         self.is_network_admin = False  # Most admins are org admins
         self.org_qty = 0
-        self.this_org_index = 0  # Default to first organization
-        self.this_network_index = ''
+        self.active_org_index = 0  # Default to first organization
+        self.active_network_index = 0  # Default to first network
 
         # VPN VARS: Powershell Variables set to defaults
         # If it's set to '', then powershell will skip reading that parameter.
         self.vpn_vars = {}
-
-    def get_url(self):
-        """Get the current URL"""
-        print("browser url in get_url" + str(self.browser.get_url()))
-        return self.browser.get_url()
-
-    # Return browser with any username, password, and cookies with it
-    def get_browser(self):
-        """Get the MechanicalSoup object with associated login cookies."""
-        return self.browser
-
-    def get_networks_by_org_index(self, org_index):
-        """Returns the array of networks from an org by its index."""
-        network_list = list(self.org_data['networks'].values())[org_index]
-        print("Network list: ", network_list)
-        return network_list
 
     def attempt_login(self, username, password):
         """Verifies whether credentials are valid
@@ -164,9 +146,9 @@ class DataScraper:
         form.choose_submit('commit')  # Click 'Verify' button
         self.browser.submit_selected()
 
-        current_page = self.browser.get_current_page().text
+        active_page = self.browser.get_current_page().text
         # Will return -1 if it is not found
-        if current_page.find("Invalid verification code") == -1:
+        if active_page.find("Invalid verification code") == -1:
             print("TFA Success")
             return True
         else:
@@ -201,7 +183,7 @@ class DataScraper:
             org_name_start = pagetext.find("Mkiconf.org_name") + 20
             org_name_end = org_name_start + pagetext[org_name_start:].find('"')
             one_org_name = pagetext[org_name_start: org_name_end]
-            self.org_data[one_org_name] = {'url': self.browser.get_url()}
+            self.org_dict[one_org_name] = {'url': self.browser.get_url()}
 
         # 2+ orgs choice page : https://account.meraki.com/login/org_list?go=%2F
         elif 'org_list' in self.browser.get_url():  # Admin orgs = 2
@@ -209,8 +191,8 @@ class DataScraper:
 
         else:  # Admin orgs = 0 (i.e. network-only admin)
             # Org name for those who can't see the org
-            self.org_data["Plato's Cave org"] = {}
-            self.org_data["Plato's Cave org"]['url'] = self.browser.get_url()
+            self.org_dict["Plato's Cave org"] = {}
+            self.org_dict["Plato's Cave org"]['url'] = self.browser.get_url()
 
     def bypass_org_choose_page(self, page):
         """Bypass page for admins with 2+ orgs that normally requires user input
@@ -238,12 +220,11 @@ class DataScraper:
             # Open each login link so that it redirects to a usable URL
             self.browser.open(login_link)
             org_link = self.browser.get_url()
-            self.org_data[org_name] = {'url': org_link, 'networks': {}}
+            self.org_urls.append(org_link)
             print('Org', org_name, 'at', org_link)
 
         # Open the browser to the first org so we have data to show user
-        first_org_url = self.org_dict_by_index(0)['url']
-        self.browser.open(first_org_url)
+        self.browser.open(self.org_urls[0])
 
     @staticmethod
     def get_mkiconf_vars(pagetext):
@@ -277,77 +258,109 @@ class DataScraper:
         return mki_dict
 
     def scrape_administered_orgs(self):
-        """Given an org, retrieve the administered_orgs json blob
+        """Retrieve the administered_orgs json blob
+
+        For orgs that are not being accessed by the browser, node_groups = {}.
+        For this reason, the administered_orgs json needs to be retrieved every
+        time the user goes to a different organization.
 
         * get_networks should only be called on initial startup or if a
           different organization has been chosen
-        * browser should be initialized
         * browser should have clicked on an org in the org selection page so we
           can browse relative paths of an org
+
+        administered_orgs (dict): A JSON blob provided by /administered_orgs
+            that contains useful information about orgs and networks. An eid
+            for an org or network is a unique way to refer to it.
+
+            = {
+                <org#1 org_id>: {
+                    'name' : <org name>
+                    'url': <url>,
+                    'node_groups': {
+                        <network#1 eid> : {
+                            'n': <name>
+                            'has_wired': <bool>
+                            ...
+                        }
+                        <network#2 eid> : {}
+                        ...
+                    }
+                    ...
+                }
+                <org#2 org_id>: {}
+                ...
+            }
         """
 
-        current_url = self.org_data[self.get_current_org()]['url']
-        base_url = current_url.split('/manage')[0]
-        administered_orgs_partial = '/manage/organization/administered_orgs'
+        base_url = self.get_base_url(self.get_url())
+        administered_orgs_partial = '/organization/administered_orgs'
         administered_orgs_url = base_url + administered_orgs_partial
         print(administered_orgs_url)
         self.browser.open(administered_orgs_url)
 
         cj = self.browser.get_cookiejar()
         response = requests.get(administered_orgs_url, cookies=cj)
-        administered_orgs_json = json.loads(response.text)
-        print("\nI stole the cookie jar and it's right here", cj,
-              "\nAdministered Orgs", json.dumps(administered_orgs_json,
-                                                indent=4, sort_keys=True),
-              "\nCurrent org ", self.get_current_org())
-
-        # we first get org info from the administered_orgs page
+        administered_orgs = json.loads(response.text)
+        self.org_dict = self.filter_orgs_dict(administered_orgs, 'wired')
         if self.is_network_admin:
-            self.org_qty = len(administered_orgs_json.keys())
-            for i in range(self.org_qty):
-                org_id = list(administered_orgs_json)[i]
-                self.org_data[administered_orgs_json[org_id]['name']] = {}
-            print('delete me once debugged', self.org_data)
+            self.org_qty = len(self.org_dict)
 
-        self.parse_orgs_json_to_org_data(administered_orgs_json)
+        print("\nI stole the cookie jar and it's right here:", cj,
+              "\nAdministered Orgs =>", json.dumps(administered_orgs,
+                                                   indent=4, sort_keys=True),
+              "\nactive org ", self.get_active_org_name())
 
-    def parse_orgs_json_to_org_data(self, administered_orgs_json):
-        """Adds info from administered orgss to self.org_dict"""
-        for i in range(self.org_qty):  # For every organization
-            network_names = []
-            url_domain_part = self.get_this_org_dict()['url']
-            this_org_id = list(administered_orgs_json)[i]
-            num_networks = administered_orgs_json[this_org_id]['num_networks']
-            node_groups = administered_orgs_json[this_org_id]['node_groups']
-            network_eids = list(node_groups.keys())
-            # For orgs that are not the current org,
-            # we will get the number off networks, but get node_groups of {}
-            if node_groups == {}:
-                num_networks = 0
-            for j in range(num_networks):
-                node_group_data = node_groups[network_eids[j]]
-                if node_group_data['network_type'] == 'wired' and not \
-                        node_group_data['is_config_template']:
-                    network_name = node_group_data['n']
-                    network_names.append(network_name)
-                    # Reconstructing the base url. 't' is
-                    # for network name as it appears in URL
-                    network_base_url = \
-                        url_domain_part + '/' + node_group_data['t'] + \
-                        '/n/' + node_group_data['eid'] + '/manage'
-                    self.get_this_org_dict()['networks'][network_name] = \
-                        network_base_url
+    @staticmethod
+    def filter_orgs_dict(orgs_dict, network_type):
+        """Return a filtered orgs_dict with just the network_type contained
+
+        Does:
+            * Changes network eid to the name of the network for usability
+            * Removes all but network_type specified from dict
+        Why:
+            To iterate over only the relevant network types in other methods
+
+        Args:
+            orgs_dict (dict): The dict to be filtered
+            network_type (string): The network_type to filter by
+
+        Returns:
+            A filtered orgs_dict with just the network_type in node_groups
+
+        NOTE: Requires orgs_dict to be in Meraki JSON format.
+        NOTE: Storing administered_orgs in a dict should not take up more
+        than 1MB of RAM.
+        """
+        # Returning this dict
+        filtered_dict = {}
+        for org in orgs_dict:
+            # Copy everything over except the node_groups we want to filter
+            filtered_dict[org] = {
+                key: val for key, val in orgs_dict[org].items()
+                if key != 'node_groups'}
+            filtered_dict[org]['node_groups'] = {}
+            for network_eid in orgs_dict[org]['node_groups']:
+                node_group_data = orgs_dict[org]['node_groups'][network_eid]
+                # If it's a config template, it doesn't contain devices
+                device_type_in_network = node_group_data['network_type'] == \
+                    network_type and not node_group_data['is_config_template']
+                if device_type_in_network:
+                    filtered_dict[org]['node_groups'][network_eid] = \
+                        node_group_data
+
+        return filtered_dict
 
     def scrape_network_vars(self, network_index):
         """Change the current network."""
-        self.this_network_index = network_index
+        self.active_network_index = network_index
         self.scrape_psk()
         self.scrape_ddns_and_ip()
 
     def scrape_psk(self):
         """Scrape Client VPN PSK"""
-        url_base = self.get_this_network_dict()['url']
-        client_vpn_url = url_base + '/configure/client_vpn_settings'
+        client_vpn_url = self.get_base_url(self.get_url()) \
+            + '/configure/client_vpn_settings'
         print("Client VPN URL " + client_vpn_url)
         client_vpn_text = self.browser.get(client_vpn_url).text
         client_vpn_soup = bs4.BeautifulSoup(client_vpn_text, 'lxml')
@@ -357,11 +370,11 @@ class DataScraper:
     def scrape_ddns_and_ip(self):
         """Scrape the ddns and primary ip address."
 
-        This method gets ddns and ip values for the current network. This
+        This method gets ddns and ip values for the active network. This
         method should ONLY be called if the user has hit the connect button
         """
-        fw_status_url = \
-            self.get_this_network_dict()['url'] + '/nodes/new_wired_status'
+        fw_status_url = self.get_base_url(self.get_url()) \
+            + '/nodes/new_wired_status'
         fw_status_text = self.browser.get(fw_status_url).text
 
         # ddns value can be found by searching for '"dynamic_dns_name"'
@@ -380,34 +393,75 @@ class DataScraper:
         print('scraped ddns', self.vpn_vars['ddns'],
               'ip', self.vpn_vars['ip'])
 
-    def get_this_org_list(self):
+    # Fns that operate independent of which URL the browser is at
+    ###########################################################################
+    def get_browser(self):
+        """Get the MechanicalSoup object with associated login cookies."""
+        return self.browser
+
+    def get_url(self):
+        """Get the current URL"""
+        print("browser url in get_url" + str(self.browser.get_url()))
+        return self.browser.get_url()
+
+    def get_org_list(self):
         """Get this administrator's org list."""
-        return list(self.org_data.keys())
+        org_list = []
+        for i in range(self.org_qty):
+            org_values_list = list(self.org_dict.values())
+            org_name = org_values_list[i]['name']
+            org_list.append(org_name)
+        return org_list
 
-    def org_dict_by_index(self, index):
+    def get_org_dict_by_index(self, index):
         """Return an org's dict by its index"""
-        return list(self.org_data.values())[index]
+        return list(self.org_dict.values())[index]
 
-    def get_current_org_index(self):
+    # get_active fns get info about the org the browser is at
+    ###########################################################################
+    def get_active_org_index(self):
         """Return the org index."""
-        return self.this_org_index
+        return self.active_org_index
 
-    def set_current_org_index(self, org_index):
+    def set_active_org_index(self, org_index):
         """Set the the org index to the param."""
-        self.this_org_index = org_index
+        self.browser.open(self.org_urls[org_index])
+        self.active_org_index = org_index
 
-    def get_current_org(self):
-        """Get the current org name."""
-        return self.get_this_org_list()[self.this_org_index]
+    def get_active_org_name(self):
+        """Get the active org name."""
+        return self.get_org_list()[self.active_org_index]
 
-    def get_this_org_dict(self):
-        """Get the current org dict."""
-        return self.org_data[self.get_current_org()]
+    def get_active_org_dict(self):
+        """Get the active org dict."""
+        active_org_id = list(self.org_dict)[self.active_org_index]
+        return self.org_dict[active_org_id]
 
-    def get_this_network_dict(self):
-        """Get the current network dict."""
-        return self.get_this_org_dict()['networks'][self.this_network_index]
+    def get_active_org_networks(self):
+        """Get the active network names"""
+        network_names = []
+        # If node_groups is populated, then network names can be extracted
+        if self.get_active_org_dict()['node_groups']:
+            eid_dict = self.get_active_org_dict()['node_groups']
+            # Iterate over all eid keys to get network names
+            for i in range(len(eid_dict)):
+                network_name = self.get_active_network_dict_by_index(i)
+                network_names.append(network_name)
 
-    def get_org_networks_list(self):
-        """Get this administrator's networks as a list."""
-        return list(self.get_this_org_dict()['networks'].keys())
+        return network_names
+
+    def get_active_network_dict_by_index(self, index):
+        """Get dict for a network given an index."""
+        eid = list(self.get_active_org_dict()['node_groups'])[index]
+        return self.get_active_org_dict()['node_groups'][eid]['n']
+
+    def get_active_network_dict(self):
+        """Get dict for a n"""
+        print('active network index', self.active_network_index)
+        return self.get_active_network_dict_by_index(self.active_network_index)
+
+    @staticmethod
+    def get_base_url(url):
+        """Return the network-based base URL up to '/manage'"""
+        base_url = url.split('/manage')[0] + '/manage'
+        return base_url
