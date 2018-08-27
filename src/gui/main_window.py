@@ -78,10 +78,8 @@ class MainWindow(QMainWindow):
         """
         # Set entered dashboard email/redacted password to be shown by default
         self.main_window_ui.set_dashboard_user_layout()
-
-        self.browser.scrape_administered_orgs()
-        current_org = self.browser.get_active_org_name()
-        org_list = self.browser.get_org_list()
+        org_list = self.browser.get_org_names()
+        current_org = org_list[self.browser.get_active_org_index()]
         self.org_dropdown.addItems(org_list)
         # Get the data we need and remove the cruft we don't
         self.status.showMessage("Status: Fetching networks in " +
@@ -90,14 +88,7 @@ class MainWindow(QMainWindow):
         self.network_dropdown.clear()
         self.refresh_network_dropdown()
 
-        # When we have the organization, we can scrape networks
-        # When the user changes the organization dropdown, call the scrap
-        # networks method. Only change organization when there are more than 1
-        # organization to change
-
-        # We don't need to change organization if the user chooses
-        # "-- Select an Organization --"
-
+        # All of the major MainWindow slots that signals target
         self.org_dropdown.currentIndexChanged.connect(self.change_organization)
         self.network_dropdown.activated.connect(self.change_network)
         self.connect_btn.clicked.connect(self.setup_vpn)

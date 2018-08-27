@@ -89,7 +89,7 @@ def open_vpnsettings():
         os.system('open /System/Library/PreferencePanes/Network.prefPane/')
     elif sys.platform.startswith('linux'):  # covers vaild 'linux', 'linux2'
         # Opens System Settings > Network
-        os.system('nm-connections-editor')
+        subprocess.Popen(['nm-connections-editor'])
 
 
 def pyinstaller_path(relative_path):

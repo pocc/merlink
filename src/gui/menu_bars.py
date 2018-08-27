@@ -14,6 +14,8 @@
 # limitations under the License.
 
 """This class contains the menubars of the program."""
+import sys
+
 from PyQt5.QtWidgets import QAction
 from PyQt5.QtWidgets import QDialog
 from PyQt5.QtWidgets import QLabel
@@ -21,6 +23,8 @@ from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QTextEdit
 
 import src.modules.os_utils as os_utils
+from src.gui.modal_dialogs import show_error_dialog
+
 
 class MenuBars:
     """Menubars of the GUI
@@ -81,8 +85,25 @@ class MenuBars:
 
     @staticmethod
     def file_sysprefs():
-        """Open system VPN settings"""
-        os_utils.open_vpnsettings()
+        """Open system VPN settings
+
+        Even if errors are raised, they will only be shown after the program
+        closes because Qt supresses some messages (there are ways to get
+        around this.)
+
+        Raises:
+            FileNotFoundError: If vpn settings are not found
+        """
+        try:
+            os_utils.open_vpnsettings()
+        except FileNotFoundError as e:
+            if sys.platform.startswith('linux'):
+                show_error_dialog(
+                    str(e) + '\n\nThis happens when gnome-network-manager is '
+                    'not installed and systems vpn prefs are opened in linux.')
+            else:
+                show_error_dialog(str(e) + '\n\nUnknown error: VPN settings '
+                                           'not found')
 
     @staticmethod
     def file_quit_action():

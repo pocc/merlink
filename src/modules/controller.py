@@ -87,7 +87,7 @@ class Controller:
         """
 
         # Get organization info so we have something to show user
-        self.interface.browser.count_admin_orgs()
+        self.interface.browser.org_data_setup()
         self.interface.show_main_menu()
 
         """
