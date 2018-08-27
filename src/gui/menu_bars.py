@@ -48,13 +48,9 @@ class MenuBars:
         self.help_menu = bar.addMenu('&Help')
 
     def generate_menu_bars(self):
-        """Short desc
+        """Create each of the menu bars.
 
         NOTE: Some of the menu additions here are ideas and not implemented.
-
-        Args:
-        Returns:
-        Returns:
         """
 
         # File options
@@ -78,7 +74,7 @@ class MenuBars:
         self.edit_menu.addAction(edit_preferences)
         self.help_menu.addAction(help_about)
 
-        file_quit.triggered.connect(self.file_sysprefs)
+        file_sysprefs.triggered.connect(self.file_sysprefs)
         file_quit.triggered.connect(self.file_quit_action)
         edit_preferences.triggered.connect(self.edit_prefs_action)
         help_about.triggered.connect(self.help_about_action)
@@ -86,10 +82,6 @@ class MenuBars:
     @staticmethod
     def file_sysprefs():
         """Open system VPN settings
-
-        Even if errors are raised, they will only be shown after the program
-        closes because Qt supresses some messages (there are ways to get
-        around this.)
 
         Raises:
             FileNotFoundError: If vpn settings are not found

@@ -82,7 +82,7 @@ class DataScraper:
         self.org_urls = []
 
         self.is_network_admin = False  # Most admins are org admins
-        self.org_qty = 0
+        self.org_qty = 1
         self.active_org_id = 0
         self.active_network_id = 0
 
@@ -192,6 +192,11 @@ class DataScraper:
                 administered_orgs[org_id],
                 ['wired']
             )
+        if self.org_qty > 1:
+            for index, org_id in enumerate(self.orgs_dict):
+                self.orgs_dict[org_id]['url'] = self.org_urls[index]
+        self.active_network_id = list(self.orgs_dict[self.active_org_id][
+            'networks'])[0]
 
     def bypass_org_choose_page(self, page):
         """Bypass page for admins with 2+ orgs that normally requires user input
@@ -356,7 +361,11 @@ class DataScraper:
 
     def scrape_network_vars(self, network_index):
         """Change the current network."""
-        self.set_active_org_index(network_index)
+        print('in scrape network vars. org id',
+              self.active_org_id, 'network index', network_index)
+        selected_network_id = list(self.orgs_dict[self.active_org_id][
+            'networks'])[network_index]
+        self.active_network_id = selected_network_id
         self.scrape_psk()
         self.scrape_ddns_and_ip()
 
@@ -419,13 +428,14 @@ class DataScraper:
 
     def set_active_org_index(self, org_index):
         """Set the the org index to the param."""
-        self.scrape_administered_orgs()
+        print('in set active org index', org_index)
         self.active_org_id = list(self.orgs_dict)[org_index]
+        self.scrape_administered_orgs()
 
     def get_active_network_url(self):
         """Return the active network's base url"""
         return self.orgs_dict[self.active_org_id]['networks'][
-            self.active_network_id]['url']
+            self.active_network_id]['base_url']
 
     def get_active_org_name(self):
         """Return the active org name."""

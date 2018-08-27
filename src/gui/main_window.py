@@ -79,9 +79,10 @@ class MainWindow(QMainWindow):
         # Set entered dashboard email/redacted password to be shown by default
         self.main_window_ui.set_dashboard_user_layout()
         org_list = self.browser.get_org_names()
-        current_org = org_list[self.browser.get_active_org_index()]
         self.org_dropdown.addItems(org_list)
         # Get the data we need and remove the cruft we don't
+        current_org = org_list[self.browser.get_active_org_index()]
+        print('main window orgs', org_list)
         self.status.showMessage("Status: Fetching networks in " +
                                 current_org + "...")
         # Remove all elements from the network UI dropdown
@@ -113,7 +114,7 @@ class MainWindow(QMainWindow):
         networks for this organization. This makes it so we don't need 
         to get the network list twice for the same organization
         """
-        selected_org_index = self.org_dropdown.currentIndex()
+        selected_org_index = self.org_dropdown.currentIndex()-1
         self.browser.set_active_org_index(selected_org_index)
         print("In change_organization and this is the network list "
               + str(self.browser.get_active_org_networks()))
@@ -162,6 +163,7 @@ class MainWindow(QMainWindow):
         self.network_dropdown.clear()
 
         current_org_network_list = self.browser.get_active_org_networks()
+        print('current_org_network_list', current_org_network_list)
         self.network_dropdown.addItems(current_org_network_list)
 
     def tshoot_vpn_fail_gui(self):
