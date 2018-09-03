@@ -333,7 +333,11 @@ class DataScraper:
         # eid is alphanumeric id for network
         for eid in org_dict['node_groups']:
             # Only add the network dicts for network types we care about
-            if org_dict['node_groups'][eid]['network_type'] in network_types:
+            eid_dict = org_dict['node_groups'][eid]
+            is_filtered_network_type = eid_dict['network_type'] in network_types
+            is_templated = eid_dict['is_template_child'] or eid_dict[
+                'is_config_template']
+            if is_filtered_network_type and not is_templated:
                 # Same network ID as in API
                 network_id = org_dict['node_groups'][eid]['id']
                 filtered_dict['node_groups'][network_id] = \
@@ -345,47 +349,58 @@ class DataScraper:
         """Change the current network."""
         print('in scrape network vars. org id',
               self.active_org_id, 'network index', network_index)
+        # If this network has not been scraped before
         selected_network_id = list(self.orgs_dict[self.active_org_id][
-            'networks'])[network_index]
+                                       'node_groups'])[network_index]
         self.active_network_id = selected_network_id
-        self.scrape_psk()
-        self.scrape_ddns_and_ip()
+        network_already_scraped = 'psk' in self.orgs_dict[
+            self.active_org_id]['node_groups'][self.active_network_id].keys()
+        if not network_already_scraped:
+            network_dict = self.orgs_dict[self.active_org_id]['node_groups'][
+                self.active_network_id]
+            network_url_part = network_dict['t'] + '/n/' + network_dict['eid']
+            self.scrape_psk(network_url_part)
+            self.scrape_ddns_and_ip(network_url_part)
 
-    def scrape_psk(self):
+    def scrape_psk(self, network_url_part):
         """Scrape Client VPN PSK"""
-        client_vpn_url = self.get_active_network_url() \
-            + '/configure/client_vpn_settings'
-        print("Client VPN URL " + client_vpn_url)
+        client_vpn_url = self.create_url_from_data(
+            network_url_part, '/configure/client_vpn_settings')
+        print('Client VPN url', client_vpn_url)
         client_vpn_text = self.browser.get(client_vpn_url).text
         client_vpn_soup = bs4.BeautifulSoup(client_vpn_text, 'lxml')
-        self.vpn_vars['psk'] = client_vpn_soup.find("input", {
+        psk = client_vpn_soup.find("input", {
             "id": "wired_config_client_vpn_secret", "value": True})['value']
+        self.orgs_dict[self.active_org_id]['node_groups'][
+            self.active_network_id]['psk'] = psk
 
-    def scrape_ddns_and_ip(self):
+    def scrape_ddns_and_ip(self, network_url_part):
         """Scrape the ddns and primary ip address."
 
         This method gets ddns and ip values for the active network. This
         method should ONLY be called if the user has hit the connect button
         """
-        fw_status_url = self.get_active_network_url() \
-            + '/nodes/new_wired_status'
+        fw_status_url = self.create_url_from_data(
+            network_url_part, '/nodes/new_wired_status')
+        print('Firewall Status url', fw_status_url)
         fw_status_text = self.browser.get(fw_status_url).text
 
         # ddns value can be found by searching for '"dynamic_dns_name"'
         ddns_value_start = fw_status_text.find("dynamic_dns_name")+19
         ddns_value_end = fw_status_text[ddns_value_start:].find('\"') \
             + ddns_value_start
-        self.vpn_vars['ddns'] = \
-            fw_status_text[ddns_value_start:ddns_value_end]
+        ddns = fw_status_text[ddns_value_start:ddns_value_end]
+        self.orgs_dict[self.active_org_id]['node_groups'][
+            self.active_network_id]['ddns'] = ddns
 
+        """
         # Primary will always come first, so using find should
         # find it's IP address, even if there's a warm spare
         # Using unique '{"public_ip":' to find primary IP address
         ip_start = fw_status_text.find("{\"public_ip\":")+14
         ip_end = fw_status_text[ip_start:].find('\"') + ip_start
         self.vpn_vars['ip'] = fw_status_text[ip_start: ip_end]
-        print('scraped ddns', self.vpn_vars['ddns'],
-              'ip', self.vpn_vars['ip'])
+        """
 
     # Fns that operate independent of which URL the browser is at
     ###########################################################################
@@ -413,13 +428,15 @@ class DataScraper:
         self.active_org_id = list(self.orgs_dict)[org_index]
         # If networks have not been retrieved for this org
         if not self.orgs_dict[self.active_org_id]['node_groups']:
-            new_org_url = self.create_url_from_org_data()
+            eid = self.orgs_dict[self.active_org_id]['eid']
+            new_org_url = self.create_url_from_data('o/' + eid,
+                                                    '/organization/')
             self.browser.open(new_org_url)
             new_org_dict = self.scrape_administered_orgs()[self.active_org_id]
             filtered_org_dict = self.filter_org_data(new_org_dict, ['wired'])
             self.orgs_dict[self.active_org_id] = filtered_org_dict
 
-    def create_url_from_org_data(self):
+    def create_url_from_data(self, network_partial, url_route):
         """Create the org url from administered_orgs data
 
         Returns:
@@ -429,15 +446,9 @@ class DataScraper:
         NOTE: All names taken from Mkiconf var names in HTML
         """
         shard_id = str(self.orgs_dict[self.active_org_id]['shard_id'])
-        eid = self.orgs_dict[self.active_org_id]['eid']
         shard_origin_url = 'https://n' + shard_id + '.meraki.com/'
-        base_url = 'o/' + eid + '/manage/organization/'
+        base_url = network_partial + '/manage' + url_route
         return shard_origin_url + base_url
-
-    def get_active_network_url(self):
-        """Return the active network's base url"""
-        return self.orgs_dict[self.active_org_id]['node_groups'][
-            self.active_network_id]['base_url']
 
     def get_active_org_name(self):
         """Return the active org name."""
