@@ -25,6 +25,9 @@ import bs4
 class DataScraper:
     """API to interact with the Meraki Dashboard using the requests module.
 
+    URLs can be generated from org eid and shard id:
+    https://n<shard_id>.meraki.com/o/<eid>/manage/organization/
+
     Attributes:
         username (string): User-entered username, used to login
         password (string): User-entered password, used to login
@@ -34,17 +37,19 @@ class DataScraper:
         to this?)
 
         orgs_dict (dict): A list of orgs/networks derived from administered_orgs
-            See method scrape_administered_orgs for more information
+            See method scrape_administered_orgs for more information. Only
+            difference from json blob is that network_eid key is replaced
+            with network_id key
 
             = {
                 <org#1 id>: {
                     'name'
-                    'url'
-                    'network_id': {
-                        <network#1_name> : {
+                    'eid'
+                    'node_groups': {
+                        <network1_id> : {
                             ...
                         }
-                        <network2_name> : {}
+                        <network2_id> : {}
                         ...
                     }
                     ...
@@ -79,7 +84,6 @@ class DataScraper:
         # Initialize organization dictionary {Name: Link} and
         # list for easier access. org_list is org_links.keys()
         self.orgs_dict = {}
-        self.org_urls = []
 
         self.is_network_admin = False  # Most admins are org admins
         self.org_qty = 1
@@ -174,29 +178,25 @@ class DataScraper:
         # 2+ orgs choice page : https://account.meraki.com/login/org_list?go=%2F
         if 'org_list' in self.browser.get_url():  # Admin orgs = 2
             self.bypass_org_choose_page(page)
-            page = self.browser.get_current_page()
 
-        # Mkiconf vars should be in HTML on every page
-        mki_dict = self.get_mkiconf_vars(page.text)
         administered_orgs = self.scrape_administered_orgs()
-        # Sort alphabetically by org name so order matches org_urls
+        print(administered_orgs)
+        # Sort alphabetically by org name
         alphabetized_org_id_list = sorted(
             administered_orgs,
             key=lambda org_id_var: administered_orgs[org_id_var]['name'])
         for org_id in alphabetized_org_id_list:
             # Find active_org_id by finding the name of the org we're in
-            if administered_orgs[org_id]['name'] == mki_dict['org_name']:
+            if administered_orgs[org_id]['node_groups']:
                 self.active_org_id = administered_orgs[org_id]['id']
             # Filter for wired as we only care about firewall networks
             self.orgs_dict[org_id] = self.filter_org_data(
                 administered_orgs[org_id],
                 ['wired']
             )
-        if self.org_qty > 1:
-            for index, org_id in enumerate(self.orgs_dict):
-                self.orgs_dict[org_id]['url'] = self.org_urls[index]
+
         self.active_network_id = list(self.orgs_dict[self.active_org_id][
-            'networks'])[0]
+         'node_groups'])[0]
 
     def bypass_org_choose_page(self, page):
         """Bypass page for admins with 2+ orgs that normally requires user input
@@ -215,12 +215,8 @@ class DataScraper:
             'a', href=re.compile('/login/org_choose\?eid=.{6}'))
         # Get the number of orgs
         self.org_qty = len(org_href_lines)
-
         # Choose link for first org so we have something to connect to
-        for link in org_href_lines:
-            self.org_urls.append('https://account.meraki.com' + link['href'])
-
-        bootstrap_url = self.org_urls[0]
+        bootstrap_url = 'https://account.meraki.com' + org_href_lines[0]['href']
         self.browser.open(bootstrap_url)
 
     @staticmethod
@@ -299,7 +295,7 @@ class DataScraper:
         base_url = self.get_url().split('/manage')[0] + '/manage'
         administered_orgs_partial = '/organization/administered_orgs'
         administered_orgs_url = base_url + administered_orgs_partial
-        print(administered_orgs_url)
+        print('administered_orgs url', administered_orgs_url)
         self.browser.open(administered_orgs_url)
 
         cj = self.browser.get_cookiejar()
@@ -324,22 +320,15 @@ class DataScraper:
             network_types (list): List of strings of target network types
 
         Returns:
-            org_dict (dict): Dict containing this format:
-            {
-                'name': <org name>
-                'url': <org base_url>
-                <network id>: {
-                    'name': <name>
-                    'base_url': <base_url>
-                }
-                }
-            }
+            org_dict (dict): Dict containing all of an org's json except for
+            node_groups types not included in network_types
+
+            Also changes network_eid to network_id
         """
 
-        filtered_dict = {
-            'name': org_dict['name'],
-            'networks': {}
-        }
+        filtered_dict = dict(org_dict)
+        # Remove all networks so we can manually add the ones we want
+        filtered_dict['node_groups'] = {}
 
         # eid is alphanumeric id for network
         for eid in org_dict['node_groups']:
@@ -347,15 +336,8 @@ class DataScraper:
             if org_dict['node_groups'][eid]['network_type'] in network_types:
                 # Same network ID as in API
                 network_id = org_dict['node_groups'][eid]['id']
-                network_name = org_dict['node_groups'][eid]['n']
-                dashed_network_name = org_dict['node_groups'][eid]['t']
-                base_url = 'https://n' + str(org_dict['shard_id']) + \
-                           '.meraki.com/' + dashed_network_name + '/n/' + eid \
-                           + '/manage'
-                filtered_dict['networks'] = {network_id: {
-                    'name': network_name,
-                    'base_url': base_url
-                }}
+                filtered_dict['node_groups'][network_id] = \
+                    org_dict['node_groups'][eid]
 
         return filtered_dict
 
@@ -428,13 +410,32 @@ class DataScraper:
 
     def set_active_org_index(self, org_index):
         """Set the the org index to the param."""
-        print('in set active org index', org_index)
         self.active_org_id = list(self.orgs_dict)[org_index]
-        self.scrape_administered_orgs()
+        new_org_url = self.create_url_from_org_data()
+        self.browser.open(new_org_url)
+
+        new_org_dict = self.scrape_administered_orgs()[self.active_org_id]
+        filtered_org_dict = self.filter_org_data(new_org_dict, ['wired'])
+        self.orgs_dict[self.active_org_id] = filtered_org_dict
+
+    def create_url_from_org_data(self):
+        """Create the org url from administered_orgs data
+
+        Returns:
+            (string): URL that looks like
+                https://n<shard_id>.meraki.com/o/<eid>/manage/organization
+
+        NOTE: All names taken from Mkiconf var names in HTML
+        """
+        shard_id = str(self.orgs_dict[self.active_org_id]['shard_id'])
+        eid = self.orgs_dict[self.active_org_id]['eid']
+        shard_origin_url = 'https://n' + shard_id + '.meraki.com/'
+        base_url = 'o/' + eid + '/manage/organization/'
+        return shard_origin_url + base_url
 
     def get_active_network_url(self):
         """Return the active network's base url"""
-        return self.orgs_dict[self.active_org_id]['networks'][
+        return self.orgs_dict[self.active_org_id]['node_groups'][
             self.active_network_id]['base_url']
 
     def get_active_org_name(self):
@@ -443,5 +444,6 @@ class DataScraper:
 
     def get_active_org_networks(self):
         """Get the network name for every network in the active org"""
-        networks = self.orgs_dict[self.active_org_id]['networks']
-        return [networks[network_id]['name'] for network_id in networks]
+        networks = self.orgs_dict[self.active_org_id]['node_groups']
+        print('networks', networks)
+        return [networks[network_id]['n'] for network_id in networks]

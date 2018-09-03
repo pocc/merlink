@@ -114,7 +114,7 @@ class MainWindow(QMainWindow):
         networks for this organization. This makes it so we don't need 
         to get the network list twice for the same organization
         """
-        selected_org_index = self.org_dropdown.currentIndex()-1
+        selected_org_index = self.org_dropdown.currentIndex() - 1
         self.browser.set_active_org_index(selected_org_index)
         print("In change_organization and this is the network list "
               + str(self.browser.get_active_org_networks()))
@@ -130,7 +130,6 @@ class MainWindow(QMainWindow):
             print("we are getting new info for " + selected_org +
                   " at index" + str(selected_org_index))
             self.browser.set_active_org_index(selected_org_index)
-            self.browser.scrape_administered_orgs()
 
         self.refresh_network_dropdown()
         self.status.showMessage("Status: In org " +
