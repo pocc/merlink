@@ -25,8 +25,9 @@ class VpnConnection:
     VpnConnection list arguments
         vpn_data
             vpn_name
-            ddns
             psk
+            ip
+            ddns
             username
             password
         windows_options
@@ -35,6 +36,7 @@ class VpnConnection:
             split_tunneled
             remember_credentials
             use_winlogon
+            DEBUG
 
     VpnConnection takes 2 lists as args: vpn_data and vpn_options
         Required VPN parameters will arrive in vpn_data
@@ -43,6 +45,7 @@ class VpnConnection:
 
     def __init__(self, vpn_data):
         super(VpnConnection, self).__init__()
+        print('showing')
         self.vpn_data = vpn_data
         self.vpn_options = []
         self.vpn_name = ''
@@ -86,8 +89,8 @@ class VpnConnection:
 
         return subprocess.call(
             [powershell_path, '-ExecutionPolicy', 'Unrestricted',
-             pyinstaller_path('src\scripts\connect_windows.ps1'), *self.vpn_data,
-             *self.vpn_options])
+             pyinstaller_path('src\scripts\connect_windows.ps1'),
+             *self.vpn_data, *self.vpn_options])
         # subprocess.Popen([], creationflags=subprocess.CREATE_NEW_CONSOLE)
         #  open ps window
 
@@ -159,8 +162,9 @@ class VpnConnection:
         if self.is_vpn_connected():
             system('rasdial ' + self.vpn_name + ' /disconnect')
 
-    def is_vpn_connected(self):
-        "Detect whether VPN is connected or not."
+    @staticmethod
+    def is_vpn_connected():
+        """Detect whether VPN is connected or not."""
         if sys.platform == 'win32':
             rasdial_status = \
                 subprocess.Popen(['rasdial'], stdout=subprocess.PIPE
@@ -170,4 +174,3 @@ class VpnConnection:
             pass
         elif sys.platform.startswith('linux'):
             pass
-

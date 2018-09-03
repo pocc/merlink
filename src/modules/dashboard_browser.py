@@ -369,8 +369,14 @@ class DataScraper:
         print('Client VPN url', client_vpn_url)
         client_vpn_text = self.browser.get(client_vpn_url).text
         client_vpn_soup = bs4.BeautifulSoup(client_vpn_text, 'lxml')
-        psk = client_vpn_soup.find("input", {
-            "id": "wired_config_client_vpn_secret", "value": True})['value']
+        try:
+            psk = client_vpn_soup.find("input", {
+                "id": "wired_config_client_vpn_secret", "value": True})['value']
+        except TypeError as e:
+            # This should result in the "Connect" button being grayed out
+            # And the client vpn enabled validation check to fail
+            print("Error! Client VPN is not enabled!", e)
+            psk = 1
         self.orgs_dict[self.active_org_id]['node_groups'][
             self.active_network_id]['psk'] = psk
 
@@ -393,14 +399,13 @@ class DataScraper:
         self.orgs_dict[self.active_org_id]['node_groups'][
             self.active_network_id]['ddns'] = ddns
 
-        """
-        # Primary will always come first, so using find should
+        # Primary MX will always come first, so using find should
         # find it's IP address, even if there's a warm spare
         # Using unique '{"public_ip":' to find primary IP address
         ip_start = fw_status_text.find("{\"public_ip\":")+14
         ip_end = fw_status_text[ip_start:].find('\"') + ip_start
-        self.vpn_vars['ip'] = fw_status_text[ip_start: ip_end]
-        """
+        self.orgs_dict[self.active_org_id]['node_groups'][
+            self.active_network_id]['ip'] = fw_status_text[ip_start: ip_end]
 
     # Fns that operate independent of which URL the browser is at
     ###########################################################################
@@ -459,3 +464,10 @@ class DataScraper:
         networks = self.orgs_dict[self.active_org_id]['node_groups']
         print('networks', networks)
         return [networks[network_id]['n'] for network_id in networks]
+
+    def get_vpn_var(self, vpn_var):
+        """Return the vpn var specified from the active network
+        Expected vars inlcude ddns, ip, psk
+        """
+        return self.orgs_dict[self.active_org_id]['node_groups'][
+            self.active_network_id][vpn_var]

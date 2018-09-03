@@ -201,8 +201,9 @@ class MainWindow(QMainWindow):
             # Create VPN connection
             vpn_data = [
                 vpn_name,
-                self.browser.vpn_vars['current_ddns'],
-                self.browser.vpn_vars['psk'],
+                self.browser.get_vpn_var('psk'),
+                self.browser.get_vpn_var('ddns'),
+                self.browser.get_vpn_var('ip'),
                 username,
                 password
             ]
@@ -210,31 +211,32 @@ class MainWindow(QMainWindow):
 
             if sys.platform == 'win32':
                 windows_options = [
-                    DEBUG,
                     self.dns_suffix_txtbox.text(),
                     self.idle_disconnect_spinbox.value(),
                     self.split_tunneled_chkbox.checkState(),
                     self.remember_credential_chkbox.checkState(),
-                    self.use_winlogon_chkbox.checkState()
+                    self.use_winlogon_chkbox.checkState(),
+                    DEBUG,
                 ]
-                successful_attempt = \
+                return_code = \
                     connection.attempt_windows_vpn(windows_options)
 
             elif sys.platform == 'darwin':
                 macos_options = []
-                successful_attempt = \
+                return_code = \
                     connection.attempt_macos_vpn(macos_options)
 
             # linux, linux2 are valid for linux distros
             elif sys.platform.startswith('linux'):
                 linux_options = []
-                successful_attempt = \
+                return_code = \
                     connection.attempt_linux_vpn(linux_options)
 
             else:
-                successful_attempt = False
+                return_code = False
 
-            if successful_attempt:
+            successful_connection = (return_code == 0)
+            if successful_connection:
                 self.communicate_vpn_success()
             else:
                 self.communicate_vpn_failure()

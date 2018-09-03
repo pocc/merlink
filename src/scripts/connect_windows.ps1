@@ -55,12 +55,13 @@ $ddns = $args[2]                        # String
 $mx_ip = $args[3]                       # String
 $username = $args[4]                    # String
 $password = $args[5]                    # String
+
 $DnsSuffix = $args[6]                   # String
 $IdleDisconnectSeconds = [int]$args[7]  # Integer (of sec), converting to int
-$DEBUG = $args[8]                       # If DEBUG var is set in python
-$is_split_tunnel = [int]$args[9]        # 0/1 (String), converting to int
-$has_remember_credential=[int]$args[10] # 0/1 (String), converting to int
-$UseWinlogonCredential = [int]$args[11] # 0/1 (String), converting to int
+$is_split_tunnel = [int]$args[8]        # 0/1 (String), converting to int
+$has_remember_credential=[int]$args[9]  # 0/1 (String), converting to int
+$UseWinlogonCredential = [int]$args[10] # 0/1 (String), converting to int
+$DEBUG = $args[11]                      # If DEBUG var is set in python
 
 # While debugging, following command will print all variables
 write-host "These are the parameters that powershell received:"
@@ -107,4 +108,4 @@ if (($result -match 'Successfully connected') -Or `
     $EXIT_CODE=1
 }
 
-return $EXIT_CODE
+Exit $LASTEXITCODE
