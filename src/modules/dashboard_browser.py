@@ -411,12 +411,13 @@ class DataScraper:
     def set_active_org_index(self, org_index):
         """Set the the org index to the param."""
         self.active_org_id = list(self.orgs_dict)[org_index]
-        new_org_url = self.create_url_from_org_data()
-        self.browser.open(new_org_url)
-
-        new_org_dict = self.scrape_administered_orgs()[self.active_org_id]
-        filtered_org_dict = self.filter_org_data(new_org_dict, ['wired'])
-        self.orgs_dict[self.active_org_id] = filtered_org_dict
+        # If networks have not been retrieved for this org
+        if not self.orgs_dict[self.active_org_id]['node_groups']:
+            new_org_url = self.create_url_from_org_data()
+            self.browser.open(new_org_url)
+            new_org_dict = self.scrape_administered_orgs()[self.active_org_id]
+            filtered_org_dict = self.filter_org_data(new_org_dict, ['wired'])
+            self.orgs_dict[self.active_org_id] = filtered_org_dict
 
     def create_url_from_org_data(self):
         """Create the org url from administered_orgs data

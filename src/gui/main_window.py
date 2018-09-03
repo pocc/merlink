@@ -107,7 +107,6 @@ class MainWindow(QMainWindow):
         self.network_dropdown.setEnabled(True)
         self.status.showMessage("Status: Fetching organizations...")
         # Change primary organization
-        selected_org = self.org_dropdown.currentText()
         """
         If the organization index of network_list is empty (i.e. this 
         network list for this org has never been updated), then get the
@@ -118,18 +117,6 @@ class MainWindow(QMainWindow):
         self.browser.set_active_org_index(selected_org_index)
         print("In change_organization and this is the network list "
               + str(self.browser.get_active_org_networks()))
-        # If we have network data for the selected org
-        selected_org_has_networks = self.browser.get_active_org_networks()
-        # [] == False, so any content means we have networks for that org
-        # If we've already scraped networks for that org, do nothing
-        if selected_org_has_networks:
-            print("we already have that info for " + selected_org +
-                  " at index" + str(selected_org_index))
-        else:
-            print("getting networks from change_organization")
-            print("we are getting new info for " + selected_org +
-                  " at index" + str(selected_org_index))
-            self.browser.set_active_org_index(selected_org_index)
 
         self.refresh_network_dropdown()
         self.status.showMessage("Status: In org " +
