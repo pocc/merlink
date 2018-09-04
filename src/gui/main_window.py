@@ -24,7 +24,7 @@ from src.modules.vpn_connection import VpnConnection
 from src.modules.vpn_tests import TroubleshootVpn
 from src.modules.os_utils import is_duplicate_application
 from src.gui.menu_bars import MenuBars
-from src.gui.gui_setup import GuiSetup
+import src.gui.gui_setup as gui_setup
 from src.gui.systray import SystrayIcon
 from src.gui.tshoot_failed_vpn_dialog import tshoot_failed_vpn_dialog
 
@@ -38,8 +38,6 @@ class MainWindow(QMainWindow):
         browser (DataScraper): Browser used to store user credentials
         menu_widget (MenuBars): Used to tie the menu bars to the MainWindow
         tray_icon (SystrayIcon): Used to tie the tray icon to the MainWindow
-        main_window_qt (GuiSetup): Class to tie UI to Main Window (while
-        being in a different file for clarity).
     """
     # Telling PyCharm linter not to (incorrectly) inspect PyQt function args
     # noinspection PyArgumentList
@@ -59,8 +57,8 @@ class MainWindow(QMainWindow):
         self.menu_widget = MenuBars(self.menuBar())
         self.menu_widget.generate_menu_bars()
         self.tray_icon = SystrayIcon(self)
-        self.main_window_qt = GuiSetup(self)
-        self.main_window_qt.main_window_setup()
+        gui_setup.main_window_widget_setup(self)
+        gui_setup.main_window_set_layout(self)
 
         self.show()
 
@@ -77,8 +75,11 @@ class MainWindow(QMainWindow):
             * "Connect" button clicked -> Initiate VPN connection
 
         """
-        # Set entered dashboard email/redacted password to be shown by default
-        self.main_window_qt.set_dashboard_user_layout()
+        # Set up radio button for dashboard/admin user
+        gui_setup.main_window_set_admin_layout(self)
+        self.radio_admin_user.toggled.connect(self.set_admin_layout)
+        self.radio_guest_user.toggled.connect(self.set_guest_layout)
+
         org_list = self.browser.get_org_names()
         self.org_dropdown.addItems(org_list)
         # Get the data we need and remove the cruft we don't
@@ -276,3 +277,11 @@ class MainWindow(QMainWindow):
         """
         vpn_status = False
         return vpn_status
+
+    def set_admin_layout(self):
+        """Set the dashboard admin layout."""
+        gui_setup.main_window_set_admin_layout(self)
+
+    def set_guest_layout(self):
+        """Set the guest user layout."""
+        gui_setup.main_window_set_guest_layout(self)

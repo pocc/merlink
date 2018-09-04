@@ -22,7 +22,7 @@ from PyQt5.QtWidgets import QHBoxLayout
 
 from src.modules.dashboard_browser import DataScraper
 from src.gui.modal_dialogs import show_error_dialog
-from src.gui.gui_setup import GuiSetup
+import src.gui.gui_setup as gui_setup
 
 
 class LoginDialog(QDialog):
@@ -30,13 +30,6 @@ class LoginDialog(QDialog):
 
     Attributes:
         browser (MechanicalSoup): A browser in which to store user credentials.
-
-        ----
-
-        Please consider moving the brunt of the __init__ UI content to its
-        own file.
-
-    TODO: Convert the other attributes to a dict
     """
     # Telling PyCharm linter not to (incorrectly) inspect PyQt function args
     # noinspection PyArgumentList
@@ -44,16 +37,22 @@ class LoginDialog(QDialog):
         """Create UI vars necessary for login window to be shown."""
         super(LoginDialog, self).__init__()
         self.browser = DataScraper()
-        self.login_window_qt = GuiSetup(self)
+        self.tfa_success = False
         self.show_login()
 
     def show_login(self):
         """Shows the login window and records if the login button is pressed.
 
+        Uses methods stored in gui_setup to decorate the dialog object.
         If the login button is pressed, check whether the credentials are
         valid by sending them to the virtual browser.
         """
-        self.login_window_qt.login_dialog_setup()
+        # Decorate login window with gui functions
+        gui_setup.login_widget_setup(self)
+        gui_setup.login_window_setup(self)
+        gui_setup.login_set_layout(self)
+        gui_setup.login_tfa_set_layout(self)
+
         self.show()
         self.login_btn.clicked.connect(self.check_login_attempt)
 
@@ -92,32 +91,12 @@ class LoginDialog(QDialog):
 
     def tfa_dialog_setup(self):
         """Create and execute the UI for the TFA dialog"""
-        # TWOFACTOR_DIALOG UI SETUP #
-        self.get_twofactor_code.clear()  # Clear if exists
-        # QDialog that gets 6 digit two-factor code
-        self.twofactor_dialog.setWindowTitle("Two-Factor Authentication")
-        dialog_layout = QVBoxLayout()
-        twofactor_code_layout = QHBoxLayout()
+        # Create dialog window with login window object
+        gui_setup.tfa_widget_setup(self)
+        gui_setup.tfa_set_layout(self)
 
-        twofactor_code_label = QLabel("Enter verification code")
-        twofactor_dialog_yesno = QHBoxLayout()
-        yesbutton = QPushButton("Verify")
-        yesbutton.setToolTip("Attempt connection with this tfa code")
-        nobutton = QPushButton("Cancel")
-        yesbutton.setToolTip("Quit")
-        twofactor_dialog_yesno.addWidget(yesbutton)
-        twofactor_dialog_yesno.addWidget(nobutton)
-
-        # Layout code
-        twofactor_code_layout.addWidget(twofactor_code_label)
-        twofactor_code_layout.addWidget(self.get_twofactor_code)
-        dialog_layout.addLayout(twofactor_code_layout)
-        # dialog_layout.addWidget(self.get_remember_choice)
-        dialog_layout.addLayout(twofactor_dialog_yesno)
-        self.twofactor_dialog.setLayout(dialog_layout)
-
-        yesbutton.clicked.connect(self.tfa_verify)
-        nobutton.clicked.connect(self.twofactor_dialog.close)
+        self.yesbutton.clicked.connect(self.tfa_verify)
+        self.nobutton.clicked.connect(self.twofactor_dialog.close)
         while not self.tfa_success:
             self.twofactor_dialog.exec_()
 
