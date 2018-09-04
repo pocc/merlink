@@ -26,7 +26,7 @@ class MainCli:
     Based on ncurses
 
 
-    Command line options based on expected use cases:
+    Command line options spec based on expected use cases:
 
     1. To enter all information manually
     Usage: merlink --name <vpn name> --address <server IP/FQDN> --psk <PSK>
@@ -137,7 +137,7 @@ class MainCli:
         pass
 
     def troubleshoot_vpn(self):
-        """Provides a
+        """Provides an interface to interact with troubleshooting functionality.
 
         Currently not implemented but mirrored in main_window"""
 

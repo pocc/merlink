@@ -24,7 +24,7 @@ from src.modules.vpn_connection import VpnConnection
 from src.modules.vpn_tests import TroubleshootVpn
 from src.modules.os_utils import is_duplicate_application
 from src.gui.menu_bars import MenuBars
-from src.gui.main_window_ui import MainWindowUi
+from src.gui.gui_setup import GuiSetup
 from src.gui.systray import SystrayIcon
 from src.gui.tshoot_failed_vpn_dialog import tshoot_failed_vpn_dialog
 
@@ -38,7 +38,7 @@ class MainWindow(QMainWindow):
         browser (DataScraper): Browser used to store user credentials
         menu_widget (MenuBars): Used to tie the menu bars to the MainWindow
         tray_icon (SystrayIcon): Used to tie the tray icon to the MainWindow
-        main_window_ui (MainWindowUi): Class to tie UI to Main Window (while
+        main_window_qt (GuiSetup): Class to tie UI to Main Window (while
         being in a different file for clarity).
     """
     # Telling PyCharm linter not to (incorrectly) inspect PyQt function args
@@ -59,7 +59,8 @@ class MainWindow(QMainWindow):
         self.menu_widget = MenuBars(self.menuBar())
         self.menu_widget.generate_menu_bars()
         self.tray_icon = SystrayIcon(self)
-        self.main_window_ui = MainWindowUi(self)
+        self.main_window_qt = GuiSetup(self)
+        self.main_window_qt.main_window_setup()
 
         self.show()
 
@@ -77,7 +78,7 @@ class MainWindow(QMainWindow):
 
         """
         # Set entered dashboard email/redacted password to be shown by default
-        self.main_window_ui.set_dashboard_user_layout()
+        self.main_window_qt.set_dashboard_user_layout()
         org_list = self.browser.get_org_names()
         self.org_dropdown.addItems(org_list)
         # Get the data we need and remove the cruft we don't

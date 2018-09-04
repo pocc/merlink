@@ -17,7 +17,11 @@
 
 
 class CliModalPrompts:
-    """Class documentation."""
+    """CliModalPrompts - Messages to the user on the CLI
+
+    CliModalPrompts exists by analogy to GUI modal prompts. It may or may
+    not be used - right now it's just a stub.
+    """
     def __init__(self):
         """CliModalPrompts class constructor, inits with no params."""
         super(CliModalPrompts, self).__init__()
