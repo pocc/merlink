@@ -1,19 +1,44 @@
-from PyQt5.QtWidgets import QAction, QMenu, QSystemTrayIcon
-from PyQt5.QtGui import QIcon, QFont
+# -*- coding: utf-8 -*-
+# Copyright 2018 Ross Jacobs All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""This class manages the system tray icon."""
 import webbrowser
 
-from src.modules.pyinstaller_path_helper import resource_path
+from PyQt5.QtWidgets import QAction, QMenu, QSystemTrayIcon
+from PyQt5.QtGui import QIcon, QFont
+
+from src.modules.os_utils import pyinstaller_path
+from src.modules.os_utils import open_vpnsettings
 
 
 class SystrayIcon:
-    # Taking in 'app', which is the MainWindow object
+    """This class manages the system tray icon of the main program, post-login.
+
+    Attributes:
+        app (QMainWindow): Set to MainWindow object (required binding for Qt)
+        tray_icon (QSystemTrayIcon): System Tray object that has all of the
+          functionality that this class requires.
+    """
+
     def __init__(self, app):
         # Init QSystemTrayIcon
         # Set the Window and Tray Icons
         self.app = app
-        self.app.setWindowIcon(QIcon(resource_path('src/media/miles.ico')))
+        self.app.setWindowIcon(QIcon(pyinstaller_path('src/media/miles.ico')))
         self.tray_icon = QSystemTrayIcon(app)
-        self.tray_icon.setIcon(QIcon(resource_path('src/media/miles.ico')))
+        self.tray_icon.setIcon(QIcon(pyinstaller_path('src/media/miles.ico')))
         if app.is_vpn_connected():
             connection_status = 'VPN connected'
         else:
@@ -23,16 +48,16 @@ class SystrayIcon:
         # TODO this should be a drop down of saved connections
         connect_action = QAction("Connect to ...", app)
         # These 3 lines are to make "Connect to ..." bold
-        f = QFont()
-        f.setBold(True)
-        connect_action.setFont(f)
+        font = QFont()
+        font.setBold(True)
+        connect_action.setFont(font)
     
         disconnect_action = QAction("Disconnect", app)
         show_action = QAction("Show", app)
         quit_action = QAction("Exit", app)
         hide_action = QAction("Hide", app)
         # Allow this if we're not connected
-        connect_action.triggered.connect(app.connect_vpn)
+        connect_action.triggered.connect(app.setup_vpn)
         disconnect_action.triggered.connect(app.disconnect)
         show_action.triggered.connect(app.show)
         hide_action.triggered.connect(app.hide)
@@ -53,21 +78,31 @@ class SystrayIcon:
         self.tray_icon.activated.connect(self.icon_activated)
 
     def icon_activated(self, reason):
+        """The user has clicked on the systray icon, so respond
+
+        If single or double click, show the application
+        If middle click, go to meraki.cisco.com
+        Override closeEvent, to intercept the window closing event
+
+        Args:
+            reason (QSystemTrayIcon.ActivationReason): An enum of
+                [0,4] of how the user interacted with the system tray
+                ~
+                More information on ActivationReasons can be found here:
+                http://doc.qt.io/qt-5/qsystemtrayicon.html#ActivationReason-enum
+        """
+
         if reason in (QSystemTrayIcon.Trigger, QSystemTrayIcon.DoubleClick):
             self.app.show()  # So it will show up in taskbar
             self.app.raise_()  # for macOS
             self.app.activateWindow()  # for Windows
 
         elif reason == QSystemTrayIcon.MiddleClick:
-            # Go to Security Appliance that we've connected to
-            # TODO This is going to need more legwork as we need to pass the
-            # TODO cookie when we open the browser
+            # Open Meraki's homepage
             webbrowser.open("https://meraki.cisco.com/")
 
-        # Override closeEvent, to intercept the window closing event
-        # The window will be closed if there is no check mark in the check box
-
     def application_minimized(self):
+        """Minimize the window."""
         self.tray_icon.showMessage(
             "Merlink",
             "Merlink is now minimized",
@@ -76,21 +111,40 @@ class SystrayIcon:
         )
 
     def set_vpn_failure(self):
-        self.app.setIcon(QIcon(resource_path('src/media/unmiles.ico')))
+        """Tell user that VPN connection was unsuccessful.
 
-    # There's no such thing as "minimize to system tray".
-    # What we're doing is hiding the window and
-    # then adding an icon to the system tray
-    def set_vpn_success(self):
-        self.tray_icon.setIcon(QIcon(resource_path(
-            'src/media/connected_miles.ico')))
-        # If user wants to know more about connection,
-        # they can click on message and be redirected
-        self.tray_icon.messageClicked.connect(self.app.open_vpn_settings)
-        # Show the user the message so they know where the program went
+        Show an icon of Miles with a red interdictory circle and let
+        the user know the connection failed.
+        """
+        self.app.setIcon(QIcon(pyinstaller_path('src/media/unmiles.ico')))
+        # Provide system VPN settings if the user wants more info
+        self.tray_icon.messageClicked.connect(open_vpnsettings)
+        # Show the user this message so they know where the program went
         self.tray_icon.showMessage(
             "Merlink",
-            "Succesfully connected!",
+            "Connection failure!",
             QSystemTrayIcon.Information,
-            2000
+            1500
+        )
+
+    def set_vpn_success(self):
+        """Tell user that VPN connection was successful.
+
+        NOTE: There's no such thing as "minimize to system tray".
+        What we're doing is hiding the window and
+        then adding an icon to the system tray
+
+        This function will set the icon to Miles with 3D glasses and
+        show a message that the connection was successful.
+        """
+        self.tray_icon.setIcon(QIcon(pyinstaller_path(
+            'src/media/connected_miles.ico')))
+        # Provide system VPN settings if the user wants more info
+        self.tray_icon.messageClicked.connect(open_vpnsettings)
+        # Show the user this message so they know where the program went
+        self.tray_icon.showMessage(
+            "Merlink",
+            "Connection success!",
+            QSystemTrayIcon.Information,
+            1500
         )
