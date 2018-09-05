@@ -208,7 +208,14 @@ def main_window_widget_setup(app):
     app.user_auth_section.addWidget(app.radio_username_textfield)
     app.user_auth_section.addWidget(app.radio_password_label)
     app.user_auth_section.addWidget(app.radio_password_textfield)
-    
+
+    # Allow the user to change the VPN name
+    app.vpn_name_layout = QHBoxLayout()
+    app.vpn_name_label = QLabel("VPN Name:")
+    app.vpn_name_textfield = QLineEdit()
+    app.vpn_name_layout.addWidget(app.vpn_name_label)
+    app.vpn_name_layout.addWidget(app.vpn_name_textfield)
+
     # Ask the user for int/str values if they want to enter them
     app.idle_disconnect_layout = QHBoxLayout()
     app.idle_disconnect_chkbox = QCheckBox("Idle disconnect seconds?")
@@ -254,6 +261,7 @@ def main_window_set_layout(app):
     vert_layout.addWidget(app.org_dropdown)
     vert_layout.addWidget(app.network_dropdown)
     vert_layout.addLayout(app.user_auth_section)
+    vert_layout.addLayout(app.vpn_name_layout)
 
     # Add layouts for specialized params
     vert_layout.addLayout(app.idle_disconnect_layout)

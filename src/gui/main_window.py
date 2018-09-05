@@ -90,6 +90,7 @@ class MainWindow(QMainWindow):
         self.status.showMessage("Status: Fetching networks in " +
                                 current_org + "...")
         self.connect_btn.setEnabled(False)
+        self.vpn_name_textfield.setEnabled(False)
         # Remove all elements from the network UI dropdown
         self.network_dropdown.clear()
         self.refresh_network_dropdown()
@@ -108,6 +109,7 @@ class MainWindow(QMainWindow):
         # -1 due to having a 'select' option.
         selected_org_index = self.org_dropdown.currentIndex() - 1
         self.connect_btn.setEnabled(False)
+        self.vpn_name_textfield.setEnabled(False)
         if selected_org_index == -1:
             self.status.showMessage("Status: Select an Organization")
             self.network_dropdown.setEnabled(False)
@@ -135,6 +137,7 @@ class MainWindow(QMainWindow):
         if current_network_index == -1:
             self.status.showMessage("Status: Select a Network")
             self.connect_btn.setEnabled(False)
+            self.vpn_name_textfield.setEnabled(False)
         else:
             network_list = self.browser.get_active_org_networks()
             print('main window network list', network_list)
@@ -147,6 +150,7 @@ class MainWindow(QMainWindow):
             self.browser.get_client_vpn_data()
             if not self.browser.client_vpn_checks():
                 self.connect_btn.setEnabled(False)
+                self.vpn_name_textfield.setEnabled(False)
                 error_message = "ERROR: Client VPN is not enabled on " + \
                                 current_network + ".\n\nPlease enable it and"\
                                 + " try again."
@@ -158,6 +162,9 @@ class MainWindow(QMainWindow):
                 self.connect_btn.setEnabled(True)
                 self.status.showMessage("Status: Ready to connect to "
                                         + current_network + ".")
+                vpn_name = current_network.replace('- appliance', '') + '- VPN'
+                self.vpn_name_textfield.setText(vpn_name)
+                self.vpn_name_textfield.setEnabled(True)
 
     def refresh_network_dropdown(self):
         """Remove old values of the network dropdown and add new ones.
@@ -192,7 +199,6 @@ class MainWindow(QMainWindow):
             # Get current network from dropdown
             network_name = self.network_dropdown.currentText()
             # Set VPN name to the network name +/- cosmetic things
-            vpn_name = network_name.replace('- appliance', '') + '- VPN'
 
             # If the user is logging in as a guest user
             if self.radio_admin_user.isChecked() == 0:
@@ -210,7 +216,7 @@ class MainWindow(QMainWindow):
 
             # Create VPN connection
             vpn_data = [
-                vpn_name,
+                self.vpn_name_textfield.text(),
                 *self.browser.get_psk_and_address(),
                 username,
                 password
