@@ -175,8 +175,8 @@ def main_window_widget_setup(app):
     # QMainWindow requires that a central app be set
     app.cw = QWidget(app)
     app.setCentralWidget(app.cw)
-    # Set minimum width of Main Window to 400 pixels
-    app.cw.setMinimumWidth(400)
+    # Set minimum width of Main Window to 500 pixels
+    app.cw.setMinimumWidth(500)
     app.setWindowTitle('MerLink - VPN Client for Meraki firewalls')
 
     # Create org and network dropdowns so the user can select the firewall

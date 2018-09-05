@@ -19,10 +19,9 @@ import json
 
 import requests
 import mechanicalsoup
-import bs4
 
 
-class DataScraper:
+class DashboardBrowser:
     """API to interact with the Meraki Dashboard using the requests module.
 
     URLs can be generated from org eid and shard id:
@@ -65,7 +64,7 @@ class DataScraper:
         is_network_admin (string): If admin has networks but no org access
     """
     def __init__(self):
-        super(DataScraper, self).__init__()
+        super(DashboardBrowser, self).__init__()
 
         # Instantiate browser
         self.browser = mechanicalsoup.StatefulBrowser(
@@ -89,6 +88,9 @@ class DataScraper:
         self.org_qty = 1
         self.active_org_id = 0
         self.active_network_id = 0
+
+        # Save the pagetexts for validation tests
+        self.pagetexts = {}
 
         # VPN VARS: Powershell Variables set to defaults
         # If it's set to '', then powershell will skip reading that parameter.
@@ -115,7 +117,12 @@ class DataScraper:
         self.password = password
 
         # Navigate to login page
-        self.browser.open('https://account.meraki.com/login/dashboard_login')
+        try:
+            self.browser.open(
+                'https://account.meraki.com/login/dashboard_login')
+        except requests.exceptions.ConnectionError as error:
+            return error
+
         form = self.browser.select_form()
         self.browser["email"] = self.username
         self.browser["password"] = self.password
@@ -157,6 +164,8 @@ class DataScraper:
         else:
             print("TFA Failure")
 
+    # Fns that set up the browser for use
+    ###########################################################################
     def org_data_setup(self):
         """Count whether the admin has access to 0, 1, or 2+ orgs
 
@@ -185,6 +194,7 @@ class DataScraper:
         alphabetized_org_id_list = sorted(
             administered_orgs,
             key=lambda org_id_var: administered_orgs[org_id_var]['name'])
+
         for org_id in alphabetized_org_id_list:
             # Find active_org_id by finding the name of the org we're in
             if administered_orgs[org_id]['node_groups']:
@@ -218,43 +228,6 @@ class DataScraper:
         # Choose link for first org so we have something to connect to
         bootstrap_url = 'https://account.meraki.com' + org_href_lines[0]['href']
         self.browser.open(bootstrap_url)
-
-    @staticmethod
-    def get_mkiconf_vars(pagetext):
-        """Most dashboard pages have mkiconf vars. This fn returns them.
-
-        These variables are largely the same as administered orgs, but could
-        be useful elsewhere. Keeping this here is in case I could use this of
-        scraping method later. Check the regex below for the expected string.
-        The format will look like this:
-
-            Mkiconf.action_name = "new_wired_status";
-            Mkiconf.log_errors = false;
-            Mkiconf.eng_log_enabled = false;
-            Mkiconf.on_mobile_device = false;
-
-        Essentially  Mkiconf.<property> = <JSON>;
-
-        Args:
-            pagetext (string): Text of a webpage
-
-        Returns:
-            (dict) All available Mkiconf vars.
-        """
-        mki_lines = re.findall(' Mkiconf[ -:<-~]*;', pagetext)
-        mki_dict = {}
-        for line in mki_lines:
-            mki_string = re.findall('[0-9a-zA-Z_]+\s*=\s[ -:<-~]*;', line)[0]
-            # mki_key = <property>, mki_value = <JSON>
-            mki_key, mki_value = mki_string.split(' = ', 1)
-            if mki_value[-1] == ';':  # remove trailing ;
-                mki_value = mki_value[:-1]
-            # If the value is double quoted, remove both "s
-            if mki_value[0] == '"' and mki_value[-1] == '"':
-                mki_value = mki_value[1:-1]
-            mki_dict[mki_key] = mki_value
-
-        return mki_dict
 
     def scrape_administered_orgs(self):
         """Retrieve the administered_orgs json blob
@@ -292,7 +265,7 @@ class DataScraper:
             }
         """
 
-        base_url = self.get_url().split('/manage')[0] + '/manage'
+        base_url = self.browser.get_url().split('/manage')[0] + '/manage'
         administered_orgs_partial = '/organization/administered_orgs'
         administered_orgs_url = base_url + administered_orgs_partial
         print('administered_orgs url', administered_orgs_url)
@@ -345,85 +318,13 @@ class DataScraper:
 
         return filtered_dict
 
-    def scrape_network_vars(self, network_index):
-        """Change the current network."""
-        print('in scrape network vars. org id',
-              self.active_org_id, 'network index', network_index)
-        # If this network has not been scraped before
-        selected_network_id = list(self.orgs_dict[self.active_org_id][
-                                       'node_groups'])[network_index]
-        self.active_network_id = selected_network_id
-        network_already_scraped = 'psk' in self.orgs_dict[
-            self.active_org_id]['node_groups'][self.active_network_id].keys()
-        if not network_already_scraped:
-            network_dict = self.orgs_dict[self.active_org_id]['node_groups'][
-                self.active_network_id]
-            network_url_part = network_dict['t'] + '/n/' + network_dict['eid']
-            self.scrape_psk(network_url_part)
-            self.scrape_ddns_and_ip(network_url_part)
-
-    def scrape_psk(self, network_url_part):
-        """Scrape Client VPN PSK"""
-        client_vpn_url = self.create_url_from_data(
-            network_url_part, '/configure/client_vpn_settings')
-        print('Client VPN url', client_vpn_url)
-        client_vpn_text = self.browser.get(client_vpn_url).text
-        client_vpn_soup = bs4.BeautifulSoup(client_vpn_text, 'lxml')
-        try:
-            psk = client_vpn_soup.find("input", {
-                "id": "wired_config_client_vpn_secret", "value": True})['value']
-        except TypeError as e:
-            # This should result in the "Connect" button being grayed out
-            # And the client vpn enabled validation check to fail
-            print("Error! Client VPN is not enabled!", e)
-            psk = 1
-        self.orgs_dict[self.active_org_id]['node_groups'][
-            self.active_network_id]['psk'] = psk
-
-    def scrape_ddns_and_ip(self, network_url_part):
-        """Scrape the ddns and primary ip address."
-
-        This method gets ddns and ip values for the active network. This
-        method should ONLY be called if the user has hit the connect button
-        """
-        fw_status_url = self.create_url_from_data(
-            network_url_part, '/nodes/new_wired_status')
-        print('Firewall Status url', fw_status_url)
-        fw_status_text = self.browser.get(fw_status_url).text
-
-        # ddns value can be found by searching for '"dynamic_dns_name"'
-        ddns_value_start = fw_status_text.find("dynamic_dns_name")+19
-        ddns_value_end = fw_status_text[ddns_value_start:].find('\"') \
-            + ddns_value_start
-        ddns = fw_status_text[ddns_value_start:ddns_value_end]
-        self.orgs_dict[self.active_org_id]['node_groups'][
-            self.active_network_id]['ddns'] = ddns
-
-        # Primary MX will always come first, so using find should
-        # find it's IP address, even if there's a warm spare
-        # Using unique '{"public_ip":' to find primary IP address
-        ip_start = fw_status_text.find("{\"public_ip\":")+14
-        ip_end = fw_status_text[ip_start:].find('\"') + ip_start
-        self.orgs_dict[self.active_org_id]['node_groups'][
-            self.active_network_id]['ip'] = fw_status_text[ip_start: ip_end]
-
     # Fns that operate independent of which URL the browser is at
     ###########################################################################
-    def get_browser(self):
-        """Get the MechanicalSoup object with associated login cookies."""
-        return self.browser
-
-    def get_url(self):
-        """Get the current URL"""
-        print("browser url in get_url", self.browser.get_url())
-        return self.browser.get_url()
 
     def get_org_names(self):
         """Get a list of org names"""
         return [self.orgs_dict[org_id]['name'] for org_id in self.orgs_dict]
 
-    # get_active fns get info about the org the browser is at
-    ###########################################################################
     def get_active_org_index(self):
         """Return the index of the active org by org_id."""
         return list(self.orgs_dict).index(str(self.active_org_id))
@@ -434,26 +335,19 @@ class DataScraper:
         # If networks have not been retrieved for this org
         if not self.orgs_dict[self.active_org_id]['node_groups']:
             eid = self.orgs_dict[self.active_org_id]['eid']
-            new_org_url = self.create_url_from_data('o/' + eid,
-                                                    '/organization/')
+            shard_id = str(self.orgs_dict[self.active_org_id]['shard_id'])
+            new_org_url = 'https://n' + shard_id + '.meraki.com/o/' \
+                          + eid + '/manage/organization/'
+
             self.browser.open(new_org_url)
             new_org_dict = self.scrape_administered_orgs()[self.active_org_id]
             filtered_org_dict = self.filter_org_data(new_org_dict, ['wired'])
             self.orgs_dict[self.active_org_id] = filtered_org_dict
 
-    def create_url_from_data(self, network_partial, url_route):
-        """Create the org url from administered_orgs data
-
-        Returns:
-            (string): URL that looks like
-                https://n<shard_id>.meraki.com/o/<eid>/manage/organization
-
-        NOTE: All names taken from Mkiconf var names in HTML
-        """
-        shard_id = str(self.orgs_dict[self.active_org_id]['shard_id'])
-        shard_origin_url = 'https://n' + shard_id + '.meraki.com/'
-        base_url = network_partial + '/manage' + url_route
-        return shard_origin_url + base_url
+    def set_active_network_index(self, network_index):
+        """Sets the active network by its index."""
+        self.active_network_id = list(self.orgs_dict[self.active_org_id][
+                                       'node_groups'])[network_index]
 
     def get_active_org_name(self):
         """Return the active org name."""
@@ -465,9 +359,147 @@ class DataScraper:
         print('networks', networks)
         return [networks[network_id]['n'] for network_id in networks]
 
-    def get_vpn_var(self, vpn_var):
-        """Return the vpn var specified from the active network
-        Expected vars inlcude ddns, ip, psk
+    def get_page_links(self):
+        """Get all page links from current page's pagetext"""
+        pagetext = self.browser.get_current_page().text
+        json_text = re.findall(
+            'window\.initializeSideNavigation\([ -(*-~\r\n]*\)',
+            pagetext,
+        )[0][48:-1]
+        json_dict = json.loads(json_text)
+        # Format of this dict: {tab_menu: {tab: {'url': val, 'name': val}, ...
+        page_url_dict = {}
+        for tab_menu in range(len(json_dict['tab_menu']['tabs'])):
+            for menu in ('Monitor', 'Configure'):
+                category = json_dict['tab_menu']['tabs'][tab_menu]['name']
+                page_url_dict[category] = {}
+                qty_tabs = len(json_dict['tab_menu']['tabs'][tab_menu][
+                                         'menus'][menu]['items'])
+                for tab in range(qty_tabs):
+                    name = json_dict['tab_menu']['tabs'][tab_menu]['menus'][
+                        menu]['items'][tab]['name']
+                    url = json_dict['tab_menu']['tabs'][tab_menu]['menus'][
+                        menu]['items'][tab]['url']
+                    page_url_dict[category][name] = url
+
+        return page_url_dict
+
+    @staticmethod
+    def get_mkiconf_vars(pagetext):
+        """Most dashboard pages have mkiconf vars. This fn returns them.
+
+        These variables are largely the same as administered orgs, but could
+        be useful elsewhere. Keeping this here is in case I could use this of
+        scraping method later. Check the regex below for the expected string.
+        The format will look like this:
+
+            Mkiconf.action_name = "new_wired_status";
+            Mkiconf.log_errors = false;
+            Mkiconf.eng_log_enabled = false;
+            Mkiconf.on_mobile_device = false;
+
+        Essentially  Mkiconf.<property> = <JSON>;
+
+        Args:
+            pagetext (string): Text of a webpage
+
+        Returns:
+            (dict) All available Mkiconf vars.
         """
+        mki_lines = re.findall(' Mkiconf[ -:<-~]*;', pagetext)
+        mki_dict = {}
+        for line in mki_lines:
+            mki_string = \
+                re.findall('[0-9a-zA-Z_\[\]\"]+\s*=\s[ -:<-~]*;', line)[0]
+            # mki_key = <property>, mki_value = <JSON>
+            mki_key, mki_value = mki_string.split(' = ', 1)
+            if mki_value[-1] == ';':  # remove trailing ;
+                mki_value = mki_value[:-1]
+            # If the value is double quoted, remove both "s
+            if mki_value[0] == '"' and mki_value[-1] == '"':
+                mki_value = mki_value[1:-1]
+            mki_dict[mki_key] = mki_value
+
+        return mki_dict
+
+    def open_route(self, route):
+        """Redirects the browser to a page, given its route
+
+        Each page in dashboard has a route. If we're already at the page we
+        need to be at to scrape, don't use the browser to open a page.
+
+        Args:
+            route (string): Text following '/manage' in the url that
+                identifies (and routes to) a page.
+        """
+        current_url = self.browser.get_url()
+        network_partial, current_route = current_url.split('/manage')
+        network_base = network_partial.split('.com/')[0]
+        network_name = self.orgs_dict[self.active_org_id]['node_groups'][
+            self.active_network_id]['t']
+        eid = self.orgs_dict[self.active_org_id]['node_groups'][
+            self.active_network_id]['eid']
+
+        target_url = network_base + '.com/' + network_name + '/n/' + eid + \
+            '/manage' + route
+        # Don't go to where we already are
+        if self.browser.get_url() != target_url:
+            try:
+                self.browser.open(target_url)
+            except mechanicalsoup.utils.LinkNotFoundError as error:
+                print('Attempting to open', network_partial + '/manage' + route,
+                      'and failed.', error)
+
+    def get_node_settings_json(self):
+        """The CSUI JSON contains most node data (route:/configure/settings)"""
+        self.open_route('/configure/settings')
+        current_url = self.browser.get_url()
+        cj = self.browser.get_cookiejar()
+        json_text = requests.get(current_url, cookies=cj).text
+        return json.loads(json_text)
+
+    def get_client_vpn_data(self):
+        """Return client VPN variables"""
+        # If one of the expected keys has not been set in this network dict,
+        # set variables. Otherwise, we're pulling data for the same network.
+        if 'client_vpn_enabled' not in self.orgs_dict[self.active_org_id][
+                'node_groups'][self.active_network_id].keys():
+            var_dict = self.get_node_settings_json()
+            client_vpn_vars = [
+                'client_vpn_active_directory_servers',
+                'client_vpn_auth_type',
+                'client_vpn_dns',
+                'client_vpn_dns_mode',
+                'client_vpn_enabled',
+                'client_vpn_pcc_auth_tags',
+                'client_vpn_radius_servers',
+                'client_vpn_site_to_site_mode',
+                'client_vpn_site_to_site_nat_enabled',
+                'client_vpn_site_to_site_nat_subnet',
+                'client_vpn_subnet',
+                'client_vpn_wins_enabled',
+                'client_vpn_wins_servers',
+                'client_vpn_enabled',
+                'client_vpn_secret',
+            ]
+
+            for var in client_vpn_vars:
+                self.orgs_dict[self.active_org_id]['node_groups'][
+                    self.active_network_id][var] = var_dict['wdc'][var]
+
+    def get_psk_and_address(self):
+        """Return the psk and address."""
+        psk = self.orgs_dict[self.active_org_id]['node_groups'][
+            self.active_network_id]['client_vpn_secret']
+
+        self.open_route('/nodes/new_wired_status')
+        pagetext = self.browser.get_current_page().text
+        address = self.get_mkiconf_vars(str(pagetext))
+
+        return psk, address
+
+    def client_vpn_checks(self):
+        """Check basic client vpn things"""
+        # Is client vpn enabled?)
         return self.orgs_dict[self.active_org_id]['node_groups'][
-            self.active_network_id][vpn_var]
+            self.active_network_id]['client_vpn_enabled']

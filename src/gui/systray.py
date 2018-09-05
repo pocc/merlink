@@ -24,11 +24,9 @@ from src.modules.os_utils import open_vpnsettings
 
 
 class SystrayIcon:
-    """This class manages the system tray icon of the main program.
+    """This class manages the system tray icon of the main program, post-login.
 
-    It will only trigger after login.
-
-    Args:
+    Attributes:
         app (QMainWindow): Set to MainWindow object (required binding for Qt)
         tray_icon (QSystemTrayIcon): System Tray object that has all of the
           functionality that this class requires.
@@ -50,9 +48,9 @@ class SystrayIcon:
         # TODO this should be a drop down of saved connections
         connect_action = QAction("Connect to ...", app)
         # These 3 lines are to make "Connect to ..." bold
-        f = QFont()
-        f.setBold(True)
-        connect_action.setFont(f)
+        font = QFont()
+        font.setBold(True)
+        connect_action.setFont(font)
     
         disconnect_action = QAction("Disconnect", app)
         show_action = QAction("Show", app)
@@ -88,7 +86,10 @@ class SystrayIcon:
 
         Args:
             reason (QSystemTrayIcon.ActivationReason): An enum of
-            [0,4] of how the user interacted with the system tray
+                [0,4] of how the user interacted with the system tray
+                ~
+                More information on ActivationReasons can be found here:
+                http://doc.qt.io/qt-5/qsystemtrayicon.html#ActivationReason-enum
         """
 
         if reason in (QSystemTrayIcon.Trigger, QSystemTrayIcon.DoubleClick):
@@ -97,9 +98,7 @@ class SystrayIcon:
             self.app.activateWindow()  # for Windows
 
         elif reason == QSystemTrayIcon.MiddleClick:
-            # Go to Security Appliance that we've connected to
-            # TODO This is going to need more legwork as we need to pass the
-            # TODO cookie when we open the browser
+            # Open Meraki's homepage
             webbrowser.open("https://meraki.cisco.com/")
 
     def application_minimized(self):
@@ -117,7 +116,6 @@ class SystrayIcon:
         Show an icon of Miles with a red interdictory circle and let
         the user know the connection failed.
         """
-
         self.app.setIcon(QIcon(pyinstaller_path('src/media/unmiles.ico')))
         # Provide system VPN settings if the user wants more info
         self.tray_icon.messageClicked.connect(open_vpnsettings)
@@ -139,7 +137,6 @@ class SystrayIcon:
         This function will set the icon to Miles with 3D glasses and
         show a message that the connection was successful.
         """
-
         self.tray_icon.setIcon(QIcon(pyinstaller_path(
             'src/media/connected_miles.ico')))
         # Provide system VPN settings if the user wants more info

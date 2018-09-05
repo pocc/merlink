@@ -14,13 +14,9 @@
 # limitations under the License.
 
 """Login dialog GUI elements."""
-from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtWidgets import QDialog
-from PyQt5.QtWidgets import QLabel
-from PyQt5.QtWidgets import QVBoxLayout
-from PyQt5.QtWidgets import QHBoxLayout
 
-from src.modules.dashboard_browser import DataScraper
+from src.dashboard_browser.dashboard_browser import DashboardBrowser
 from src.gui.modal_dialogs import show_error_dialog
 import src.gui.gui_setup as gui_setup
 
@@ -36,7 +32,7 @@ class LoginDialog(QDialog):
     def __init__(self):
         """Create UI vars necessary for login window to be shown."""
         super(LoginDialog, self).__init__()
-        self.browser = DataScraper()
+        self.browser = DashboardBrowser()
         self.tfa_success = False
         self.show_login()
 
@@ -60,10 +56,6 @@ class LoginDialog(QDialog):
         """Returns the values currently in the user/pass text fields"""
         return self.username_field.text(), self.password_field.text()
 
-    def get_browser(self):
-        """Returns the browser object that has the credentials cookie."""
-        return self.browser
-
     def check_login_attempt(self):
         """Verifies whether entered username/password combination is correct
 
@@ -86,6 +78,12 @@ class LoginDialog(QDialog):
             self.close()
         elif result == 'auth_success':
             self.close()
+        elif 'ConnectionError' in str(type(result)):
+            show_error_dialog('ERROR: No internet connection!\n\nAccess to the '
+                              'internet is required for MerLink to work. '
+                              'Please check your network settings and try '
+                              'again. Now exiting...')
+            exit()
         else:
             show_error_dialog("ERROR: Invalid authentication type!")
 

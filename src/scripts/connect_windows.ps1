@@ -51,8 +51,7 @@
 # Set the local variables to external parameters (all are coming in as string)
 $vpn_name = $args[0]                    # String
 $psk = $args[1]                         # String
-$ddns = $args[2]                        # String
-$mx_ip = $args[3]                       # String
+$mx_address = $args[2]                  # String (ddns if available, otherwise ip)
 $username = $args[4]                    # String
 $password = $args[5]                    # String
 
@@ -83,7 +82,7 @@ Add-VpnConnection -name $vpn_name -ServerAddress '0'
 $ErrorActionPreference = 'Continue'
 
 # Add required settings for Meraki VPN
-Set-VpnConnection -name $vpn_name -ServerAddress $mx_ip `
+Set-VpnConnection -name $vpn_name -ServerAddress $mx_address `
 -AuthenticationMethod PAP -L2tpPsk $psk -TunnelType L2tp -RememberCredential `
  $has_remember_credential -SplitTunneling $is_split_tunnel `
  -UseWinlogonCredential $UseWinlogonCredential -Force -WarningAction `

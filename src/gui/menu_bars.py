@@ -50,7 +50,7 @@ class MenuBars:
     def generate_menu_bars(self):
         """Create each of the menu bars.
 
-        NOTE: Some of the menu additions here are ideas and not implemented.
+        NOTE: Some of the menu additions here are planned features
         """
 
         # File options
@@ -75,7 +75,7 @@ class MenuBars:
         self.help_menu.addAction(help_about)
 
         file_sysprefs.triggered.connect(self.file_sysprefs)
-        file_quit.triggered.connect(self.file_quit_action)
+        file_quit.triggered.connect(exit)
         edit_preferences.triggered.connect(self.edit_prefs_action)
         help_about.triggered.connect(self.help_about_action)
 
@@ -96,11 +96,6 @@ class MenuBars:
             else:
                 show_error_dialog(str(e) + '\n\nUnknown error: VPN settings '
                                            'not found')
-
-    @staticmethod
-    def file_quit_action():
-        """Forces application to exit"""
-        exit()
 
     @staticmethod
     def edit_prefs_action():
@@ -132,7 +127,7 @@ class MenuBars:
                               "Developed by Ross Jacobs<br><br><br>"
                               "This project is licensed with the "
                               "Apache License, which can be viewed below:")
-        license_text = open("LICENSE").read()
+        license_text = open("LICENSE.txt").read()
         licenses = QTextEdit()
         licenses.setText(license_text)
         # People shouldn't be able to edit licenses!

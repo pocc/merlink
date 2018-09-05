@@ -17,7 +17,7 @@
 import argparse
 
 from src.cli.cli_modal_prompts import CliModalPrompts
-from src.modules.dashboard_browser import DataScraper
+from src.dashboard_browser.dashboard_browser import DashboardBrowser
 
 
 class MainCli:
@@ -58,7 +58,7 @@ class MainCli:
 
         self.parse_options()
         self.messages = CliModalPrompts()
-        self.browser = DataScraper()
+        self.browser = DashboardBrowser()
 
     @staticmethod
     def parse_options():

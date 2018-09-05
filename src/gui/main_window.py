@@ -18,8 +18,8 @@ import sys
 
 from PyQt5.QtWidgets import QMainWindow
 
-from src.gui.modal_dialogs import show_error_dialog, vpn_success_dialog
-from src.modules.dashboard_browser import DataScraper
+from src.gui.modal_dialogs import show_error_dialog, vpn_status_dialog
+from src.dashboard_browser.dashboard_browser import DashboardBrowser
 from src.modules.vpn_connection import VpnConnection
 from src.modules.vpn_tests import TroubleshootVpn
 from src.modules.os_utils import is_duplicate_application
@@ -35,7 +35,7 @@ class MainWindow(QMainWindow):
     """Main Window is the controlling class for the GUI.
 
     Attributes:
-        browser (DataScraper): Browser used to store user credentials
+        browser (DashboardBrowser): Browser used to store user credentials
         menu_widget (MenuBars): Used to tie the menu bars to the MainWindow
         tray_icon (SystrayIcon): Used to tie the tray icon to the MainWindow
     """
@@ -49,9 +49,7 @@ class MainWindow(QMainWindow):
                               'instance!\nThis application will now close.')
             self.close()  # In lieu of sys.exit(app.exec_())
 
-        self.browser = DataScraper()
-        self.dropdown_org_index = 0
-        self.dropdown_network_index = 0
+        self.browser = DashboardBrowser()
 
         # Tie the menu bars, tray_icon, and main window UI to this object.
         self.menu_widget = MenuBars(self.menuBar())
@@ -65,11 +63,15 @@ class MainWindow(QMainWindow):
     def show_main_menu(self):
         """Show the main menu GUI
 
-        ~ will be called on main_window instantiation. Creates the
+        Is called on main_window instantiation. Creates the
         scaffolding for the main menu GUI and generates all GUI elements
         that will be later used by other class methods.
 
-        ~ has three Qt signals/slots :
+        Has 2 radio option Qt signals/slots:
+            * Admin user radio option toggled -> Set admin user/pass view
+            * Guest user radio option toggled -> Set guest user/pass view
+
+        Has 3 program-driving Qt signals/slots:
             * Organization dropdown changed -> Update model and view
             * Network dropdown changed -> Update model and view
             * "Connect" button clicked -> Initiate VPN connection
@@ -87,6 +89,7 @@ class MainWindow(QMainWindow):
         print('main window orgs', org_list)
         self.status.showMessage("Status: Fetching networks in " +
                                 current_org + "...")
+        self.connect_btn.setEnabled(False)
         # Remove all elements from the network UI dropdown
         self.network_dropdown.clear()
         self.refresh_network_dropdown()
@@ -99,30 +102,26 @@ class MainWindow(QMainWindow):
     def change_organization(self):
         """Change the org by getting required data and showing it to user
 
+        * If we don't have data for this org, get info; otherwise don't.
         * If the user has not selected an organization, this fn will do nothing.
-        * If we already have the network data for this org, then don't scrape
-          it with the browser; otherwise do.
-        * Regardless, update the network dropdown with new values
-          and let the user know to select one of the networks
         """
-
-        self.network_dropdown.setEnabled(True)
-        self.status.showMessage("Status: Fetching organizations...")
-        # Change primary organization
-        """
-        If the organization index of network_list is empty (i.e. this 
-        network list for this org has never been updated), then get the
-        networks for this organization. This makes it so we don't need 
-        to get the network list twice for the same organization
-        """
+        # -1 due to having a 'select' option.
         selected_org_index = self.org_dropdown.currentIndex() - 1
-        self.browser.set_active_org_index(selected_org_index)
-        print("In change_organization and this is the network list "
-              + str(self.browser.get_active_org_networks()))
+        self.connect_btn.setEnabled(False)
+        if selected_org_index == -1:
+            self.status.showMessage("Status: Select an Organization")
+            self.network_dropdown.setEnabled(False)
+        else:
+            self.network_dropdown.setEnabled(True)
+            self.status.showMessage("Status: Fetching organizations...")
+            # Change primary organization
+            self.browser.set_active_org_index(selected_org_index)
+            print("In change_organization and this is the network list "
+                  + str(self.browser.get_active_org_networks()))
 
-        self.refresh_network_dropdown()
-        self.status.showMessage("Status: In org " +
-                                self.browser.get_active_org_name())
+            self.refresh_network_dropdown()
+            self.status.showMessage("Status: In org " +
+                                    self.browser.get_active_org_name())
 
     def change_network(self):
         """Change the network to new value for both model and view
@@ -131,16 +130,34 @@ class MainWindow(QMainWindow):
         network info for this network and let user know.
         """
 
-        current_network_index = self.network_dropdown.currentIndex()
-        network_list = self.browser.get_active_org_networks()
-        print('main window network list', network_list)
-        current_network = network_list[current_network_index]
-        self.status.showMessage("Status: Fetching network data for "
-                                + current_network + "...")
+        # Off by 1 due to Select option
+        current_network_index = self.network_dropdown.currentIndex() - 1
+        if current_network_index == -1:
+            self.status.showMessage("Status: Select a Network")
+            self.connect_btn.setEnabled(False)
+        else:
+            network_list = self.browser.get_active_org_networks()
+            print('main window network list', network_list)
+            current_network = network_list[current_network_index]
+            self.status.showMessage("Status: Fetching network data for "
+                                    + current_network + "...")
 
-        self.browser.scrape_network_vars(current_network_index)
-        self.status.showMessage("Status: Ready to connect to "
-                                + current_network + ".")
+            self.browser.set_active_network_index(current_network_index)
+
+            self.browser.get_client_vpn_data()
+            if not self.browser.client_vpn_checks():
+                self.connect_btn.setEnabled(False)
+                error_message = "ERROR: Client VPN is not enabled on " + \
+                                current_network + ".\n\nPlease enable it and"\
+                                + " try again."
+                show_error_dialog(error_message)
+                self.status.showMessage("Status: Client VPN is not enabled on "
+                                        "'" + current_network + "'. Please "
+                                        "enable it and try again.")
+            else:
+                self.connect_btn.setEnabled(True)
+                self.status.showMessage("Status: Ready to connect to "
+                                        + current_network + ".")
 
     def refresh_network_dropdown(self):
         """Remove old values of the network dropdown and add new ones.
@@ -149,27 +166,18 @@ class MainWindow(QMainWindow):
         add new ones according to chosen organization
         """
         self.network_dropdown.clear()
+        self.network_dropdown.addItem('-- Select a Network --')
 
         current_org_network_list = self.browser.get_active_org_networks()
         print('current_org_network_list', current_org_network_list)
         self.network_dropdown.addItems(current_org_network_list)
 
-    def tshoot_vpn_fail_gui(self):
-        """Troubleshoot VPN failure and then show the user the results."""
-        result = TroubleshootVpn(self.fw_status_text,
-                                 self.client_vpn_text,
-                                 self.current_ddns,
-                                 self.current_primary_ip)
-        tshoot_failed_vpn_dialog(result.get_test_results())
-        self.status.showMessage("Status: Ready to connect to "
-                                + self.current_network + ".")
-
-    def close_window(self):
-        """Closes the window object."""
-        self.close()
-
     def setup_vpn(self):
-        """Setup VPN vars and start OS-dependent connection scripts"""
+        """Setup VPN vars and start OS-dependent connection scripts
+
+        Passes vpn vars that are required for an L2TP connection as
+        list vpn_data. Passes OS-specific parameters as list <OS>_options.
+        """
         if DEBUG:
             print("entering attempt_connection function")
 
@@ -187,7 +195,7 @@ class MainWindow(QMainWindow):
             vpn_name = network_name.replace('- appliance', '') + '- VPN'
 
             # If the user is logging in as a guest user
-            if self.radio_dashboard_admin_user.isChecked() == 0:
+            if self.radio_admin_user.isChecked() == 0:
                 username = self.radio_username_textfield.text()
                 password = self.radio_password_textfield.text()
             else:
@@ -203,9 +211,7 @@ class MainWindow(QMainWindow):
             # Create VPN connection
             vpn_data = [
                 vpn_name,
-                self.browser.get_vpn_var('psk'),
-                self.browser.get_vpn_var('ddns'),
-                self.browser.get_vpn_var('ip'),
+                *self.browser.get_psk_and_address(),
                 username,
                 password
             ]
@@ -246,7 +252,7 @@ class MainWindow(QMainWindow):
     def communicate_vpn_success(self):
         """Let the user know that they are connected."""
         self.status.showMessage('Status: Connected')
-        vpn_success_dialog()
+        vpn_status_dialog("Connection Success", "Successfully Connected!")
 
         # Show this when connected
         self.tray_icon.set_vpn_success()
@@ -254,24 +260,30 @@ class MainWindow(QMainWindow):
         self.hide()
 
     def communicate_vpn_failure(self):
-        """Let the user know tha the VPN connection failed."""
+        """Let the user know that the VPN connection failed."""
         self.status.showMessage('Status: Connection Failed')
-        self.error_dialog("Connection Failed")
+        show_error_dialog("Connection Failure")
         self.tray_icon.set_vpn_failure()
         self.troubleshoot_connection()
 
-    def troubleshoot_connection(self):
-        """TODO: Stand-in for a function that will troubleshoot after failure"""
-        print("ACTIVELY troubleshooting connection")
-        show_error_dialog('VPN Connection Failed!')
+        # Start troubleshooting
         self.status.showMessage("Status: Verifying configuration for "
                                 + self.current_network + "...")
+        self.tshoot_vpn_fail_gui()
+
+    def tshoot_vpn_fail_gui(self):
+        """Troubleshoot VPN failure and then show the user the results."""
+        result = TroubleshootVpn(self.fw_status_text,
+                                 self.client_vpn_text,
+                                 self.current_ddns,
+                                 self.current_primary_ip)
+        tshoot_failed_vpn_dialog(result.get_test_results())
+        self.status.showMessage("Status: Ready to connect to "
+                                + self.current_network + ".")
 
     def is_vpn_connected(self):
         """Determines whether the VPN is connected.
-
         TODO: Implement this function
-
         Returns:
              vpn_status (bool): Whether or not there is an active VPN connection
         """

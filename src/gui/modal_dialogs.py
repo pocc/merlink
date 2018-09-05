@@ -31,7 +31,6 @@ def show_error_dialog(message):
     Args:
         message (string): A message telling the user what is wrong.
     """
-
     error_dialog = QMessageBox()
     error_dialog.setIcon(QMessageBox.Critical)
     error_dialog.setWindowTitle("Error!")
@@ -67,10 +66,15 @@ def show_feature_in_development_dialog():
     fid_message.exec_()
 
 
-def vpn_success_dialog():
-    """Tells the user that the VPN connection has been successful."""
+def vpn_status_dialog(title, message):
+    """Tells the user the status of the VPN connection.
+
+    args:
+        title (string): A window title to summarize the message.
+        message (string): A message to give to the user.
+    """
     success_message = QMessageBox()
     success_message.setIcon(QMessageBox.Information)
-    success_message.setWindowTitle("Success!")
-    success_message.setText("Successfully Connected!")
+    success_message.setWindowTitle(title)
+    success_message.setText(message)
     success_message.exec_()
