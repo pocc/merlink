@@ -191,7 +191,6 @@ class MainWindow(QMainWindow):
 
         else:
             # Get current network from dropdown
-            network_name = self.network_dropdown.currentText()
             # Set VPN name to the network name +/- cosmetic things
 
             # If the user is logging in as a guest user
@@ -215,6 +214,7 @@ class MainWindow(QMainWindow):
                 username,
                 password
             ]
+            print('vpn_data being sent to script: ', vpn_data)
             connection = VpnConnection(vpn_data)
 
             if sys.platform == 'win32':
@@ -268,22 +268,22 @@ class MainWindow(QMainWindow):
         self.status.showMessage('Status: Connection Failed')
         show_error_dialog("Connection Failure")
         self.tray_icon.set_vpn_failure()
-        self.troubleshoot_connection()
 
         # Start troubleshooting
         self.status.showMessage("Status: Verifying configuration for "
-                                + self.current_network + "...")
+                                + self.network_dropdown.currentText() + "...")
         self.tshoot_vpn_fail_gui()
 
     def tshoot_vpn_fail_gui(self):
-        """Troubleshoot VPN failure and then show the user the results."""
+        """Troubleshoot VPN failure and then show the user the results.
+
         result = TroubleshootVpn(self.fw_status_text,
                                  self.client_vpn_text,
                                  self.current_ddns,
                                  self.current_primary_ip)
-        tshoot_failed_vpn_dialog(result.get_test_results())
+        tshoot_failed_vpn_dialog(result.get_test_results())"""
         self.status.showMessage("Status: Ready to connect to "
-                                + self.current_network + ".")
+                                + self.network_dropdown.currentText() + ".")
 
     def is_vpn_connected(self):
         """Determines whether the VPN is connected.

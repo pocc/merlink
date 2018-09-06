@@ -117,7 +117,7 @@ class SystrayIcon:
         Show an icon of Miles with a red interdictory circle and let
         the user know the connection failed.
         """
-        self.app.setIcon(QIcon(pyinstaller_path('src/media/unmiles.ico')))
+        self.tray_icon.setIcon(QIcon(pyinstaller_path('src/media/unmiles.ico')))
         # Provide system VPN settings if the user wants more info
         self.tray_icon.messageClicked.connect(open_vpnsettings)
         # Show the user this message so they know where the program went

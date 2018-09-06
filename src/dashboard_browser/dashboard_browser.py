@@ -90,7 +90,7 @@ class DashboardBrowser:
         self.active_network_id = 0
 
         # Save the pagetexts for validation tests
-        self.pagetexts = {}
+        pagetexts = {}
 
         # VPN VARS: Powershell Variables set to defaults
         # If it's set to '', then powershell will skip reading that parameter.
@@ -488,18 +488,86 @@ class DashboardBrowser:
                     self.active_network_id][var] = var_dict['wdc'][var]
 
     def get_psk_and_address(self):
-        """Return the psk and address."""
+        """Return the psk and address.
+
+        Use the public_contact_point Mkiconf var to get address.
+        It is DDNS name if DDNS is enabled and is otherwise IP address.
+        public_contact_point is on. (route:/configure/router_settings)
+        It's gone in new view, so let's put this on hold.
+
+        In new
+        """
         psk = self.orgs_dict[self.active_org_id]['node_groups'][
             self.active_network_id]['client_vpn_secret']
 
         self.open_route('/nodes/new_wired_status')
-        pagetext = self.browser.get_current_page().text
-        address = self.get_mkiconf_vars(str(pagetext))
+        using_ddns_address = bool(self.get_json_value('dynamic_dns_enabled'))
+        if using_ddns_address:
+            address = self.get_json_value('dynamic_dns_name')
+        else:
+            address = self.get_json_value('{"public_ip')
 
         return psk, address
+
+    def get_json_value(self, key):
+        """Returns a value for a key in a JSON blob in the HTML of a page.
+
+        Args:
+            key (string): The key we want the value for.
+                Format: '<differentiating chars>"key"'
+                Note a colon would be the next char of this string
+
+        Returns:
+            (String): The value of the passed-in key.
+        """
+        pagetext = self.browser.get_current_page().text
+        value_start = pagetext.find(key) + len(key) + 3
+        value_end = pagetext[value_start:].find('\"') + value_start
+        value = pagetext[value_start: value_end]
+        print('For key', key, 'retrieved value', value)
+        return value
 
     def client_vpn_checks(self):
         """Check basic client vpn things"""
         # Is client vpn enabled?)
         return self.orgs_dict[self.active_org_id]['node_groups'][
             self.active_network_id]['client_vpn_enabled']
+
+    def get_network_users(self):
+        """Get the network users from
+
+        Location: Network-wide > Users
+
+        JSON looks like so, with base64 secret as key for each user:
+        {
+            "base64 secret": {
+                "secret": "base64 secret",
+                "name": "First Last",
+                "email": "name@domain.com",
+                "created_at": unix_timestamp,
+                "is_manage_user": true, # is user administrator
+                "authed_networks": [  # client vpn/ssid authed network eid list
+                      "abc1234",
+                      "xyz5678",
+                ]
+            },
+            "base64 secret": {
+                "secret": "base64 secret",
+                "name": "First Last",
+                "email": "name@domain.com",
+                ...
+        }
+        """
+        self.open_route('/configure/guests')
+        users_dict = json.loads(self.browser.get_current_page().text)
+
+        for key in users_dict.keys():
+            eid = self.orgs_dict[self.active_org_id]['node_groups'][
+                self.active_network_id]['eid']
+            self.orgs_dict[self.active_org_id]['node_groups'][
+                self.active_network_id]['users'] = {
+                'name': users_dict[key]['name'],
+                'email': users_dict[key]['email'],
+                'is_admin': users_dict[key]['is_manage_user'],
+                'is_authorized': eid in users_dict[key]['authed_networks'],
+            }

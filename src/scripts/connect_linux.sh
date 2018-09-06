@@ -14,6 +14,7 @@
 # limitations under the License.
 
 
+echo "Entering linux bash script..."
 # This bash file will create and connect an L2TP VPN connection on linux
 # 5 required params to use this script
 if [[ -z $1 ]] || [[ -z $2 ]] || [[ -z $3 ]] || [[ -z $4 ]] || [[ -z $5 ]];

@@ -90,6 +90,7 @@ class VpnConnection:
         """
         self.sanitize_variables()
 
+
         # 32bit powershell path :
         # 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe'
         # Opinionated view that 32bit is not necessary
@@ -168,11 +169,11 @@ class VpnConnection:
         """
         self.sanitize_variables()
         vpn_name, psk, address, username, password = self.vpn_data
-
-        return subprocess.Popen(
-            ['pkexec', pyinstaller_path('src/scripts/connect_linux.sh'),
-             vpn_name, psk, address, username, password],
-            shell=True)
+        vpn_cmd = 'pkexec ' + pyinstaller_path('src/scripts/connect_linux.sh') \
+            + ' ' + vpn_name + ' ' + psk + ' ' + address + ' ' + username \
+            + ' ' + password
+        print("Command being run: ", vpn_cmd)
+        return subprocess.Popen([vpn_cmd], shell=True)
 
     def disconnect(self):
         """Disconnect all connected VPNs"""
