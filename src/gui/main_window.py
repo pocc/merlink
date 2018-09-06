@@ -22,10 +22,8 @@ from src.dashboard_browser.dashboard_browser import DashboardBrowser
 from src.gui.menu_bars import MenuBars
 from src.gui.modal_dialogs import show_error_dialog, vpn_status_dialog
 from src.gui.systray import SystrayIcon
-from src.gui.tshoot_failed_vpn_dialog import tshoot_failed_vpn_dialog
 import src.gui.gui_setup as gui_setup
 from src.modules.vpn_connection import VpnConnection
-from src.modules.vpn_tests import TroubleshootVpn
 
 DEBUG = True
 
@@ -210,7 +208,8 @@ class MainWindow(QMainWindow):
             # Create VPN connection
             vpn_data = [
                 self.vpn_name_textfield.text(),
-                *self.browser.get_psk_and_address(),  # 2 values unpacked
+                self.browser.get_client_vpn_psk(),
+                self.browser.get_client_vpn_address(),
                 username,
                 password
             ]
@@ -284,20 +283,3 @@ class MainWindow(QMainWindow):
         tshoot_failed_vpn_dialog(result.get_test_results())"""
         self.status.showMessage("Status: Ready to connect to "
                                 + self.network_dropdown.currentText() + ".")
-
-    def is_vpn_connected(self):
-        """Determines whether the VPN is connected.
-        TODO: Implement this function
-        Returns:
-             vpn_status (bool): Whether or not there is an active VPN connection
-        """
-        vpn_status = False
-        return vpn_status
-
-    def set_admin_layout(self):
-        """Set the dashboard admin layout."""
-        gui_setup.main_window_set_admin_layout(self)
-
-    def set_guest_layout(self):
-        """Set the guest user layout."""
-        gui_setup.main_window_set_guest_layout(self)

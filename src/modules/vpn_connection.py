@@ -27,8 +27,7 @@ class VpnConnection:
         vpn_data
             vpn_name
             psk
-            ip
-            ddns
+            address
             username
             password
         windows_options
@@ -89,7 +88,6 @@ class VpnConnection:
         * Email CANNOT have spaces, but password can.
         """
         self.sanitize_variables()
-
 
         # 32bit powershell path :
         # 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe'

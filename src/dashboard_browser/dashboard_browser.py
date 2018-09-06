@@ -487,27 +487,28 @@ class DashboardBrowser:
                 self.orgs_dict[self.active_org_id]['node_groups'][
                     self.active_network_id][var] = var_dict['wdc'][var]
 
-    def get_psk_and_address(self):
+    def get_client_vpn_psk(self):
+        """Return the Client VPN PSK"""
+        psk = self.orgs_dict[self.active_org_id]['node_groups'][
+            self.active_network_id]['client_vpn_secret']
+        return psk
+
+    def get_client_vpn_address(self):
         """Return the psk and address.
 
         Use the public_contact_point Mkiconf var to get address.
         It is DDNS name if DDNS is enabled and is otherwise IP address.
         public_contact_point is on. (route:/configure/router_settings)
         It's gone in new view, so let's put this on hold.
-
-        In new
         """
-        psk = self.orgs_dict[self.active_org_id]['node_groups'][
-            self.active_network_id]['client_vpn_secret']
-
         self.open_route('/nodes/new_wired_status')
-        using_ddns_address = bool(self.get_json_value('dynamic_dns_enabled'))
-        if using_ddns_address:
+        using_ddns = (self.get_json_value('dynamic_dns_enabled') == 'true')
+        if using_ddns:
             address = self.get_json_value('dynamic_dns_name')
         else:
             address = self.get_json_value('{"public_ip')
 
-        return psk, address
+        return address
 
     def get_json_value(self, key):
         """Returns a value for a key in a JSON blob in the HTML of a page.

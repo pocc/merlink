@@ -70,8 +70,8 @@ vpn_name="$(echo $1 | sed 's/[\`\!\$\/'\''\"\ ]//g' | cut -c1-15)"
 echo 'vpn_name: '${vpn_name}
 # If the vpn_name is now empty due to these removals, name it l2tp
 if [[ -z vpn_name ]]; then vpn_name='merlink-l2tp-vpn'; fi
-mx_address=$2
-psk=$3
+psk=$2
+mx_address=$3
 username=$4
 password=$5
 

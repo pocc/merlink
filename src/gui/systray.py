@@ -40,10 +40,7 @@ class SystrayIcon:
         self.app.setWindowIcon(QIcon(pyinstaller_path('src/media/miles.ico')))
         self.tray_icon = QSystemTrayIcon(app)
         self.tray_icon.setIcon(QIcon(pyinstaller_path('src/media/miles.ico')))
-        if app.is_vpn_connected():
-            connection_status = 'VPN connected'
-        else:
-            connection_status = 'VPN disconnected'
+        connection_status = 'VPN disconnected'
         self.tray_icon.setToolTip("Merlink - " + connection_status)
     
         # TODO this should be a drop down of saved connections
