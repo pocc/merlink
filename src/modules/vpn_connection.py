@@ -26,8 +26,8 @@ class VpnConnection:
     VpnConnection list arguments
         vpn_data
             vpn_name
+            address (ddns or ip)
             psk
-            address
             username
             password
         windows_options
@@ -122,7 +122,7 @@ class VpnConnection:
         """
         print("Creating macOS VPN")
         self.sanitize_variables()
-        vpn_name, psk, address, username, password = self.vpn_data
+        vpn_name, address, psk, username, password = self.vpn_data
 
         scutil_string = 'scutil --nc select ' + '\'' + vpn_name + '\''
         print("scutil_string: " + scutil_string)
@@ -166,9 +166,9 @@ class VpnConnection:
         * *self.vpn_data not possible due to the way the shell interprets it.
         """
         self.sanitize_variables()
-        vpn_name, psk, address, username, password = self.vpn_data
+        vpn_name, address, psk, username, password = self.vpn_data
         vpn_cmd = 'pkexec ' + pyinstaller_path('src/scripts/connect_linux.sh') \
-            + ' ' + vpn_name + ' ' + psk + ' ' + address + ' ' + username \
+            + ' ' + vpn_name + ' ' + address + ' ' + psk + ' ' + username \
             + ' ' + password
         print("Command being run: ", vpn_cmd)
         return subprocess.Popen([vpn_cmd], shell=True)

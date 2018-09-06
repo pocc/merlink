@@ -208,8 +208,8 @@ class MainWindow(QMainWindow):
             # Create VPN connection
             vpn_data = [
                 self.vpn_name_textfield.text(),
-                self.browser.get_client_vpn_psk(),
                 self.browser.get_client_vpn_address(),
+                self.browser.get_client_vpn_psk(),
                 username,
                 password
             ]

@@ -15,6 +15,7 @@
 
 
 echo "Entering linux bash script..."
+echo "\nVPN name: $1\nServer Address: $2\nPSK: $3\nUsername: $4\nPassword: $5\n"
 # This bash file will create and connect an L2TP VPN connection on linux
 # 5 required params to use this script
 if [[ -z $1 ]] || [[ -z $2 ]] || [[ -z $3 ]] || [[ -z $4 ]] || [[ -z $5 ]];
@@ -70,8 +71,8 @@ vpn_name="$(echo $1 | sed 's/[\`\!\$\/'\''\"\ ]//g' | cut -c1-15)"
 echo 'vpn_name: '${vpn_name}
 # If the vpn_name is now empty due to these removals, name it l2tp
 if [[ -z vpn_name ]]; then vpn_name='merlink-l2tp-vpn'; fi
-psk=$2
-mx_address=$3
+mx_address=$2
+psk=$3
 username=$4
 password=$5
 

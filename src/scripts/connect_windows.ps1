@@ -65,8 +65,8 @@
 # but around ~8192 characters on 64bit is a limit
 # Set the local variables to external parameters (all are coming in as string)
 $vpn_name = $args[0]                    # String
-$psk = $args[1]                         # String
-$mx_address = $args[2]                  # String (ddns if available, otherwise ip)
+$mx_address = $args[1]                  # String (ddns if available, otherwise ip)
+$psk = $args[2]                         # String
 $username = $args[4]                    # String
 $password = $args[5]                    # String
 
