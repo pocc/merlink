@@ -14,10 +14,11 @@
 # limitations under the License.
 
 """Given VPN vars, uses OS built-ins to create/connect a L2TP/IPSEC VPN."""
-from src.modules.os_utils import pyinstaller_path
 import sys
 import subprocess
 from os import system
+
+from src.modules.os_utils import pyinstaller_path
 
 
 class VpnConnection:
@@ -47,8 +48,18 @@ class VpnConnection:
         super(VpnConnection, self).__init__()
         print('showing')
         self.vpn_data = vpn_data
-        self.vpn_options = []
         self.vpn_name = ''
+        self.vpn_uuid = ''
+        platform = sys.platform
+        # Numbers arbitrarily chosen
+        if platform == 'win32':
+            self.os_index = 0
+        elif platform == 'darwin':
+            self.os_index = 1
+        elif platform.startswith('linux'):
+            self.os_index = 2
+        else:
+            self.os_index = 3
 
     def sanitize_variables(self):
         """Sanitize variables for powershell/bash input."""
@@ -76,7 +87,6 @@ class VpnConnection:
 
         self.sanitize_variables()
 
-        self.vpn_options = vpn_options
         # 32bit powershell path :
         # 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe'
         # Opinionated view that 32bit is not necessary
@@ -107,7 +117,6 @@ class VpnConnection:
         Connection name with forced quotes in case it has spaces.
         """
 
-        self.vpn_options = vpn_options
         print("Creating macOS VPN")
 
         self.vpn_name = self.vpn_data[0]
@@ -152,22 +161,78 @@ class VpnConnection:
           permission on LSB
         """
         return subprocess.Popen(['pkexec', pyinstaller_path(
-            'src/scripts/connect_linux.sh'), *self.vpn_data])
+            'src/scripts/connect_linux.sh'), *self.vpn_data, *vpn_options])
 
     def disconnect(self):
-        """Disconnect any connected VPN """
+        """Disconnect all connected VPNs"""
         if self.is_vpn_connected():
-            system('rasdial ' + self.vpn_name + ' /disconnect')
+            linux_command = 'nmcli con down uuid '
+            command_string = [
+                'rasdial ' + self.vpn_name + '/disconnect',
+                '',
+                linux_command + self.vpn_uuid,
+                '']
+            subprocess.call(
+                [command_string[self.os_index]],
+            )
 
-    @staticmethod
-    def is_vpn_connected():
-        """Detect whether VPN is connected or not."""
-        if sys.platform == 'win32':
-            rasdial_status = \
-                subprocess.Popen(['rasdial'], stdout=subprocess.PIPE
-                                 ).communicate()[0].decode('utf-8')
-            return 'Connected to' in rasdial_status
-        elif sys.platform == 'darwin':
-            pass
-        elif sys.platform.startswith('linux'):
-            pass
+    def get_all_vpn_uuids(self):
+        """Return a list of type-vpn uuids"""
+        linux_command = "nmcli --fields uuid,type con show | grep vpn " \
+                        "| awk '{print $1}'"
+        command_string = [
+            "",
+            "",
+            linux_command,
+            ""
+        ]
+
+        command_output = subprocess.Popen(
+            [command_string[self.os_index]],
+            shell=True,
+            stdout=subprocess.PIPE,
+        ).communicate()[0]
+        uuid_list = command_output.decode('utf-8').split('\n')
+        return uuid_list
+
+    def is_vpn_connected(self):
+        """Detect whether any VPN is connected or not.
+
+        WINDOWS = 0, MACOS = 1, LINUX = 2, UNKNOWN = 3
+        """
+        search_string = ['vpn', '', 'Connected to', '']
+        vpn_command = [
+            "nmcli --fields name,type con show --active | grep vpn",
+            "",
+            "rasdial",
+            "",
+        ]
+
+        subprocess_output = subprocess.Popen(
+            [vpn_command[self.os_index]],
+            stdout=subprocess.PIPE
+        )
+        command_stdout = subprocess_output.communicate()[0].decode('utf-8')
+        # if the search string is in the command stdout, there are active vpns
+        return search_string[self.os_index] in command_stdout
+
+    def get_vpn_name_by_uuid(self, uuid):
+        """Get the VPN name given a UUID"""
+        # Get all connections, filter by uuid, and return the 2nd field (name)
+        linux_command = "nmcli --fields uuid,name con show | grep " + \
+                        uuid + " | cut -d\  -f2-"
+
+        vpn_command = [
+            "",
+            "",
+            linux_command,
+            "",
+        ]
+
+        vpn_name = subprocess.Popen(
+            [vpn_command[self.os_index]],
+            shell=True,
+            stdout=subprocess.PIPE,
+        ).communicate()[0].decode('utf-8').strip()
+
+        return vpn_name
