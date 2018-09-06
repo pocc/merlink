@@ -18,14 +18,14 @@ import sys
 
 from PyQt5.QtWidgets import QMainWindow
 
-from src.gui.modal_dialogs import show_error_dialog, vpn_status_dialog
 from src.dashboard_browser.dashboard_browser import DashboardBrowser
-from src.modules.vpn_connection import VpnConnection
-from src.modules.vpn_tests import TroubleshootVpn
 from src.gui.menu_bars import MenuBars
-import src.gui.gui_setup as gui_setup
+from src.gui.modal_dialogs import show_error_dialog, vpn_status_dialog
 from src.gui.systray import SystrayIcon
 from src.gui.tshoot_failed_vpn_dialog import tshoot_failed_vpn_dialog
+import src.gui.gui_setup as gui_setup
+from src.modules.vpn_connection import VpnConnection
+from src.modules.vpn_tests import TroubleshootVpn
 
 DEBUG = True
 

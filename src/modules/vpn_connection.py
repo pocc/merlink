@@ -93,14 +93,14 @@ class VpnConnection:
         powershell_path = \
             'C:\\Windows\\SysWOW64\\WindowsPowerShell\\v1.0\\powershell.exe'
 
-        for i in range(len(self.vpn_options)):
+        for i in range(len(vpn_options)):
             # Convert to string
-            self.vpn_options[i] = str(self.vpn_options[i])
+            vpn_options[i] = str(vpn_options[i])
 
         return subprocess.call(
             [powershell_path, '-ExecutionPolicy', 'Unrestricted',
              pyinstaller_path('src\scripts\connect_windows.ps1'),
-             *self.vpn_data, *self.vpn_options])
+             *self.vpn_data, *vpn_options])
         # subprocess.Popen([], creationflags=subprocess.CREATE_NEW_CONSOLE)
         #  open ps window
 
