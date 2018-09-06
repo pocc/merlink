@@ -143,6 +143,7 @@ class VpnConnection:
     def attempt_linux_vpn(self, vpn_options):
         """Attempt to connect on linux.
 
+        * FPM executes `chmod a+x` on the merlink connect script post-install.
         * sudo required to create a connection with nmcli
         * pkexec is built into latest Fedora, Debian, Ubuntu.
         * 'pkexec <cmd>' correctly asks in GUI on Debian, Ubuntu but in
@@ -150,10 +151,6 @@ class VpnConnection:
         * pkexec is PolicyKit, which is the preferred means of asking for
           permission on LSB
         """
-
-        self.vpn_options = vpn_options
-        # set execution bit on bash script
-        system('chmod a+x ' + pyinstaller_path('src/scripts/connect_linux.sh'))
         return subprocess.Popen(['pkexec', pyinstaller_path(
             'src/scripts/connect_linux.sh'), *self.vpn_data])
 

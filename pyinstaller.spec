@@ -21,6 +21,8 @@ Analysis:
     binaries: Any compiled libraries (.so, .pyd, etc.)
     datas: Where to look for additional files
     hiddenimports: What libraries not in the entrypoint that should be included
+    excludes: Libraries to exclude. PyInstaller's default behavior is to play it
+        safe by including EVERYTHING. Using here to remove unneeded libraries.
 
 exe: Should be run on Windows only
 app: Should be run on macOS only
@@ -86,6 +88,8 @@ a = Analysis(['merlink.py'],
                 'PyQt5.QtXml',
                 'PyQt5.QtXmlPatterns',
 
+                # Testing shows these libraries can be excluded (1MB saved).
+                # Remove from excludes if their absence causes issues.
                 'bz2',
                 'difflib',
                 'ftplib',

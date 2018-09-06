@@ -21,7 +21,7 @@ from PyQt5.QtWidgets import QApplication
 from src.gui.main_window import MainWindow
 from src.gui.login_dialog import LoginDialog
 from src.cli.merlink_cli import MainCli
-
+from src.modules.os_utils import kill_duplicate_application
 
 class Controller:
     """This is the MVC controller for both gui and cli interfaces.
@@ -39,6 +39,9 @@ class Controller:
     # noinspection PyArgumentList
     def __init__(self):
         super(Controller, self).__init__()
+
+        # If there's a duplicate instance, kill it
+        kill_duplicate_application('merlink')
 
         # If there is one argument, start GUI
         # Otherwise, start CLI

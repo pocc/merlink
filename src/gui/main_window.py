@@ -22,7 +22,6 @@ from src.gui.modal_dialogs import show_error_dialog, vpn_status_dialog
 from src.dashboard_browser.dashboard_browser import DashboardBrowser
 from src.modules.vpn_connection import VpnConnection
 from src.modules.vpn_tests import TroubleshootVpn
-from src.modules.os_utils import is_duplicate_application
 from src.gui.menu_bars import MenuBars
 import src.gui.gui_setup as gui_setup
 from src.gui.systray import SystrayIcon
@@ -43,11 +42,6 @@ class MainWindow(QMainWindow):
     # noinspection PyArgumentList
     def __init__(self):
         super(MainWindow, self).__init__()
-        # If there's  a duplicate instance, close this one
-        if is_duplicate_application('merlink'):
-            show_error_dialog('ERROR: You already have a running merlink '
-                              'instance!\nThis application will now close.')
-            self.close()  # In lieu of sys.exit(app.exec_())
 
         self.browser = DashboardBrowser()
 
@@ -217,7 +211,7 @@ class MainWindow(QMainWindow):
             # Create VPN connection
             vpn_data = [
                 self.vpn_name_textfield.text(),
-                *self.browser.get_psk_and_address(),
+                *self.browser.get_psk_and_address(),  # 2 values unpacked
                 username,
                 password
             ]
@@ -236,13 +230,17 @@ class MainWindow(QMainWindow):
                     connection.attempt_windows_vpn(windows_options)
 
             elif sys.platform == 'darwin':
-                macos_options = []
+                macos_options = [
+                    self.split_tunneled_chkbox.checkState(),
+                ]
                 return_code = \
                     connection.attempt_macos_vpn(macos_options)
 
             # linux, linux2 are valid for linux distros
             elif sys.platform.startswith('linux'):
-                linux_options = []
+                linux_options = [
+                    self.split_tunneled_chkbox.checkState()
+                ]
                 return_code = \
                     connection.attempt_linux_vpn(linux_options)
 

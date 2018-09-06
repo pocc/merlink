@@ -13,22 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+"""OS utilities that do not belong to a class."""
 import os
 import sys
+import signal
 import subprocess
 import psutil
 
 
-def is_duplicate_application(program_name):
-    """Detect whether there are multiple processes with the same name."""
-    count = 0
+def kill_duplicate_applications(program_name):
+    """Kill other instances of program with same name on startup."""
+    this_pid = os.getpid()
     for proc in psutil.process_iter():
-        if proc.as_dict(attrs=['name'])['name'] == program_name:
-            count += 1
-        if count >= 4:
-            return True
-    return False
+        if proc.name == program_name and proc.pid == this_pid:
+            os.kill(proc.pid, signal.SIGKILL)
 
 
 def is_online():
@@ -46,8 +44,8 @@ def is_online():
 
     elif sys.platform == 'darwin' or sys.platform.startswith('linux'):
         # -c 1 = count of 1
-        # Use smallest interval of .1s to minimize time for connectivity test
-        ping_command = 'ping -c 1 -i 0.1 8.8.8.8'
+        # Use smallest interval of .2s to minimize time for connectivity test
+        ping_command = 'ping -c 1 -i 0.2 8.8.8.8'
     else:
         print("ERROR: Unsupported sys.platform!")
 
@@ -101,7 +99,7 @@ def pyinstaller_path(relative_path):
     Executables using --onedir are not affected as the files are where they are
     expected to be in the original or installation folder
 
-    Modified form source: https://stackoverflow.com/questions/7674790"""
+    Modified from source: https://stackoverflow.com/questions/7674790"""
     try:
         # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS

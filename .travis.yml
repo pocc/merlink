@@ -3,14 +3,8 @@
 # Only build if this is a tagged build
 matrix:
   include:
-  # Not specifying precise because it's EOL
 
-  - os: linux
-    sudo: false
-    dist: trusty
-    language: python
-    python: '3.6'
-
+# Ubuntu 16.04
   - os: linux
     sudo: false
     dist: xenial
