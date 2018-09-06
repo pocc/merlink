@@ -67,7 +67,11 @@ class VpnConnection:
             # Convert to string
             self.vpn_data[i] = str(self.vpn_data[i])
             # '$' -> '`$' for powershell and '$' -> '\$' for bash
-            self.vpn_data[i] = self.vpn_data[i].replace('$', '`$')
+            if self.os_index == 0:
+                esc_char = '`'
+            else:
+                esc_char = '\\'
+            self.vpn_data[i] = self.vpn_data[i].replace('$', esc_char + '$')
             # Surround each var with double quotes in case of spaces
             self.vpn_data[i] = '\"' + self.vpn_data[i] + '\"'
 
@@ -84,7 +88,6 @@ class VpnConnection:
           can access VPN functions
         * Email CANNOT have spaces, but password can.
         """
-
         self.sanitize_variables()
 
         # 32bit powershell path :
@@ -115,19 +118,21 @@ class VpnConnection:
         service (1)'. if it's a part of the build script instead of here.
         This is why it's added directly to the osacript request.
         Connection name with forced quotes in case it has spaces.
+
+        *self.vpn_data not possible due to the way the shell interprets it.
         """
-
         print("Creating macOS VPN")
+        self.sanitize_variables()
+        vpn_name, psk, address, username, password = self.vpn_data
 
-        self.vpn_name = self.vpn_data[0]
-        scutil_string = 'scutil --nc select ' + '\'' + self.vpn_name + '\''
+        scutil_string = 'scutil --nc select ' + '\'' + vpn_name + '\''
         print("scutil_string: " + scutil_string)
         # Create an applescript execution string so we don't
         # need to bother with parsing arguments with Popen
         command = 'do shell script \"/bin/bash src/scripts/build_macos_vpn.sh' \
-                  + ' \'' + self.vpn_data[0] + '\' \'' + self.vpn_data[1] + \
-                  '\' \'' + self.vpn_data[2] + '\' \'' + self.vpn_data[3] + \
-                  '\' \'' + self.vpn_data[4] + '\'; ' + scutil_string + \
+                  + ' \'' + vpn_name + '\' \'' + psk + \
+                  '\' \'' + address + '\' \'' + username + \
+                  '\' \'' + password + '\'; ' + scutil_string + \
                   '\" with administrator privileges'
         # Applescript will prompt the user for credentials in order to create
         #  the VPN connection
@@ -159,9 +164,15 @@ class VpnConnection:
           terminal on Fedora
         * pkexec is PolicyKit, which is the preferred means of asking for
           permission on LSB
+        * *self.vpn_data not possible due to the way the shell interprets it.
         """
-        return subprocess.Popen(['pkexec', pyinstaller_path(
-            'src/scripts/connect_linux.sh'), *self.vpn_data, *vpn_options])
+        self.sanitize_variables()
+        vpn_name, psk, address, username, password = self.vpn_data
+
+        return subprocess.Popen(
+            ['pkexec', pyinstaller_path('src/scripts/connect_linux.sh'),
+             vpn_name, psk, address, username, password],
+            shell=True)
 
     def disconnect(self):
         """Disconnect all connected VPNs"""

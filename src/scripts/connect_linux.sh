@@ -68,8 +68,8 @@ fi
 vpn_name="$(echo $1 | sed 's/[\`\!\$\/'\''\"\ ]//g' | cut -c1-15)"
 echo 'vpn_name: '${vpn_name}
 # If the vpn_name is now empty due to these removals, name it l2tp
-if [[ -z vpn_name ]]; then vpn_name='l2tp'; fi
-firewall_ip=$2
+if [[ -z vpn_name ]]; then vpn_name='merlink-l2tp-vpn'; fi
+mx_address=$2
 psk=$3
 username=$4
 password=$5
@@ -93,7 +93,7 @@ autoconnect=false
 permissions=user:$(who | awk '{print $1;}'):;
 
 [vpn]
-gateway=${firewall_ip}
+gateway=${mx_address}
 ipsec-enabled=yes
 ipsec-esp=3des-sha1
 ipsec-forceencaps=yes
