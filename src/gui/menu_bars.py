@@ -75,7 +75,7 @@ class MenuBars:
         self.help_menu.addAction(help_about)
 
         file_sysprefs.triggered.connect(self.file_sysprefs)
-        file_quit.triggered.connect(exit)
+        file_quit.triggered.connect(sys.exit)
         edit_preferences.triggered.connect(self.edit_prefs_action)
         help_about.triggered.connect(self.help_about_action)
 

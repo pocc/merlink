@@ -15,6 +15,7 @@
 
 """This class manages the system tray icon."""
 import webbrowser
+import sys
 
 from PyQt5.QtWidgets import QAction, QMenu, QSystemTrayIcon
 from PyQt5.QtGui import QIcon, QFont
@@ -61,7 +62,7 @@ class SystrayIcon:
         disconnect_action.triggered.connect(app.disconnect)
         show_action.triggered.connect(app.show)
         hide_action.triggered.connect(app.hide)
-        quit_action.triggered.connect(exit)
+        quit_action.triggered.connect(sys.exit)
     
         tray_menu = QMenu()
         tray_menu.addAction(connect_action)
