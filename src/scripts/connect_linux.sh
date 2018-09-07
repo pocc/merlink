@@ -77,50 +77,26 @@ username=$4
 password=$5
 
 # Generate NetworkManager VPN connection
-# l2tp gets stored as type org.freedesktop.NetworkManager.l2tp
 nmcli con add type vpn ifname ${vpn_name} vpn-type l2tp
-# nmcli prepends with 'vpn-'; remove this unnecessary prefix
-nmcli con modify "vpn-${vpn_name}" connection.id "${vpn_name}"
 
-# Overwrite config created at /etc/NetworkManager/system-connections/$vpn_name
-# This content has been lifted from a successful connection
-cat <<EOT > /etc/NetworkManager/system-connections/${vpn_name}
-[connection]
-id=${vpn_name}
-# Create a UUID for this connection
-uuid=$(uuidgen)
-type=vpn
-autoconnect=false
-# Get current user and give them permission to this VPN
-permissions=user:$(who | awk '{print $1;}'):;
-
-[vpn]
-gateway=${mx_address}
-ipsec-enabled=yes
-ipsec-esp=3des-sha1
-ipsec-forceencaps=yes
-ipsec-ike=3des-sha1-modp1024
-ipsec-psk=${psk}
-password-flags=0
-user=${username}
-mru=1500
-mtu=1500
-service-type=org.freedesktop.NetworkManager.l2tp
-
-[vpn-secrets]
-password=${password}
-
-[ipv4]
-dns-search=
-method=auto
-
-[ipv6]
-addr-gen-mode=stable-privacy
-dns-search=
-ip6-privacy=0
-method=auto
-EOT
-
+# Edit the connection that was just created
+# Config is stored at /etc/NetworkManager/system-connections/$connection.id
+# nmcli prepends connection.id with 'vpn-'; remove this
+sudo nmcli con modify "vpn-${vpn_name}" \
+	connection.id ${vpn_name} \
+	connection.autoconnect yes \
+	connection.permissions $(whoami) \
+	vpn.data \
+        gateway=${mx_address},\
+        ipsec-enabled='yes',\
+        ipsec-esp='3des-sha1',\
+        ipsec-forceencaps='yes',\
+        ipsec-ike='3des-sha1-modp1024',\
+        ipsec-psk=${psk},\
+        password-flags='0',\
+        user=${username},\
+        service-type='org.freedesktop.NetworkManager.l2tp' \
+	vpn.secrets password=${password}
 
 # Reload the connections
 sudo nmcli con reload

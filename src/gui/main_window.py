@@ -283,3 +283,11 @@ class MainWindow(QMainWindow):
         tshoot_failed_vpn_dialog(result.get_test_results())"""
         self.status.showMessage("Status: Ready to connect to "
                                 + self.network_dropdown.currentText() + ".")
+
+    def set_admin_layout(self):
+        """Set the dashboard admin layout."""
+        gui_setup.main_window_set_admin_layout(self)
+
+    def set_guest_layout(self):
+        """Set the guest user layout."""
+        gui_setup.main_window_set_guest_layout(self)
