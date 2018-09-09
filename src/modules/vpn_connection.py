@@ -43,22 +43,29 @@ class VpnConnection:
         Any OS-specific VPN parameters will go into vpn_options
     """
 
-    def __init__(self, vpn_data):
+    def __init__(self, vpn_data, vpn_options):
         super(VpnConnection, self).__init__()
         print('showing')
         self.vpn_data = vpn_data
+        self.vpn_options = vpn_options
         self.vpn_name = ''
         self.vpn_uuid = ''
+        self.sanitize_variables()
+        self.os_index = 3  # Default index for unknown OS
+
+    def attempt_vpn(self):
+        """Interface for other classes, calls this OS's connect script."""
         platform = sys.platform
         # Numbers arbitrarily chosen
         if platform == 'win32':
             self.os_index = 0
+            self.attempt_windows_vpn()
         elif platform == 'darwin':
             self.os_index = 1
+            self.attempt_macos_vpn()
         elif platform.startswith('linux'):
             self.os_index = 2
-        else:
-            self.os_index = 3
+            self.attempt_linux_vpn()
 
     def sanitize_variables(self):
         """Sanitize variables for powershell/bash input."""
@@ -74,7 +81,7 @@ class VpnConnection:
             # Surround each var with double quotes in case of spaces
             self.vpn_data[i] = '\"' + self.vpn_data[i] + '\"'
 
-    def attempt_windows_vpn(self, vpn_options):
+    def attempt_windows_vpn(self):
         """Attempt to connect to Windows VPN.
 
         * Arguments sent to powershell MUST BE STRINGS
@@ -87,26 +94,24 @@ class VpnConnection:
           can access VPN functions
         * Email CANNOT have spaces, but password can.
         """
-        self.sanitize_variables()
-
         # 32bit powershell path :
         # 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe'
         # Opinionated view that 32bit is not necessary
         powershell_path = \
             'C:\\Windows\\SysWOW64\\WindowsPowerShell\\v1.0\\powershell.exe'
 
-        for i in range(len(vpn_options)):
+        for i in range(len(self.vpn_options)):
             # Convert to string
-            vpn_options[i] = str(vpn_options[i])
+            self.vpn_options[i] = str(self.vpn_options[i])
 
         return subprocess.call(
             [powershell_path, '-ExecutionPolicy', 'Unrestricted',
              pyinstaller_path('src\scripts\connect_windows.ps1'),
-             *self.vpn_data, *vpn_options])
+             *self.vpn_data, *self.vpn_options])
         # subprocess.Popen([], creationflags=subprocess.CREATE_NEW_CONSOLE)
         #  open ps window
 
-    def attempt_macos_vpn(self, vpn_options):
+    def attempt_macos_vpn(self):
         """Attempt to connect over VPN on macOS.
 
         scutil is required to add the VPN to the active set. Without this,
@@ -121,7 +126,6 @@ class VpnConnection:
         *self.vpn_data not possible due to the way the shell interprets it.
         """
         print("Creating macOS VPN")
-        self.sanitize_variables()
         vpn_name, address, psk, username, password = self.vpn_data
 
         scutil_string = 'scutil --nc select ' + '\'' + vpn_name + '\''
@@ -153,7 +157,7 @@ class VpnConnection:
              self.vpn_name]
         )
 
-    def attempt_linux_vpn(self, vpn_options):
+    def attempt_linux_vpn(self):
         """Attempt to connect on linux.
 
         * FPM executes `chmod a+x` on the merlink connect script post-install.
@@ -165,7 +169,6 @@ class VpnConnection:
           permission on LSB
         * *self.vpn_data not possible due to the way the shell interprets it.
         """
-        self.sanitize_variables()
         vpn_name, address, psk, username, password = self.vpn_data
         vpn_cmd = 'pkexec ' + pyinstaller_path('src/scripts/connect_linux.sh') \
             + ' ' + vpn_name + ' ' + address + ' ' + psk + ' ' + username \

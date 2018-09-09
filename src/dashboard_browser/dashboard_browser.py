@@ -163,6 +163,7 @@ class DashboardBrowser:
             return True
         else:
             print("TFA Failure")
+            return False
 
     # Fns that set up the browser for use
     ###########################################################################
@@ -353,7 +354,7 @@ class DashboardBrowser:
         """Return the active org name."""
         return self.orgs_dict[self.active_org_id]['name']
 
-    def get_active_org_networks(self):
+    def get_network_names(self):
         """Get the network name for every network in the active org"""
         networks = self.orgs_dict[self.active_org_id]['node_groups']
         print('networks', networks)

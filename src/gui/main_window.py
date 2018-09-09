@@ -111,7 +111,7 @@ class MainWindow(QMainWindow):
             # Change primary organization
             self.browser.set_active_org_index(selected_org_index)
             print("In change_organization and this is the network list "
-                  + str(self.browser.get_active_org_networks()))
+                  + str(self.browser.get_network_names()))
 
             self.refresh_network_dropdown()
             self.status.showMessage("Status: In org " +
@@ -131,7 +131,7 @@ class MainWindow(QMainWindow):
             self.connect_btn.setEnabled(False)
             self.vpn_name_textfield.setEnabled(False)
         else:
-            network_list = self.browser.get_active_org_networks()
+            network_list = self.browser.get_network_names()
             print('main window network list', network_list)
             current_network = network_list[current_network_index]
             self.status.showMessage("Status: Fetching network data for "
@@ -167,7 +167,7 @@ class MainWindow(QMainWindow):
         self.network_dropdown.clear()
         self.network_dropdown.addItem('-- Select a Network --')
 
-        current_org_network_list = self.browser.get_active_org_networks()
+        current_org_network_list = self.browser.get_network_names()
         print('current_org_network_list', current_org_network_list)
         self.network_dropdown.addItems(current_org_network_list)
 

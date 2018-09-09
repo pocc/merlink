@@ -14,6 +14,8 @@
 # limitations under the License.
 
 """Login dialog GUI elements."""
+import sys
+
 from PyQt5.QtWidgets import QDialog
 
 from src.dashboard_browser.dashboard_browser import DashboardBrowser
@@ -83,7 +85,7 @@ class LoginDialog(QDialog):
                               'internet is required for MerLink to work. '
                               'Please check your network settings and try '
                               'again. Now exiting...')
-            exit()
+            sys.exit()
         else:
             show_error_dialog("ERROR: Invalid authentication type!")
 
