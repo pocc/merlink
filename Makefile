@@ -18,27 +18,44 @@ PYTHONPATH := ".:$(VENDORPATH)"
 
 PYTHON := PYTHONPATH=$(PYTHONPATH) "$(shell which python3)"
 VENDOR := $(PYTHON) -m pip install --target "$(VENDORPATH)"
+PROJDIR := "$(shell pwd)"
 
-default: vendor
-	$(PYTHON) ./src/merlink.py
 
 clean:
-	$(RM) -r "$(VENDORPATH)"
+	$(RM) -r ./build ./dist
 
+# https://github.com/vintasoftware/python-linters-and-code-analysis
 lint: vendor
-	# https://github.com/vintasoftware/python-linters-and-code-analysis
-	#$(PYTHON) -m pylint ./src # or whatever you use
+    $(PYTHON) -m pylint ./
 
-test: lint vendor
-	# https://wiki.python.org/moin/PyQt/GUI_Testing
-	#$(PYTHON) -m nose ./test # or whatever you use
+# TODO
+test:
+# https://wiki.python.org/moin/PyQt/GUI_Testing
+	$(PYTHON) -m nose ./test
 
-merlink.exe: merlink.spec vendor
+run: vendor
+	$(PYTHON) merlink.py
+
+# TODO
+build: merlink.spec vendor
 	$(PYTHON) -m PyInstaller $<
 
-merlink.zip: src vendor
-	$(PYTHON) zip.py $@ $^
+# TODO
+# Install files to appropriate directory per-OS
+install: build
+
+# TODO
+# Delete files created by `make install`
+uninstall: build
+
+# TODO
+# Create a package for this platform (in build)
+package: build
+
+# TODO
+# Build a binary for this platform (in dist)
+bin: build merlink.spec
 
 vendor: requirements.txt
-	$(VENDOR) --upgrade pip # latest pip
+	$(VENDOR) --upgrade pip
 	$(VENDOR) --upgrade -r requirements.txt

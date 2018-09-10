@@ -23,7 +23,7 @@ from src.gui.menu_bars import MenuBars
 from src.gui.login_dialog import LoginDialog
 from src.gui.modal_dialogs import show_error_dialog, vpn_status_dialog
 from src.gui.systray import SystrayIcon
-import src.gui.gui_setup as gui_setup
+import src.gui.gui_setup as guify
 from src.modules.vpn_connection import VpnConnection
 
 DEBUG = True
@@ -48,8 +48,8 @@ class MainWindow(QMainWindow):
         self.menu_widget = MenuBars(self.menuBar())
         self.menu_widget.generate_menu_bars()
         self.tray_icon = SystrayIcon(self)
-        gui_setup.main_window_widget_setup(self)
-        gui_setup.main_window_set_layout(self)
+        guify.main_window_widget_setup(self)
+        guify.main_window_set_layout(self)
 
         self.show()
 
@@ -80,7 +80,7 @@ class MainWindow(QMainWindow):
 
         """
         # Set up radio button for dashboard/admin user
-        gui_setup.main_window_set_admin_layout(self)
+        guify.main_window_set_admin_layout(self)
         self.radio_admin_user.toggled.connect(self.set_admin_layout)
         self.radio_guest_user.toggled.connect(self.set_guest_layout)
 
@@ -224,34 +224,28 @@ class MainWindow(QMainWindow):
                 password
             ]
             print('vpn_data being sent to script: ', vpn_data)
-            connection = VpnConnection(vpn_data)
+            vpn_options = [
+                self.dns_suffix_txtbox.text(),
+                self.idle_disconnect_spinbox.value(),
+                self.split_tunneled_chkbox.checkState(),
+                self.remember_credential_chkbox.checkState(),
+                self.use_winlogon_chkbox.checkState(),
+                DEBUG,
+            ]
+            connection = VpnConnection(vpn_data, vpn_options)
 
             if sys.platform == 'win32':
-                windows_options = [
-                    self.dns_suffix_txtbox.text(),
-                    self.idle_disconnect_spinbox.value(),
-                    self.split_tunneled_chkbox.checkState(),
-                    self.remember_credential_chkbox.checkState(),
-                    self.use_winlogon_chkbox.checkState(),
-                    DEBUG,
-                ]
                 return_code = \
-                    connection.attempt_windows_vpn(windows_options)
+                    connection.attempt_windows_vpn()
 
             elif sys.platform == 'darwin':
-                macos_options = [
-                    self.split_tunneled_chkbox.checkState(),
-                ]
                 return_code = \
-                    connection.attempt_macos_vpn(macos_options)
+                    connection.attempt_macos_vpn()
 
             # linux, linux2 are valid for linux distros
             elif sys.platform.startswith('linux'):
-                linux_options = [
-                    self.split_tunneled_chkbox.checkState()
-                ]
                 return_code = \
-                    connection.attempt_linux_vpn(linux_options)
+                    connection.attempt_linux_vpn()
 
             else:
                 return_code = False
@@ -296,8 +290,8 @@ class MainWindow(QMainWindow):
 
     def set_admin_layout(self):
         """Set the dashboard admin layout."""
-        gui_setup.main_window_set_admin_layout(self)
+        guify.main_window_set_admin_layout(self)
 
     def set_guest_layout(self):
         """Set the guest user layout."""
-        gui_setup.main_window_set_guest_layout(self)
+        guify.main_window_set_guest_layout(self)

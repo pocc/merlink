@@ -55,9 +55,10 @@ Examples:
                ֊֊org-name 'ACME Corp' \\
                ֊֊network-name 'Wild West'
 """
-import docopt
-import getpass
 import sys
+import getpass
+
+import docopt
 
 from src.dashboard_browser.dashboard_browser import DashboardBrowser
 from src.modules.vpn_connection import VpnConnection
@@ -112,9 +113,9 @@ class MainCli:
             print("Authentication success!")
             return
         elif 'ConnectionError' in str(type(auth_result)):
-            print("""ERROR: No internet connection!\n\nAccess to the internet 
-                  is required for MerLink to work. Please check your network 
-                  settings and try again. Now exiting...""")
+            print("""ERROR: No internet connection!\n\nAccess to the internet
+                   is required for MerLink to work. Please check your network
+                   settings and try again. Now exiting...""")
             sys.exit()
 
     def init_ui(self):
@@ -221,5 +222,5 @@ class MainCli:
         """Create a VPN object and connect with it."""
         connection = VpnConnection(
             vpn_data=vpn_data,
-            vpn_options=[])
+            vpn_options={})
         connection.attempt_vpn()

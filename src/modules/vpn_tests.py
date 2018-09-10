@@ -157,7 +157,7 @@ class TroubleshootVpn:
 
     def test5_incompatible_port_forwards(self):
         """Test for port forwards that break an IPSEC VPN.
-        
+
         An IPSEC connection uses UDP port 500 and UDP port 4500 if there is NAT.
         If the following text exists, they're port forwarding ports 500 or 4500:
         "public_port":"500"

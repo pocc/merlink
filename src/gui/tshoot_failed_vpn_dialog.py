@@ -43,12 +43,12 @@ def tshoot_failed_vpn_dialog(has_passed_validation):
         "Are UDP ports 500/4500 port forwarded through firewall?"]
     # "Is the user authorized for Client VPN?",
     # For as many times as items in the validation_textlist
-    for i in range(len(validation_textlist)):
+    for i, _ in enumerate(validation_textlist):
         # Initialize a QListWidgetItem out of a string
         item = QListWidgetItem(validation_textlist[i])
         validation_list.addItem(item)  # Add the item to the QListView
 
-    for i in range(len(validation_textlist)):
+    for i, _ in enumerate(validation_textlist):
         print("has passed" + str(i) + str(has_passed_validation[i]))
         if has_passed_validation[i]:
             validation_list.item(i).setIcon(

@@ -106,7 +106,7 @@ class VpnConnection:
 
         return subprocess.call(
             [powershell_path, '-ExecutionPolicy', 'Unrestricted',
-             pyinstaller_path('src\scripts\connect_windows.ps1'),
+             pyinstaller_path('src\\scripts\\connect_windows.ps1'),
              *self.vpn_data, *self.vpn_options])
         # subprocess.Popen([], creationflags=subprocess.CREATE_NEW_CONSOLE)
         #  open ps window
@@ -233,7 +233,7 @@ class VpnConnection:
         """Get the VPN name given a UUID"""
         # Get all connections, filter by uuid, and return the 2nd field (name)
         linux_command = "nmcli --fields uuid,name con show | grep " + \
-                        uuid + " | cut -d\  -f2-"
+                        uuid + " | cut -d\\  -f2-"
 
         vpn_command = [
             "",

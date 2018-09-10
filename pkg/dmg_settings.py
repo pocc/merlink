@@ -12,33 +12,34 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Settings file for dmgbuild
 
-import biplist
+Note that as this is a python file, any python can be used.
+Use like this: dmgbuild -s settings.py "Test Volume" test.dmg
+
+You can actually use this file for your own application (not just TextEdit)
+by doing e.g.
+
+    dmgbuild -s settings.py -D app=/path/to/My.app "My Application" MyApp.dmg
+"""
 from os import path, getcwd
 
-#
-# Example settings file for dmgbuild
-#
-
-# Use like this: dmgbuild -s settings.py "Test Volume" test.dmg
-
-# You can actually use this file for your own application (not just TextEdit)
-# by doing e.g.
-#
-#   dmgbuild -s settings.py -D app=/path/to/My.app "My Application" MyApp.dmg
+import biplist
 
 # .. Useful stuff ..............................................................
 
 current_dir = getcwd()
-print("dmgbuild directory: " + current_dir )
+print("dmgbuild directory: " + current_dir)
 application = defines.get('app', '/Applications/Merlink.app')
 appname = path.basename(application)
 
+
 def icon_from_app(app_path):
+    """Get icon from app."""
     plist_path = path.join(app_path, 'Contents', 'Info.plist')
     plist = biplist.readPlist(plist_path)
     icon_name = plist['CFBundleIconFile']
-    icon_root,icon_ext = path.splitext(icon_name)
+    icon_root, icon_ext = path.splitext(icon_name)
     if not icon_ext:
         icon_ext = '.icns'
     icon_name = icon_root + icon_ext
@@ -47,7 +48,7 @@ def icon_from_app(app_path):
 # .. Basics ....................................................................
 
 # Uncomment to override the output filename
-#filename = 'Merlink.dmg'
+# filename = 'Merlink.dmg'
 
 # Uncomment to override the output volume name
 volume_name = 'Merlink'
@@ -56,13 +57,13 @@ volume_name = 'Merlink'
 format = defines.get('format', 'UDBZ')
 
 # Volume size
-#size = defines.get('size', None)
+# size = defines.get('size', None)
 
 # Files to include
-files = [ current_dir + '/dist/merlink.app' ]
+files = [current_dir + '/dist/merlink.app']
 
 # Symlinks to create
-symlinks = { 'Applications': '/Applications' }
+symlinks = {'Applications': '/Applications'}
 
 # Volume icon
 #
@@ -71,9 +72,9 @@ symlinks = { 'Applications': '/Applications' }
 # will be used to badge the system's Removable Disk icon
 #
 # badge_icon = /path/to/icon
-badge_icon = icon_from_app( current_dir + '/dist/merlink.app' )
-#print(appname)
-#badge_icon = icon_from_app(application)
+badge_icon = icon_from_app(current_dir + '/dist/merlink.app')
+# print(appname)
+# badge_icon = icon_from_app(application)
 
 # Where to put the icons
 icon_locations = {

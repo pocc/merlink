@@ -22,7 +22,7 @@ from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QTextEdit
 
-import src.modules.os_utils as os_utils
+from src.modules.os_utils import open_vpnsettings
 from src.gui.modal_dialogs import show_error_dialog
 
 
@@ -32,7 +32,7 @@ class MenuBars:
     This class contains mostly boilerplate Qt UI.
 
     Attributes:
-        bar (QMenuBar): The Main Window's built-in menu bar object
+        menu_bar (QMenuBar): The Main Window's built-in menu bar object
         file_menu (QAction): File menu
         edit_menu (QAction): Edit menu
         help_menu (QAction): Help menu
@@ -40,12 +40,12 @@ class MenuBars:
 
     # Telling PyCharm linter not to (incorrectly) inspect PyQt function args
     # noinspection PyArgumentList
-    def __init__(self, bar):
+    def __init__(self, menu_bar):
         super(MenuBars, self).__init__()
-        self.bar = bar
-        self.file_menu = bar.addMenu('&File')
-        self.edit_menu = bar.addMenu('&Edit')
-        self.help_menu = bar.addMenu('&Help')
+        self.menu_bar = menu_bar
+        self.file_menu = menu_bar.addMenu('&File')
+        self.edit_menu = menu_bar.addMenu('&Edit')
+        self.help_menu = menu_bar.addMenu('&Help')
 
     def generate_menu_bars(self):
         """Create each of the menu bars.
@@ -54,19 +54,19 @@ class MenuBars:
         """
 
         # File options
-        file_sysprefs = QAction('&Open VPN System Prefs', self.bar)
+        file_sysprefs = QAction('&Open VPN System Prefs', self.menu_bar)
         file_sysprefs.setShortcut('Ctrl+O')
-        file_quit = QAction('&Quit', self.bar)
+        file_quit = QAction('&Quit', self.menu_bar)
         file_quit.setShortcut('Ctrl+Q')
 
         # Edit options
-        edit_preferences = QAction('&Prefrences', self.bar)
+        edit_preferences = QAction('&Prefrences', self.menu_bar)
         edit_preferences.setShortcut('Ctrl+P')
 
         # Help options
-        help_support = QAction('Get S&upport', self.bar)
+        help_support = QAction('Get S&upport', self.menu_bar)
         help_support.setShortcut('Ctrl+U')
-        help_about = QAction('A&bout', self.bar)
+        help_about = QAction('A&bout', self.menu_bar)
         help_about.setShortcut('Ctrl+B')
 
         self.file_menu.addAction(file_sysprefs)
@@ -87,15 +87,15 @@ class MenuBars:
             FileNotFoundError: If vpn settings are not found
         """
         try:
-            os_utils.open_vpnsettings()
-        except FileNotFoundError as e:
+            open_vpnsettings()
+        except FileNotFoundError as error:
             if sys.platform.startswith('linux'):
                 show_error_dialog(
-                    str(e) + '\n\nThis happens when gnome-network-manager is '
-                    'not installed and systems vpn prefs are opened in linux.')
+                    str(error) + '\n\nThis happens when gnome-network-manager '
+                    'is not installed and vpn prefs are opened in linux.')
             else:
-                show_error_dialog(str(e) + '\n\nUnknown error: VPN settings '
-                                           'not found')
+                show_error_dialog(str(error) + '\n\nUnknown error: VPN '
+                                               'settings not found')
 
     @staticmethod
     def edit_prefs_action():

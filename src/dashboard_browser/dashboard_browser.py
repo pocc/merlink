@@ -89,9 +89,6 @@ class DashboardBrowser:
         self.active_org_id = 0
         self.active_network_id = 0
 
-        # Save the pagetexts for validation tests
-        pagetexts = {}
-
         # VPN VARS: Powershell Variables set to defaults
         # If it's set to '', then powershell will skip reading that parameter.
         self.vpn_vars = {}
@@ -134,13 +131,15 @@ class DashboardBrowser:
         result_url = self.browser.get_url()
         # URL contains /login/login if login failed
 
-        if '/login/login' in result_url:
-            return 'auth_error'
+        if result_url.find('/login/login') != -1:
+            result_string = 'auth_error'
         # Two-Factor redirect: https://account.meraki.com/login/sms_auth?go=%2F
-        elif 'sms_auth' in result_url:
-            return 'sms_auth'
+        elif result_url.find('sms_auth') != -1:
+            result_string = 'sms_auth'
         else:
-            return 'auth_success'
+            result_string = 'auth_success'
+
+        return result_string
 
     def tfa_submit_info(self, tfa_code):
         """Attempt login with the provided TFA code.
@@ -161,9 +160,8 @@ class DashboardBrowser:
         if active_page.find("Invalid verification code") == -1:
             print("TFA Success")
             return True
-        else:
-            print("TFA Failure")
-            return False
+        print("TFA Failure")
+        return False
 
     # Fns that set up the browser for use
     ###########################################################################
@@ -186,7 +184,7 @@ class DashboardBrowser:
         # visit pages you should have access to
         page = self.browser.get_current_page()
         # 2+ orgs choice page : https://account.meraki.com/login/org_list?go=%2F
-        if 'org_list' in self.browser.get_url():  # Admin orgs = 2
+        if self.browser.get_url().find('org_list'):  # Admin orgs = 2
             self.bypass_org_choose_page(page)
 
         administered_orgs = self.scrape_administered_orgs()
@@ -207,7 +205,7 @@ class DashboardBrowser:
             )
 
         self.active_network_id = list(self.orgs_dict[self.active_org_id][
-         'node_groups'])[0]
+            'node_groups'])[0]
 
     def bypass_org_choose_page(self, page):
         """Bypass page for admins with 2+ orgs that normally requires user input
@@ -223,7 +221,7 @@ class DashboardBrowser:
         """
         # Get a list of all org links. href comes before a link in HTML.
         org_href_lines = page.findAll(
-            'a', href=re.compile('/login/org_choose\?eid=.{6}'))
+            'a', href=re.compile(r'/login/org_choose\?eid=.{6}'))
         # Get the number of orgs
         self.org_qty = len(org_href_lines)
         # Choose link for first org so we have something to connect to
@@ -272,17 +270,11 @@ class DashboardBrowser:
         print('administered_orgs url', administered_orgs_url)
         self.browser.open(administered_orgs_url)
 
-        cj = self.browser.get_cookiejar()
-        response = requests.get(administered_orgs_url, cookies=cj)
+        cookiejar = self.browser.get_cookiejar()
+        response = requests.get(administered_orgs_url, cookies=cookiejar)
         administered_orgs = json.loads(response.text)
         if self.is_network_admin:
             self.org_qty = len(self.orgs_dict)
-
-        """ For troubleshooting purposes
-        print("\nI stole the cookie jar and I put it here:", cj,
-              "\nAdministered Orgs =>", json.dumps(administered_orgs,
-                                                   indent=4, sort_keys=True))
-        """
 
         return administered_orgs
 
@@ -348,7 +340,7 @@ class DashboardBrowser:
     def set_active_network_index(self, network_index):
         """Sets the active network by its index."""
         self.active_network_id = list(self.orgs_dict[self.active_org_id][
-                                       'node_groups'])[network_index]
+            'node_groups'])[network_index]
 
     def get_active_org_name(self):
         """Return the active org name."""
@@ -369,7 +361,7 @@ class DashboardBrowser:
         """Get all page links from current page's pagetext"""
         pagetext = self.browser.get_current_page().text
         json_text = re.findall(
-            'window\.initializeSideNavigation\([ -(*-~\r\n]*\)',
+            r'window\.initializeSideNavigation\([ -(*-~\r\n]*\)',
             pagetext,
         )[0][48:-1]
         json_dict = json.loads(json_text)
@@ -380,7 +372,7 @@ class DashboardBrowser:
                 category = json_dict['tab_menu']['tabs'][tab_menu]['name']
                 page_url_dict[category] = {}
                 qty_tabs = len(json_dict['tab_menu']['tabs'][tab_menu][
-                                         'menus'][menu]['items'])
+                    'menus'][menu]['items'])
                 for tab in range(qty_tabs):
                     name = json_dict['tab_menu']['tabs'][tab_menu]['menus'][
                         menu]['items'][tab]['name']
@@ -416,7 +408,7 @@ class DashboardBrowser:
         mki_dict = {}
         for line in mki_lines:
             mki_string = \
-                re.findall('[0-9a-zA-Z_\[\]\"]+\s*=\s[ -:<-~]*;', line)[0]
+                re.findall(r'[0-9a-zA-Z_\[\]\"]+\s*=\s[ -:<-~]*;', line)[0]
             # mki_key = <property>, mki_value = <JSON>
             mki_key, mki_value = mki_string.split(' = ', 1)
             if mki_value[-1] == ';':  # remove trailing ;
@@ -439,7 +431,7 @@ class DashboardBrowser:
                 identifies (and routes to) a page.
         """
         current_url = self.browser.get_url()
-        network_partial, current_route = current_url.split('/manage')
+        network_partial, _ = current_url.split('/manage')
         network_base = network_partial.split('.com/')[0]
         network_name = self.orgs_dict[self.active_org_id]['node_groups'][
             self.active_network_id]['t']
@@ -460,8 +452,8 @@ class DashboardBrowser:
         """The CSUI JSON contains most node data (route:/configure/settings)"""
         self.open_route('/configure/settings')
         current_url = self.browser.get_url()
-        cj = self.browser.get_cookiejar()
-        json_text = requests.get(current_url, cookies=cj).text
+        cookiejar = self.browser.get_cookiejar()
+        json_text = requests.get(current_url, cookies=cookiejar).text
         return json.loads(json_text)
 
     def get_client_vpn_data(self):
@@ -573,8 +565,8 @@ class DashboardBrowser:
                 self.active_network_id]['eid']
             self.orgs_dict[self.active_org_id]['node_groups'][
                 self.active_network_id]['users'] = {
-                'name': users_dict[key]['name'],
-                'email': users_dict[key]['email'],
-                'is_admin': users_dict[key]['is_manage_user'],
-                'is_authorized': eid in users_dict[key]['authed_networks'],
-            }
+                    'name': users_dict[key]['name'],
+                    'email': users_dict[key]['email'],
+                    'is_admin': users_dict[key]['is_manage_user'],
+                    'is_authorized': eid in users_dict[key]['authed_networks'],
+                }

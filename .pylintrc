@@ -1,0 +1,3 @@
+[MASTER]
+extension-pkg-whitelist=PyQt5
+disable=C0103  # dmgsettings.py does not use consts

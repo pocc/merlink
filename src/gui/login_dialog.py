@@ -20,7 +20,7 @@ from PyQt5.QtWidgets import QDialog
 
 from src.dashboard_browser.dashboard_browser import DashboardBrowser
 from src.gui.modal_dialogs import show_error_dialog
-import src.gui.gui_setup as gui_setup
+import src.gui.gui_setup as guify
 
 
 class LoginDialog(QDialog):
@@ -46,10 +46,10 @@ class LoginDialog(QDialog):
         valid by sending them to the virtual browser.
         """
         # Decorate login window with gui functions
-        gui_setup.login_widget_setup(self)
-        gui_setup.login_window_setup(self)
-        gui_setup.login_set_layout(self)
-        gui_setup.login_tfa_set_layout(self)
+        guify.login_widget_setup(self)
+        guify.login_window_setup(self)
+        guify.login_set_layout(self)
+        guify.login_tfa_set_layout(self)
 
         self.show()
         self.login_btn.clicked.connect(self.check_login_attempt)
@@ -92,8 +92,8 @@ class LoginDialog(QDialog):
     def tfa_dialog_setup(self):
         """Create and execute the UI for the TFA dialog"""
         # Create dialog window with login window object
-        gui_setup.tfa_widget_setup(self)
-        gui_setup.tfa_set_layout(self)
+        guify.tfa_widget_setup(self)
+        guify.tfa_set_layout(self)
 
         self.yesbutton.clicked.connect(self.tfa_verify)
         self.nobutton.clicked.connect(self.twofactor_dialog.close)
@@ -112,4 +112,3 @@ class LoginDialog(QDialog):
             self.twofactor_dialog.accept()
         else:
             show_error_dialog('ERROR: Invalid verification code!')
-

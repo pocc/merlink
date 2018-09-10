@@ -20,14 +20,9 @@ cd %TEMP%
 git clone https://github.com/pocc/merlink
 cd merlink
 python3 easy_install
-# Don't use virtualenv because pyinstaller throws a fit
-#python3 -m pip install virtualenv
-#python3 -m virtualenv venv
-#venv\Scripts\activate  # on Windows instead of source 'venv/bin/activate'
 python3 -m pip install -r requirements.txt
-pyinstaller pyinstaller.nix.spec
 GIT_VERSION=git describe --abrev=0 --tags
 
-pyinstaller pyinstaller.spec
+pyinstaller merlink.spec
 # /D specifies additional variables to be used in the script
 makensis /DPRODUCT_VERSION=GIT_VERSION .\pkg\windows_nsis_installer.nsh

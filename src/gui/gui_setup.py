@@ -139,7 +139,7 @@ def login_tfa_set_layout(app):
     # return/pass values to/from triggered functions (app.tfa_verify)
     app.get_twofactor_code = QLineEdit()
     app.twofactor_dialog = QDialog()
-    
+
 
 def tfa_widget_setup(app):
     """TWOFACTOR_DIALOG UI SETUP"""
@@ -194,7 +194,7 @@ def main_window_widget_setup(app):
     app.radio_password_label.setStyleSheet("color: #606060")  # Gray
     app.radio_password_textfield = QLineEdit()
     app.radio_password_textfield.setEchoMode(QLineEdit.Password)
-    
+
     app.user_auth_section = QVBoxLayout()
     app.radio_user_layout = QHBoxLayout()
     app.user_auth_section.addLayout(app.radio_user_layout)
@@ -227,21 +227,21 @@ def main_window_widget_setup(app):
         app.idle_disconnect_chkbox)
     app.idle_disconnect_layout.addWidget(
         app.idle_disconnect_spinbox)
-    
+
     app.dns_suffix_layout = QHBoxLayout()
-    app.dns_suffix_chkbox = QCheckBox("DNS Suffix?") 
+    app.dns_suffix_chkbox = QCheckBox("DNS Suffix?")
     app.dns_suffix_txtbox = QLineEdit('-')
     app.dns_suffix_layout.addWidget(
         app.dns_suffix_chkbox)
     app.dns_suffix_layout.addWidget(
         app.dns_suffix_txtbox)
-    
+
     # Boolean asks of the user
     app.split_tunneled_chkbox = QCheckBox("Split-Tunnel?")
     app.remember_credential_chkbox = QCheckBox("Remember Credentials?")
     app.use_winlogon_chkbox = QCheckBox(
         "Use Windows Logon Credentials?")
-    
+
     app.connect_btn = QPushButton("Connect")
 
     # Status bar setup

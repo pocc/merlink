@@ -42,14 +42,14 @@ class SystrayIcon:
         self.tray_icon.setIcon(QIcon(pyinstaller_path('src/media/miles.ico')))
         connection_status = 'VPN disconnected'
         self.tray_icon.setToolTip("Merlink - " + connection_status)
-    
+
         # TODO this should be a drop down of saved connections
         connect_action = QAction("Connect to ...", app)
         # These 3 lines are to make "Connect to ..." bold
         font = QFont()
         font.setBold(True)
         connect_action.setFont(font)
-    
+
         disconnect_action = QAction("Disconnect", app)
         show_action = QAction("Show", app)
         quit_action = QAction("Exit", app)
@@ -60,7 +60,7 @@ class SystrayIcon:
         show_action.triggered.connect(app.show)
         hide_action.triggered.connect(app.hide)
         quit_action.triggered.connect(sys.exit)
-    
+
         tray_menu = QMenu()
         tray_menu.addAction(connect_action)
         tray_menu.addAction(disconnect_action)
@@ -70,7 +70,7 @@ class SystrayIcon:
         tray_menu.addAction(quit_action)
         self.tray_icon.setContextMenu(tray_menu)
         self.tray_icon.show()
-    
+
         # If systray icon is clicked
         # If they click on the connected message, show them the VPN connection
         self.tray_icon.activated.connect(self.icon_activated)

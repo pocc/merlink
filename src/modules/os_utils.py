@@ -66,15 +66,17 @@ def is_online():
 def list_vpns():
     """This script will get the existing VPN connections from the OS."""
     if sys.platform == 'win32':
-        return subprocess.check_output(['powershell', 'get-vpnconnection'])
-    if sys.platform == 'darwin':
-        return subprocess.check_output(['networksetup', '-listpppoeservices'])
-    if sys.platform.startswith('linux'):  # linux, linux2 are both valid
+        vpn_list = subprocess.check_output(['powershell', 'get-vpnconnection'])
+    elif sys.platform == 'darwin':
+        vpn_list = subprocess.check_output(['networksetup',
+                                            '-listpppoeservices'])
+    else:
         # Get all connections, filter by type vpn, and then print as columns
-        return subprocess.check_output(['nmcli -f UUID,TYPE,NAME con | '
-                                        'awk \'$2 =="vpn" {print $3, $1}\' | '
-                                        'column -t'],
-                                       shell=True).decode('UTF-8')
+        vpn_list = subprocess.check_output(
+            ['nmcli -f UUID,TYPE,NAME con | awk \'$2 =="vpn" {print $3, $1}\' '
+             '| column -t'], shell=True).decode('UTF-8')
+
+    return vpn_list
 
 
 def open_vpnsettings():
@@ -99,11 +101,8 @@ def pyinstaller_path(relative_path):
     Executables using --onedir are not affected as the files are where they are
     expected to be in the original or installation folder
 
-    Modified from source: https://stackoverflow.com/questions/7674790"""
-    try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-
+    Modified from source: https://stackoverflow.com/questions/7674790
+    """
+    # PyInstaller creates a temp folder and stores path in _MEIPASS
+    base_path = os.environ.get("_MEIPASS2", os.path.abspath("."))
     return os.path.join(base_path, relative_path)

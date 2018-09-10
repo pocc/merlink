@@ -210,7 +210,7 @@ class MxPageUtils:
         """Return the MX's primary uplink of ['WAN1', 'WAN2', 'Cellular']
 
         Location: Security Appliance > Traffic Shaping > Uplink selection
-        
+
         Sample HTML:
             <select id="wired_config_primary_uplink" name=
             "wired_config[primary_uplink]" primary_uplink=
@@ -271,12 +271,12 @@ class MxPageUtils:
         # If IDS is disabled, don't send another value, even if it is the HTML
         if self.get_mx_ids_mode() == 'Disabled':
             return 'Disabled'
-        else:
-            self.browser.open_route(route='/configure/security_filtering')
-            return self.get_mx_dropdown_value(
-                soup=self.browser.get_current_page(),
-                var_id='ids_ruleset_select',
-            )
+
+        self.browser.open_route(route='/configure/security_filtering')
+        return self.get_mx_dropdown_value(
+            soup=self.browser.get_current_page(),
+            var_id='ids_ruleset_select',
+        )
 
     @staticmethod
     def get_textarea_list(soup, var_id):
@@ -326,4 +326,4 @@ class MxPageUtils:
 
     def save_page(self):
         """Click the 'Save' button after making a change."""
-        print("Not implemented yet!")
+        print("Not implemented yet!", self.save_page())

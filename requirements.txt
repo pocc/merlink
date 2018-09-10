@@ -11,6 +11,7 @@ urllib3>=1.22
 psutil>=3.4.2
 
 # always required: project-specific
+biplist
 docopt
 beautifulsoup4>=4.6.0
 bs4>=0.0.1
