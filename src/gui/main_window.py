@@ -55,9 +55,12 @@ class MainWindow(QMainWindow):
 
     def attempt_login(self):
         """Create a LoginDialog object and steal its cookies."""
+        # Make main window grayed out while user logs in
+        self.setEnabled(False)
         login_dialog = LoginDialog()
         login_dialog.exec_()
         self.browser = login_dialog.browser
+        self.setEnabled(True)
 
     def init_ui(self):
         """Show the main menu GUI
