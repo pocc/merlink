@@ -20,6 +20,7 @@ from PyQt5.QtWidgets import QMainWindow
 
 from src.dashboard_browser.dashboard_browser import DashboardBrowser
 from src.gui.menu_bars import MenuBars
+from src.gui.login_dialog import LoginDialog
 from src.gui.modal_dialogs import show_error_dialog, vpn_status_dialog
 from src.gui.systray import SystrayIcon
 import src.gui.gui_setup as gui_setup
@@ -52,7 +53,13 @@ class MainWindow(QMainWindow):
 
         self.show()
 
-    def show_main_menu(self):
+    def attempt_login(self):
+        """Create a LoginDialog object and steal its cookies."""
+        login_dialog = LoginDialog()
+        login_dialog.exec_()
+        self.browser = login_dialog.browser
+
+    def init_ui(self):
         """Show the main menu GUI
 
         Is called on main_window instantiation. Creates the

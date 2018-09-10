@@ -14,26 +14,29 @@
 # limitations under the License.
 
 """
-merlink
+MERLINK
+
 Usage:
-  merlink
-  merlink (--username) [--password]
-  merlink (--username) [--password] (--org-id | --org-name) \
-(--network-id | --network-name)
-  merlink (-h | --help)
-  merlink (-v | --version)
+  merlink.py
+  merlink.py (--username <username>) [--password <password>]
+  merlink.py (--username <username>) [--password <password>]
+             [(--org-id <org_id> | --org-name <org_name>)
+              (--network-id <network_id> | --network-name <network_name>)]
+  merlink.py (-h | --help)
+  merlink.py (-v | --version)
 
 Options:
-  -h --help         Show this screen.
-  -v --version      Show MerLink's version.
-  --username        The Dashboard email account that you login with. This \
-account should have access to the firewall to which you want to connect.
-  --password        Your Dashboard account password. If you want to be shoulder\
--surfing-safe, do not specify this option and you will be asked securely.
-  --org-id          Your organization's ID. You can get this from the API.
-  --network-id      Your network's ID. You can get this from the API.
-  --org-name        Your organization's name. Will fail if it is not unique.
-  --network-name    Your network's name. Will fail if it is not unique.
+  -h, --help            Show this screen.
+  -v, --version         Show MerLink's version.
+      --username        The Dashboard email account that you login with. This
+                        account must have access to the intended firewall.
+      --password        Your Dashboard account password. If you do not want to
+                        enter it visibly in the console, skip this option and
+                        you will be asked securely with getparse.
+      --org-id          Your organization's ID. You can get this from the API.
+      --network-id      Your network's ID. You can get this from the API.
+      --org-name        Your organization's name. Will fail if it is not unique.
+      --network-name    Your network's name. Will fail if it is not unique.
 
 Notes on Usages[0-2]:
   - Usage[0]        Launches the GUI. GUI > CLI featureset.
@@ -87,15 +90,11 @@ class MainCli:
     def __init__(self):
         super(MainCli, self).__init__()
 
-        args = docopt.docopt(__doc__)
-        print(args)
-        self.choose_subprogram(args)
+        self.args = docopt.docopt(__doc__)
         self.browser = DashboardBrowser()
 
-    def choose_subprogram(self, args):
-        """Determine which routine to do based on arguments"""
-
-        if args['--version']:
+        # Determine which routine to do based on arguments
+        if self.args['--version']:
             print("Welcome to Merlink " + __version__ + "!")
             # 48w made by hand with ASCII characters
             with open("src/media/ascii-miles-48w.txt") as miles:
@@ -104,31 +103,50 @@ class MainCli:
             sys.exit()
 
         # Required vars username/password
-        username = args['--username']
-        if args['--password']:
-            password = args['--password']
+        self.username = self.args['<username>']
+        if self.args['<password>']:
+            self.password = self.args['<password>']
         else:
-            password = getpass.getpass()
-        self.login_prompt(username, password)
+            self.password = getpass.getpass()
 
+    def attempt_login(self):
+        """Login to dashboard using username/password"""
+        auth_result = self.browser.attempt_login(self.username, self.password)
+        if auth_result == 'auth_error':
+            print('ERROR: Invalid username or password. Now exiting...')
+            sys.exit()
+        elif auth_result == 'sms_auth':
+            tfa_code = input("TFA code required for " + self.username + ": "
+                                                                    "").strip()
+            tfa_success = self.browser.tfa_submit_info(tfa_code)
+            if not tfa_success:
+                print("ERROR: Invalid TFA code. Exiting...")
+                sys.exit()
+        elif auth_result == 'auth_success':
+            print("Authentication success!")
+            return
+        elif 'ConnectionError' in str(type(auth_result)):
+            print('ERROR: No internet connection!\n\nAccess to the internet is '
+                  'required for MerLink to work. Please check your network '
+                  'settings and try again. Now exiting...')
+            sys.exit()
+
+    def init_ui(self):
+        """Start the program, having a browser and all relevant vars."""
         self.set_active_orgnet_ids(
-            org_id=args['--org_id'],
-            network_id=args['--network-id'],
-            org_name=args['--org_name'],
-            network_name=args['--network_name'],
+            org_id=self.args['<org_id>'],
+            network_id=self.args['<network_id>'],
+            org_name=self.args['<org_name>'],
+            network_name=self.args['<network_name>'],
         )
 
+        self.browser.get_client_vpn_data()
         vpn_name = self.browser.get_active_network_name() + " - VPN"
         address = self.browser.get_client_vpn_address()
         psk = self.browser.get_client_vpn_psk()
 
-        self.attempt_connection([vpn_name, address, psk, username, password])
-
-    @staticmethod
-    def alert_invalid_data(var_type, var):
-        """Let the user know they've entered invalid data and exit."""
-        print("ERROR: Your " + var_type + ", '" + var + "' is not valid!")
-        sys.exit()
+        self.attempt_connection(
+            [vpn_name, address, psk, self.username, self.password])
 
     def set_active_orgnet_ids(self, org_id, network_id, org_name, network_name):
         """Set the active organization and network ids
@@ -177,31 +195,6 @@ class MainCli:
         else:
             self.tui()
 
-    def login_prompt(self, username, password):
-        """Login to dashboard using username/password
-
-        Args:
-            username (string): Dashboard admin email associated with account
-            password (string): Password used to login with username
-        """
-        auth_result = self.browser.attempt_login(username, password)
-        if auth_result == 'auth_error':
-            print('ERROR: Invalid username or password. Now exiting...')
-            sys.exit()
-        elif auth_result == 'sms_auth':
-            tfa_code = input("TFA code required for " + username + ":").strip()
-            tfa_success = self.browser.tfa_submit_info(tfa_code)
-            if not tfa_success:
-                print("ERROR: Invalid TFA code. Exiting...")
-                sys.exit()
-        elif auth_result == 'auth_success':
-            self.tui()
-        elif 'ConnectionError' in str(type(auth_result)):
-            print('ERROR: No internet connection!\n\nAccess to the internet is '
-                  'required for MerLink to work. Please check your network '
-                  'settings and try again. Now exiting...')
-            sys.exit()
-
     def tui(self):
         """Shows MerLink Text User Interface when only user/pass are entered.
 
@@ -227,15 +220,23 @@ class MainCli:
         self.browser.set_active_network_index(network_index)
 
     @staticmethod
+    def alert_invalid_data(var_type, var):
+        """Let the user know they've entered invalid data and exit."""
+        print("ERROR: Your " + var_type + ", '" + var + "' is not valid!")
+        sys.exit()
+
+    @staticmethod
     def get_user_input_from_list(list_name, list_type):
         """Show the user a numbered list and return the index they enter"""
+        # Create a heading and underline it.
+        print('\n' + list_type.upper() + 'S\n' + (len(list_type)+1)*'=')
         # Get user org index choice and update the browser
-        for index, org_name in enumerate(list_name):
-            print(str(index) + '.', org_name)
-        choice = input("\nEnter the " + list_type + " number:")
+        for index, item_name in enumerate(list_name):
+            print(str(index) + '.', item_name)
+        choice = int(input("\nEnter the " + list_type + " number: "))
         while choice not in range(len(list_name)):
-            choice = input("Not a valid number! Please enter a number between "
-                           "0 and " + str(len(list_name)) + ":")
+            choice = int(input("Not a valid number! Please enter a number "
+                               "between 0 and " + str(len(list_name)) + ": "))
 
         return choice
 

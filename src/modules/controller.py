@@ -19,7 +19,6 @@ from PyQt5.QtWidgets import QApplication
 
 # Local modules
 from src.gui.main_window import MainWindow
-from src.gui.login_dialog import LoginDialog
 from src.cli.merlink_cli import MainCli
 from src.modules.os_utils import kill_duplicate_applications
 
@@ -46,31 +45,20 @@ class Controller:
 
         # If there is one argument, start GUI
         # Otherwise, start CLI
-        gui_application = (len(sys.argv) == 1)
-        if gui_application:
+        self.gui_application = (len(sys.argv) == 1)
+        if self.gui_application:
             self.app = QApplication(sys.argv)
             # We want to be able to be connected with VPN with systray icon
             self.app.setQuitOnLastWindowClosed(False)
             self.interface = MainWindow()
             # Make main window grayed out while user logs in
             self.interface.setEnabled(False)
-            login = LoginDialog()
-            login.exec_()
-            # Assuming that if this executes properly, we'll have a
-            # browser from the login fn that has the required cookies
-            self.interface.browser = login.browser
-            # Make main window active again
-            self.interface.setEnabled(True)
 
         else:
             # MainCli After 'Main Window' convention
             self.interface = MainCli()
-            sys.exit()
 
         self.program_structure()
-        if gui_application:
-            # Required Qt logic to start window
-            self.app.exec_()
 
         sys.exit()
 
@@ -90,9 +78,15 @@ class Controller:
         It should return the next user action
         """
 
+        self.interface.attempt_login()
+        if self.gui_application:
+            # Required Qt logic to start window
+            self.app.exec_()
+            # Make main window active again
+            self.interface.setEnabled(True)
         # Get organization info so we have something to show user
         self.interface.browser.org_data_setup()
-        self.interface.show_main_menu()
+        self.interface.init_ui()
 
         """
         TODO: Uncomment this section or delete

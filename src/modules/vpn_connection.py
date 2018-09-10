@@ -50,8 +50,8 @@ class VpnConnection:
         self.vpn_options = vpn_options
         self.vpn_name = ''
         self.vpn_uuid = ''
-        self.sanitize_variables()
         self.os_index = 3  # Default index for unknown OS
+        self.sanitize_variables()
 
     def attempt_vpn(self):
         """Interface for other classes, calls this OS's connect script."""
