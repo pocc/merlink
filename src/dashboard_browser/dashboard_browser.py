@@ -360,6 +360,11 @@ class DashboardBrowser:
         print('networks', networks)
         return [networks[network_id]['n'] for network_id in networks]
 
+    def get_active_network_name(self):
+        """Get the active network name."""
+        return self.orgs_dict[self.active_org_id]['node_groups'][
+            self.active_network_id]['n']
+
     def get_page_links(self):
         """Get all page links from current page's pagetext"""
         pagetext = self.browser.get_current_page().text

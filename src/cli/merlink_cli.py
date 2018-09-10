@@ -13,24 +13,47 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Provides a CLI for MerLink"""
-import argparse
+"""
+merlink
+Usage:
+  merlink
+  merlink (--username) [--password]
+  merlink (--username) [--password] (--org-id | --org-name) \
+(--network-id | --network-name)
+  merlink (-h | --help)
+  merlink (-v | --version)
+
+Options:
+  -h --help         Show this screen.
+  -v --version      Show MerLink's version.
+  --username        The Dashboard email account that you login with. This \
+account should have access to the firewall to which you want to connect.
+  --password        Your Dashboard account password. If you want to be shoulder\
+-surfing-safe, do not specify this option and you will be asked securely.
+  --org-id          Your organization's ID. You can get this from the API.
+  --network-id      Your network's ID. You can get this from the API.
+  --org-name        Your organization's name. Will fail if it is not unique.
+  --network-name    Your network's name. Will fail if it is not unique.
+
+Notes on Usages[0-2]:
+  - Usage[0]        Launches the GUI. GUI > CLI featureset.
+  - Usage[1]        Launch a menu-based TUI to select org and network.
+  - Usage[2]        Creates the vpn and attempts a connection.
+"""
+import docopt
+import getpass
 import sys
 
-from src.cli.cli_modal_prompts import CliModalPrompts
 from src.dashboard_browser.dashboard_browser import DashboardBrowser
 from src.modules.vpn_connection import VpnConnection
+from src.__version__ import __version__
 
 
 class MainCli:
     """
     MerLink CLI
-    Based on ncurses
-
 
     Command line options spec based on expected use cases:
-
-
 
     1. TUI mode: If dashboard username/password are known
     Usage: merlink --username <username> --password <password>
@@ -64,81 +87,95 @@ class MainCli:
     def __init__(self):
         super(MainCli, self).__init__()
 
-        self.parse_options()
-        self.messages = CliModalPrompts()
+        args = docopt.docopt(__doc__)
+        print(args)
+        self.choose_subprogram(args)
         self.browser = DashboardBrowser()
 
-    @staticmethod
-    def parse_options():
-        """Parses argparse options and then calls other parts of program."""
+    def choose_subprogram(self, args):
+        """Determine which routine to do based on arguments"""
 
-        parser = argparse.ArgumentParser(prog='MERLINK')
-        parser.add_argument("-v", "--verbose",
-                            help="increase output verbosity",
-                            action="store_true")
-
-        required_group = parser.add_argument_group("required arguments")
-        orgnet_id_group = parser.add_argument_group("org/net id")
-        orgnet_name_group = parser.add_argument_group("org/net name")
-        manual_entry_group = parser.add_argument_group("manual entry")
-        #######################################################################
-        required_group.add_argument(
-            "-u", "--username",
-            help="The Dashboard email account that you login with. This "
-                 "account should have access to the firewall to which "
-                 "you want to connect.",
-            required=True)
-        required_group.add_argument(
-            "-p", "--password",
-            help="Your Dashboard account password.",
-            required=True)
-        #######################################################################
-        orgnet_id_group.add_argument(
-            "-o", "--org-id",
-            help="The Dashboard organization id for the firewall. "
-                 "To get this value for your firewall, use the API",
-            required=False)
-        orgnet_id_group.add_argument(
-            "-n", "--network-id",
-            help="The Dashboard network id for the firewall. "
-                 "To get this value for your firewall, use the API.",
-            required=False)
-        #######################################################################
-        orgnet_name_group.add_argument(
-            "--org-name",
-            help="The name of the Dashboard org that contains the firewall. "
-                 "If this org name is not unique, this parse tree will fail "
-                 "(use --org-id instead).",
-            required=False)
-        orgnet_name_group.add_argument(
-            "--network-name",
-            help="The name of the Dashboard network that contains this firewall"
-                 ". If the org name is not unique, this parse tree will fail "
-                 "(use --network-id instead).",
-            required=False)
-        #######################################################################
-        manual_entry_group.add_argument(
-            "-a", "--address",
-            help="The DDNS/IP address of your firewall.",
-            required=False)
-        manual_entry_group.add_argument(
-            "-k", "--psk",
-            help="The pre-shared key.",
-            required=False)
-        manual_entry_group.add_argument(
-            "-m", "--vpn-name",
-            help="The name given locally to this VPN connection.",
-            required=False)
-
-        args = parser.parse_args()
-        if args.verbose:
-            print("Welcome to Merlink Verbose!")
-            # 60w and 80w ASCII Miles generated by
-            # https://www.ascii-art-generator.org/
+        if args['--version']:
+            print("Welcome to Merlink " + __version__ + "!")
             # 48w made by hand with ASCII characters
-            with open("src/media/ascii-miles-48w.txt", 'r') as miles:
-                print(miles.read())
+            with open("src/media/ascii-miles-48w.txt") as miles:
+                miles = miles.read().replace('version', __version__.center(7))
+                print(miles)
             sys.exit()
+
+        # Required vars username/password
+        username = args['--username']
+        if args['--password']:
+            password = args['--password']
+        else:
+            password = getpass.getpass()
+        self.login_prompt(username, password)
+
+        self.set_active_orgnet_ids(
+            org_id=args['--org_id'],
+            network_id=args['--network-id'],
+            org_name=args['--org_name'],
+            network_name=args['--network_name'],
+        )
+
+        vpn_name = self.browser.get_active_network_name() + " - VPN"
+        address = self.browser.get_client_vpn_address()
+        psk = self.browser.get_client_vpn_psk()
+
+        self.attempt_connection([vpn_name, address, psk, username, password])
+
+    @staticmethod
+    def alert_invalid_data(var_type, var):
+        """Let the user know they've entered invalid data and exit."""
+        print("ERROR: Your " + var_type + ", '" + var + "' is not valid!")
+        sys.exit()
+
+    def set_active_orgnet_ids(self, org_id, network_id, org_name, network_name):
+        """Set the active organization and network ids
+
+        This fn is necessary to set the browser to open the correct network.
+
+        Args:
+            org_id (int): Number that identifies an organization (unique)
+            network_id (int): Number that identifies a network (unique)
+            org_name (string): Name of an organization (usually unique)
+            network_name (string): Name of a network (unique)
+        """
+        has_orgnet_ids = org_id and network_id
+        has_orgnet_names = org_name and network_name
+        if has_orgnet_ids:
+            if org_id in self.browser.orgs_dict.keys():
+                self.browser.active_org_id = org_id
+                network_id_list = self.browser.orgs_dict[org_id][
+                    'node_groups'].keys()
+                if network_id in network_id_list:
+                    self.browser.active_network_id = network_id
+                else:
+                    self.alert_invalid_data("Your network_id", network_id)
+            else:
+                self.alert_invalid_data("Your org_id", org_id)
+        elif has_orgnet_names:
+            # For both org and network name, find the first instance if it
+            # exists. If it does not, throw a StopIteration error and quit.
+            try:
+                org_dict = self.browser.orgs_dict
+                org_id = next(i for i in org_dict
+                              if org_dict[i]['name'] == org_name)
+                self.browser.active_org_id = org_id
+                try:
+                    # orgs_dict "t" version of network name has - instead of ' '
+                    network_name = network_name.replace(' ', '-')
+                    network_dict = self.browser.orgs_dict[org_id]['node_groups']
+                    network_id = next(
+                        network_id for network_id in network_dict
+                        if network_dict[network_id]['t'] == network_name)
+                    self.browser.active_network_id = network_id
+                except StopIteration:
+                    self.alert_invalid_data("network name", network_name)
+            except StopIteration:
+                self.alert_invalid_data("organization name", org_name)
+        else:
+            self.tui()
 
     def login_prompt(self, username, password):
         """Login to dashboard using username/password
@@ -158,14 +195,14 @@ class MainCli:
                 print("ERROR: Invalid TFA code. Exiting...")
                 sys.exit()
         elif auth_result == 'auth_success':
-            self.tui(username, password)
+            self.tui()
         elif 'ConnectionError' in str(type(auth_result)):
             print('ERROR: No internet connection!\n\nAccess to the internet is '
                   'required for MerLink to work. Please check your network '
                   'settings and try again. Now exiting...')
             sys.exit()
 
-    def tui(self, username, password):
+    def tui(self):
         """Shows MerLink Text User Interface when only user/pass are entered.
 
         Usage:
@@ -189,14 +226,6 @@ class MainCli:
         network_index = self.get_user_input_from_list(network_list, "network")
         self.browser.set_active_network_index(network_index)
 
-        vpn_name = network_list[network_index] + " - VPN"
-        ddns = self.browser.get_client_vpn_address()
-        psk = self.browser.get_client_vpn_psk()
-        connection = VpnConnection(
-            vpn_data=[vpn_name, ddns, psk, username, password],
-            vpn_options=[])
-        connection.attempt_vpn()
-
     @staticmethod
     def get_user_input_from_list(list_name, list_type):
         """Show the user a numbered list and return the index they enter"""
@@ -210,37 +239,10 @@ class MainCli:
 
         return choice
 
-    def get_user_action(self):
-        """Gets the user's next action
-
-        Currently not implemented but mirrored in main_window"""
-
-        pass
-
-    def add_vpn(self):
-        """Adds a vpn by name
-
-        Currently not implemented but mirrored in main_window"""
-
-        pass
-
-    def connect_vpn(self, *vpn_vars):
-        """Connects using the specified vpn connection
-
-        Currently not implemented but mirrored in main_window"""
-
-        pass
-
-    def show_result(self, result):
-        """Shows the result of the vpn connection to the console
-
-        Currently not implemented but mirrored in main_window"""
-
-        pass
-
-    def troubleshoot_vpn(self):
-        """Provides an interface to interact with troubleshooting functionality.
-
-        Currently not implemented but mirrored in main_window"""
-
-        pass
+    @staticmethod
+    def attempt_connection(vpn_data):
+        """Create a VPN object and connect with it."""
+        connection = VpnConnection(
+            vpn_data=vpn_data,
+            vpn_options=[])
+        connection.attempt_vpn()
