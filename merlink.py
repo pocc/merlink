@@ -15,14 +15,36 @@
 # limitations under the License.
 
 """This file is an entry point to start the controller (MVC) for merlink"""
-from src.modules.controller import Controller
+import sys
+
+from PyQt5.QtWidgets import QApplication
+
+from src.gui.main_window import MainWindow
+from src.cli.merlink_cli import MainCli
+from src.modules.os_utils import kill_duplicate_applications
 
 
 def main():
     """This program will connect desktop clients to Meraki firewalls
     Build this with './venv/bin/python3 setup.py build' from project root"""
+    kill_duplicate_applications('merlink')
 
-    Controller()
+    # If there are no command line args, start GUI; otherwise CLI
+    gui_application = (len(sys.argv) == 1)
+    if gui_application:
+        app = QApplication(sys.argv)  # Required Qt logic.
+        interface = MainWindow()
+    else:
+        interface = MainCli()
+
+    # Login, set up data structures, and start the interface's UI.
+    interface.attempt_login()
+    interface.browser.org_data_setup()
+    interface.init_ui()
+
+    if gui_application:
+        app.exec_()  # Required Qt logic.
+    sys.exit()
 
 
 if __name__ == '__main__':

@@ -20,6 +20,7 @@ from PyQt5.QtWidgets import QMainWindow
 
 from src.dashboard_browser.dashboard_browser import DashboardBrowser
 from src.gui.menu_bars import MenuBars
+from src.gui.login_dialog import LoginDialog
 from src.gui.modal_dialogs import show_error_dialog, vpn_status_dialog
 from src.gui.systray import SystrayIcon
 import src.gui.gui_setup as gui_setup
@@ -52,7 +53,16 @@ class MainWindow(QMainWindow):
 
         self.show()
 
-    def show_main_menu(self):
+    def attempt_login(self):
+        """Create a LoginDialog object and steal its cookies."""
+        # Make main window grayed out while user logs in
+        self.setEnabled(False)
+        login_dialog = LoginDialog()
+        login_dialog.exec_()
+        self.browser = login_dialog.browser
+        self.setEnabled(True)
+
+    def init_ui(self):
         """Show the main menu GUI
 
         Is called on main_window instantiation. Creates the
@@ -111,7 +121,7 @@ class MainWindow(QMainWindow):
             # Change primary organization
             self.browser.set_active_org_index(selected_org_index)
             print("In change_organization and this is the network list "
-                  + str(self.browser.get_active_org_networks()))
+                  + str(self.browser.get_network_names()))
 
             self.refresh_network_dropdown()
             self.status.showMessage("Status: In org " +
@@ -131,7 +141,7 @@ class MainWindow(QMainWindow):
             self.connect_btn.setEnabled(False)
             self.vpn_name_textfield.setEnabled(False)
         else:
-            network_list = self.browser.get_active_org_networks()
+            network_list = self.browser.get_network_names()
             print('main window network list', network_list)
             current_network = network_list[current_network_index]
             self.status.showMessage("Status: Fetching network data for "
@@ -167,7 +177,7 @@ class MainWindow(QMainWindow):
         self.network_dropdown.clear()
         self.network_dropdown.addItem('-- Select a Network --')
 
-        current_org_network_list = self.browser.get_active_org_networks()
+        current_org_network_list = self.browser.get_network_names()
         print('current_org_network_list', current_org_network_list)
         self.network_dropdown.addItems(current_org_network_list)
 

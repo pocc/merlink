@@ -87,16 +87,11 @@ sudo nmcli con modify "vpn-${vpn_name}" \
 	connection.autoconnect yes \
 	connection.permissions $(whoami) \
 	vpn.data \
-        gateway=${mx_address},\
-        ipsec-enabled='yes',\
-        ipsec-esp='3des-sha1',\
-        ipsec-forceencaps='yes',\
-        ipsec-ike='3des-sha1-modp1024',\
-        ipsec-psk=${psk},\
-        password-flags='0',\
-        user=${username},\
-        service-type='org.freedesktop.NetworkManager.l2tp' \
-	vpn.secrets password=${password}
+	    gateway=${mx_address},ipsec-enabled='yes',ipsec-esp='3des-sha1',\
+ipsec-forceencaps='yes',ipsec-ike='3des-sha1-modp1024',ipsec-psk=${psk},\
+password-flags='0',user=${username},service-type=\
+'org.freedesktop.NetworkManager.l2tp' \
+    vpn.secrets password=${password}
 
 # Reload the connections
 sudo nmcli con reload
