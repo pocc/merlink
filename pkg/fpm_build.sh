@@ -42,7 +42,7 @@ OPTIONS="--force --verbose \
     --category Network \
     --url pocc.merlink.io/merlink \
     --vendor MerLink \
-    --after-install ../pkg/linux_after_install.sh"
+    --after-install ../pkg/linux_post_install.sh"
 
 echo "Working directory before using fpm: $(pwd)"
 

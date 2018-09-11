@@ -49,6 +49,8 @@ class MainWindow(QMainWindow):
         self.menu_widget.generate_menu_bars()
         self.tray_icon = SystrayIcon(self)
         guify.main_window_widget_setup(self)
+        guify.main_window_user_auth_setup(self)
+        guify.main_window_vpn_vars_setup(self)
         guify.main_window_set_layout(self)
 
         self.show()
@@ -89,8 +91,8 @@ class MainWindow(QMainWindow):
         # Get the data we need and remove the cruft we don't
         current_org = org_list[self.browser.get_active_org_index()]
         print('main window orgs', org_list)
-        self.status.showMessage("Status: Fetching networks in " +
-                                current_org + "...")
+        self.status.showMessage("Status: Fetching networks in "
+                                + current_org + "...")
         self.connect_btn.setEnabled(False)
         self.vpn_name_textfield.setEnabled(False)
         # Remove all elements from the network UI dropdown
@@ -124,8 +126,8 @@ class MainWindow(QMainWindow):
                   + str(self.browser.get_network_names()))
 
             self.refresh_network_dropdown()
-            self.status.showMessage("Status: In org " +
-                                    self.browser.get_active_org_name())
+            self.status.showMessage("Status: In org "
+                                    + self.browser.get_active_org_name())
 
     def change_network(self):
         """Change the network to new value for both model and view

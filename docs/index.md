@@ -1,6 +1,8 @@
+[![Build Status](https://travis-ci.org/pocc/merlink.svg?branch=master)](https://travis-ci.org/pocc/merlink)
+[![Build status](https://ci.appveyor.com/api/projects/status/ktmvfms5ithcevcl/branch/master?svg=true)](https://ci.appveyor.com/project/pocc/merlink/branch/master)
 [![BCH compliance](https://bettercodehub.com/edge/badge/pocc/merlink?branch=master)](https://bettercodehub.com/)
 
-# Merlink
+# MerLink
 This program will connect desktop clients to Meraki firewalls. This project is still in active development.
 
 ## Planned Releases
@@ -59,7 +61,8 @@ Download the executables [here](https://github.com/pocc/merlink/releases).
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](https://github.com/pocc/merlink/blob/master/docs/CONTRIBUTING.md) for the process for submitting pull requests.
+Please read [contributing.md](https://github.com/pocc/merlink/blob/master/docs/contributing.md) for the process for 
+submitting pull requests.
 
 ### Setting up your environment
 To set up your Windows environment, please read [pycharm_setup.md](https://github.com/pocc/merlink/blob/master/docs/pycharm_setup.md)
@@ -74,12 +77,12 @@ To set up your Windows environment, please read [pycharm_setup.md](https://githu
 For the versions available, see the [tags on this repository](https://github.com/pocc/merlink/tags). 
 
 ### Branching
+Adapting [Git Branching](http://nvie.com/posts/a-successful-git-branching-model/) for this projcet
 
+* **iss#-X.Y**: Branch from dev-X.Y and reintegrate to dev-X.Y. Should be tied to an issue tagged with 'bug', 'feature', or 'enchancement' on repo. 
+* **dev-X.Y**: Development branch. When it's ready for a release, branch into a release.
+* **rel-X.Y**: Release candidate targeting version X.Y. When it is ready, it should be merged into master tagged with version X.Y.
 * **master**: Master branch.
-* **develop**: Development branch. When it's ready for a release, branch into a release.
-* **feature-`*`**: Feature branch for ONE feature. When feature is ready, integrate it back into develop. 
-* **vX.Y.0-release**: Release candidate targeting version X.Y.0. When it is ready, it should be merged into master and master should be tagged with version X.Y.
-* **vX.Y.Z-hotfix-`*`**: Hotfix that targets vX.Y.Z. When it is ready, it should be merged into master and master should be tagged with version X.Y.Z
 
 ## Addenda
 ### Reference Material
@@ -89,17 +92,31 @@ For the versions available, see the [tags on this repository](https://github.com
 * [PyQt5](http://pyqt.sourceforge.net/Docs/PyQt5/) - Documentation for PyQt5. This is a copypaste of the Qt docs applied to Python, and generally contains less useful information  
 * [Mechanical Soup](https://github.com/MechanicalSoup/MechanicalSoup) - Web scraper for Python 3
 
-#### Git
-* [Git Branching](http://nvie.com/posts/a-successful-git-branching-model/) - Method adapted for this project
-
 #### Environment
 * [PyCharm](https://www.jetbrains.com/pycharm/) - IDE used
 
 #### General Documentation
 * [Powershell VPN Client docs](https://docs.microsoft.com/en-us/powershell/module/vpnclient/?view=win10-ps) - Collection of manpages for VPN Client-specific powershell functions.
-* [NSIS](http://nsis.sourceforge.net/Docs/) - Program installer system
+
+#### Style Guide
+* [Google Python Style Guide (2018)](https://github.com/google/styleguide/blob/gh-pages/pyguide.md)
+
+#### Building
+* [PyInstaller](https://pyinstaller.readthedocs.io/en/v3.3.1/) - Python bundler used as part of this project 
+    * Make sure you install the latest PyIntstaller directly:
+    
+    `pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip
+`
+* [NSIS](http://nsis.sourceforge.net/Docs/) - Windows program installer system
     * [NSIS Wizard + IDE](http://hmne.sourceforge.net/) - Will build and debug NSIS scripts
     * [NSIS Sample Installers](http://nsis.sourceforge.net/Category:Real_World_Installers) - To learn how to build your own installer by example
+* [FPM](https://github.com/jordansissel/fpm) - A way to package to targets deb, rpm, pacman, and osxpkg
+libxml2-utils
+### Linting
+* coala:
+    * On ubuntu, be sure to install these libraries as well:
+    
+    `sudo apt install libxml2-utils libxml2-dev libxslt-dev libxml2`
 
 ### License
 

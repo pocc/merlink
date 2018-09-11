@@ -187,14 +187,13 @@ class TroubleshootVpn:
         # So we need to scrape differently.
         # https://stackoverflow.com/questions/8049520/
         
-        
         from selenium import webdriver
         from selenium.webdriver.chrome.options import Options
         options = Options()
         options.add_argument('--headless')
-        # options.add_argument('--disable-gpu')  
+        # options.add_argument('--disable-gpu')
         # Last I checked this was necessary.
-        driver = webdriver.Chrome('/usr/bin/google-chrome', 
+        driver = webdriver.Chrome('/usr/bin/google-chrome',
                                   chrome_options=options)
         driver.get(self.client_vpn_url)
         print(driver.find_elements_by_css_selector('td.ft.notranslate.email'))

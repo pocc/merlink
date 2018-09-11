@@ -61,7 +61,8 @@ Download the executables [here](https://github.com/pocc/merlink/releases).
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](https://github.com/pocc/merlink/blob/master/docs/CONTRIBUTING.md) for the process for submitting pull requests.
+Please read [contributing.md](https://github.com/pocc/merlink/blob/master/docs/contributing.md) for the process for 
+submitting pull requests.
 
 ### Setting up your environment
 To set up your Windows environment, please read [pycharm_setup.md](https://github.com/pocc/merlink/blob/master/docs/pycharm_setup.md)
@@ -102,7 +103,6 @@ Adapting [Git Branching](http://nvie.com/posts/a-successful-git-branching-model/
 
 #### Building
 * [PyInstaller](https://pyinstaller.readthedocs.io/en/v3.3.1/) - Python bundler used as part of this project 
-    * [PyInstaller Recipes](https://github.com/pyinstaller/pyinstaller/wiki/Recipes) - Useful example code
     * Make sure you install the latest PyIntstaller directly:
     
     `pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip
@@ -111,6 +111,12 @@ Adapting [Git Branching](http://nvie.com/posts/a-successful-git-branching-model/
     * [NSIS Wizard + IDE](http://hmne.sourceforge.net/) - Will build and debug NSIS scripts
     * [NSIS Sample Installers](http://nsis.sourceforge.net/Category:Real_World_Installers) - To learn how to build your own installer by example
 * [FPM](https://github.com/jordansissel/fpm) - A way to package to targets deb, rpm, pacman, and osxpkg
+libxml2-utils
+### Linting
+* coala:
+    * On ubuntu, be sure to install these libraries as well:
+    
+    `sudo apt install libxml2-utils libxml2-dev libxslt-dev libxml2`
 
 ### License
 

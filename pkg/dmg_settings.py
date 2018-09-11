@@ -26,10 +26,10 @@ from os import path, getcwd
 
 import biplist
 
-# .. Useful stuff ..............................................................
+# .. Useful stuff .............................................................
 
-current_dir = getcwd()
-print("dmgbuild directory: " + current_dir)
+CURRENT_DIR = getcwd()
+print("dmgbuild directory: " + CURRENT_DIR)
 application = defines.get('app', '/Applications/Merlink.app')
 appname = path.basename(application)
 
@@ -45,13 +45,14 @@ def icon_from_app(app_path):
     icon_name = icon_root + icon_ext
     return path.join(app_path, 'Contents', 'Resources', icon_name)
 
-# .. Basics ....................................................................
+
+# .. Basics ...................................................................
 
 # Uncomment to override the output filename
-# filename = 'Merlink.dmg'
+# filename = 'MerLink.dmg'
 
 # Uncomment to override the output volume name
-volume_name = 'Merlink'
+volume_name = 'MerLink'
 
 # Volume format (see hdiutil create -help)
 format = defines.get('format', 'UDBZ')
@@ -60,7 +61,7 @@ format = defines.get('format', 'UDBZ')
 # size = defines.get('size', None)
 
 # Files to include
-files = [current_dir + '/dist/merlink.app']
+files = [CURRENT_DIR + '/dist/merlink.app']
 
 # Symlinks to create
 symlinks = {'Applications': '/Applications'}
@@ -72,7 +73,7 @@ symlinks = {'Applications': '/Applications'}
 # will be used to badge the system's Removable Disk icon
 #
 # badge_icon = /path/to/icon
-badge_icon = icon_from_app(current_dir + '/dist/merlink.app')
+badge_icon = icon_from_app(CURRENT_DIR + '/dist/merlink.app')
 # print(appname)
 # badge_icon = icon_from_app(application)
 
@@ -82,7 +83,7 @@ icon_locations = {
     'Applications': (500, 120)
     }
 
-# .. Window configuration ......................................................
+# .. Window configuration .....................................................
 
 # Background
 #
@@ -132,7 +133,7 @@ show_icon_preview = False
 # we only include settings for the default view)
 include_icon_view_settings = True
 
-# .. Icon view configuration ...................................................
+# .. Icon view configuration ..................................................
 
 arrange_by = None
 grid_offset = (0, 0)

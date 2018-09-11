@@ -3,18 +3,17 @@
 # Only build if this is a tagged build
 matrix:
   include:
+    # Ubuntu 16.04
+    - os: linux
+      sudo: false
+      dist: xenial
+      language: python
+      python: '3.6'
 
-# Ubuntu 16.04
-  - os: linux
-    sudo: false
-    dist: xenial
-    language: python
-    python: '3.6'
-
-# OSX 10.13
-  - os: osx
-    sudo: false
-    osx_image: xcode9.4
+    # OSX 10.13
+    - os: osx
+      sudo: false
+      osx_image: xcode9.4
 
 # Only tagged commits
 branches:
@@ -29,9 +28,9 @@ addons:
       - build-essential
 
 before_install:
-  # If target is osx, then brew install python3, pip, venv, and activate the venv
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then bash pkg/macos_before_install.sh; fi
-  
+  # If target is osx, then brew install python3, pip, venv, and activate venv
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then bash pkg/macos_pre_install.sh; fi
+
   # Diagnostic info in case of failure
   - pwd
   - ls
@@ -54,7 +53,9 @@ script:
 # travis encrypt <email> --add deploy.username
 # travis encrypt <password> --add deploy.password
 
-# Troubleshooting github release + travis ci integration: https://docs.travis-ci.com/user/common-build-problems/#I-pushed-a-commit-and-can%E2%80%99t-find-its-corresponding-build
+# Troubleshooting github release + travis ci integration:
+# https://docs.travis-ci.com/user/common-build-problems/
+#   #I-pushed-a-commit-and-can%E2%80%99t-find-its-corresponding-build
 
 deploy:
   provider: releases
@@ -72,6 +73,16 @@ deploy:
     tags: true
   # Without this, cleaning will remove what you were planning on deploying
   skip_cleanup: true
-  
+
   api_key:
-    secure: XXuTAZVW7NZVaK7R+3rvTk6rjhwMmzdTf2PvTmeUmyvRzAk8g9bpdVFOJFiRt5XY0L4SqD+O08wNUGcA9npeVQF0WibtYx3ZunYluABCQumBDD9DmuwoLeoFM4ZulOnp09nHqp2/InfV7vlZglZ3vbIjwIWdtIHvwQC+LScid69y0yErGQsb+tItacuZONHH30PbfUmX6qNmI0KvD+eIbhKlObTBua4HvEgH0SCAltqO5FoSewl7QoIsMqfHwYGHoMTUhAouimuQNpAdrGTu9tWj+wBocHY7Yv1R1z/rxIRzOaGXgn6O3BdlIjnjzc8kx2LWT/k3kn37u4H/fkahlj/ugC1J9Y6AjS9Vu80xiV8OqooYnlfRsKOXdM+Ges9lBPFh242oUz0ALojlU1rbc/jLpgZ/mxLJM6Dy08vbhImwITXTSG/Q4vgoE1Jp+KYzW5O8wEZGPIUNgrJtM2D5DunHjfoiCY7QEWN9NdHVtDQBaGAu7Qvieg+nECI6H0prPNx/bURkBNEMS+2QFwJuHCaCVKzd/+0Ofv3T9JuHjgIG1j1y8B/Vmst06NNZXPPFmJirMNnvAzyZtsA33dt7xMQ3D3Bys1/8LpXQiWFYmDnNlsbqsW5ri+pOFwKD0HbHwpAuw0VtIjuPHJWmp7CAkGoTcgiRdGuoXZ/QgHOPjo4=
+    secure: >
+      XXuTAZVW7NZVaK7R+3rvTk6rjhwMmzdTf2PvTmeUmyvRzAk8g9bpdVFOJFiRt5XY0L4SqD+O
+      08wNUGcA9npeVQF0WibtYx3ZunYluABCQumBDD9DmuwoLeoFM4ZulOnp09nHqp2/InfV7vlZ
+      glZ3vbIjwIWdtIHvwQC+LScid69y0yErGQsb+tItacuZONHH30PbfUmX6qNmI0KvD+eIbhKl
+      ObTBua4HvEgH0SCAltqO5FoSewl7QoIsMqfHwYGHoMTUhAouimuQNpAdrGTu9tWj+wBocHY7
+      Yv1R1z/rxIRzOaGXgn6O3BdlIjnjzc8kx2LWT/k3kn37u4H/fkahlj/ugC1J9Y6AjS9Vu80x
+      iV8OqooYnlfRsKOXdM+Ges9lBPFh242oUz0ALojlU1rbc/jLpgZ/mxLJM6Dy08vbhImwITXT
+      SG/Q4vgoE1Jp+KYzW5O8wEZGPIUNgrJtM2D5DunHjfoiCY7QEWN9NdHVtDQBaGAu7Qvieg+n
+      ECI6H0prPNx/bURkBNEMS+2QFwJuHCaCVKzd/+0Ofv3T9JuHjgIG1j1y8B/Vmst06NNZXPPF
+      mJirMNnvAzyZtsA33dt7xMQ3D3Bys1/8LpXQiWFYmDnNlsbqsW5ri+pOFwKD0HbHwpAuw0Vt
+      IjuPHJWmp7CAkGoTcgiRdGuoXZ/QgHOPjo4=

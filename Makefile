@@ -20,13 +20,17 @@ PYTHON := PYTHONPATH=$(PYTHONPATH) "$(shell which python3)"
 VENDOR := $(PYTHON) -m pip install --target "$(VENDORPATH)"
 PROJDIR := "$(shell pwd)"
 
+all: build
 
 clean:
 	$(RM) -r ./build ./dist
 
-# https://github.com/vintasoftware/python-linters-and-code-analysis
 lint: vendor
     $(PYTHON) -m pylint ./
+
+# Linting for major releases
+release:
+    coala
 
 # TODO
 test:
@@ -41,6 +45,11 @@ build: merlink.spec vendor
 	$(PYTHON) -m PyInstaller $<
 
 # TODO
+# Like build, but build an appliaction file instead of an application directory
+bin: build merlink.spec
+	$(PYTHON) -m PyInstaller --onefile $<
+
+# TODO
 # Install files to appropriate directory per-OS
 install: build
 
@@ -52,9 +61,6 @@ uninstall: build
 # Create a package for this platform (in build)
 package: build
 
-# TODO
-# Build a binary for this platform (in dist)
-bin: build merlink.spec
 
 vendor: requirements.txt
 	$(VENDOR) --upgrade pip

@@ -171,7 +171,7 @@ def tfa_set_layout(app):
 
 
 def main_window_widget_setup(app):
-    """Takes the main window object and modifies/describes it"""
+    """Sets up the main window object and org/net dropdowns."""
     # QMainWindow requires that a central app be set
     app.cw = QWidget(app)
     app.setCentralWidget(app.cw)
@@ -186,7 +186,9 @@ def main_window_widget_setup(app):
     app.network_dropdown = QComboBox()
     app.network_dropdown.setEnabled(False)
 
-    # Set initial vars for username/password fields for dasboard/guest user
+
+def main_window_user_auth_setup(app):
+    """Set initial vars for username/password fields for dasboard/guest user"""
     app.radio_username_label = QLabel("Email")
     app.radio_username_label.setStyleSheet("color: #606060")  # Gray
     app.radio_username_textfield = QLineEdit()
@@ -209,6 +211,9 @@ def main_window_widget_setup(app):
     app.user_auth_section.addWidget(app.radio_password_label)
     app.user_auth_section.addWidget(app.radio_password_textfield)
 
+
+def main_window_vpn_vars_setup(app):
+    """Setup the vpn vars region."""
     # Allow the user to change the VPN name
     app.vpn_name_layout = QHBoxLayout()
     app.vpn_name_label = QLabel("VPN Name:")

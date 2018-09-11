@@ -52,9 +52,10 @@ def is_online():
     # unreachable and failure are windows messages; 0 packets received is *nix
     while 'unreachable' not in result and 'failure' not in result and i < 4 \
             and '0 packets received' not in result:
-        result = \
-            subprocess.Popen(ping_command.split(), stdout=subprocess.PIPE
-                             ).communicate()[0].decode('utf-8')
+        unprocessed_result = subprocess.Popen(
+            ping_command.split(),
+            stdout=subprocess.PIPE)
+        result = unprocessed_result.communicate()[0].decode('utf-8')
         i += 1
 
     online_status = 'unreachable' not in result and 'timed out' \
