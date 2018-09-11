@@ -14,8 +14,7 @@
 # limitations under the License.
 
 # This docstring is used for docopt and requires specific formatting.
-r"""
-MERLINK
+r"""MERLINK
 
 Usage:
   merlink.py
@@ -62,7 +61,7 @@ import getpass
 
 import docopt
 
-from src.dashboard_browser.dashboard_browser import DashboardBrowser
+from src.dashboard_browser.client_vpn_browser import ClientVpnBrowser
 from src.l2tp_vpn.vpn_connection import VpnConnection
 from src.__version__ import __version__
 
@@ -83,7 +82,7 @@ class MainCli:
         super(MainCli, self).__init__()
 
         self.args = docopt.docopt(__doc__)
-        self.browser = DashboardBrowser()
+        self.browser = ClientVpnBrowser()
 
         # Determine which routine to do based on arguments
         if self.args['--version']:

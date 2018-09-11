@@ -19,7 +19,7 @@ PYTHONPATH := ".:$(VENDORPATH)"
 PYTHON := PYTHONPATH=$(PYTHONPATH) "$(shell which python3)"
 VENDOR := $(PYTHON) -m pip install --target "$(VENDORPATH)"
 PROJDIR := "$(shell pwd)"
-PYTHONFILES := merlink.py src docs pkg test
+PYTHONFILES := merlink.py src docs test
 
 all: build
 

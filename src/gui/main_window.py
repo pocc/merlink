@@ -17,7 +17,7 @@ import sys
 
 from PyQt5.QtWidgets import QMainWindow
 
-from src.dashboard_browser.dashboard_browser import DashboardBrowser
+from src.dashboard_browser.client_vpn_browser import ClientVpnBrowser
 from src.gui.menu_bars import MenuBars
 from src.gui.login_dialog import LoginDialog
 from src.gui.modal_dialogs import show_error_dialog, vpn_status_dialog
@@ -44,7 +44,7 @@ class MainWindow(QMainWindow):
         """Initialize GUI objects, decorate main window object, and show it."""
         super(MainWindow, self).__init__()
 
-        self.browser = DashboardBrowser()
+        self.browser = ClientVpnBrowser()
 
         # Tie the menu bars, tray_icon, and main window UI to this object.
         self.menu_widget = MenuBars(self.menuBar())

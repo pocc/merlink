@@ -428,8 +428,8 @@ class DashboardBrowser:
             try:
                 self.browser.open(target_url)
             except mechanicalsoup.utils.LinkNotFoundError as error:
-                print('Attempting to open', network_partial + '/manage'
-                      + route, 'and failed.', error)
+                url = network_partial + '/manage' + route
+                print('Attempting to open', url, 'and failed.', error)
 
     def get_node_settings_json(self):
         """Return the JSON containing node-data(route:/configure/settings)."""
@@ -438,58 +438,6 @@ class DashboardBrowser:
         cookiejar = self.browser.get_cookiejar()
         json_text = requests.get(current_url, cookies=cookiejar).text
         return json.loads(json_text)
-
-    def get_client_vpn_data(self):
-        """Return client VPN variables."""
-        # If one of the expected keys has not been set in this network dict,
-        # set variables. Otherwise, we're pulling data for the same network.
-        if 'client_vpn_enabled' not in self.orgs_dict[self.active_org_id][
-                'node_groups'][self.active_network_id].keys():
-            var_dict = self.get_node_settings_json()
-            client_vpn_vars = [
-                'client_vpn_active_directory_servers',
-                'client_vpn_auth_type',
-                'client_vpn_dns',
-                'client_vpn_dns_mode',
-                'client_vpn_enabled',
-                'client_vpn_pcc_auth_tags',
-                'client_vpn_radius_servers',
-                'client_vpn_site_to_site_mode',
-                'client_vpn_site_to_site_nat_enabled',
-                'client_vpn_site_to_site_nat_subnet',
-                'client_vpn_subnet',
-                'client_vpn_wins_enabled',
-                'client_vpn_wins_servers',
-                'client_vpn_enabled',
-                'client_vpn_secret',
-            ]
-
-            for var in client_vpn_vars:
-                self.orgs_dict[self.active_org_id]['node_groups'][
-                    self.active_network_id][var] = var_dict['wdc'][var]
-
-    def get_client_vpn_psk(self):
-        """Return the Client VPN PSK."""
-        psk = self.orgs_dict[self.active_org_id]['node_groups'][
-            self.active_network_id]['client_vpn_secret']
-        return psk
-
-    def get_client_vpn_address(self):
-        """Return the psk and address.
-
-        Use the public_contact_point Mkiconf var to get address.
-        It is DDNS name if DDNS is enabled and is otherwise IP address.
-        public_contact_point is on. (route:/configure/router_settings)
-        It's gone in new view, so let's put this on hold.
-        """
-        self.open_route('/nodes/new_wired_status')
-        using_ddns = (self.get_json_value('dynamic_dns_enabled') == 'true')
-        if using_ddns:
-            address = self.get_json_value('dynamic_dns_name')
-        else:
-            address = self.get_json_value('{"public_ip')
-
-        return address
 
     def get_json_value(self, key):
         """Return a value for a key in a JSON blob in the HTML of a page.
@@ -512,12 +460,6 @@ class DashboardBrowser:
         value = pagetext[value_start:value_end]
         print('For key:', key, 'retrieved value:', value)
         return value
-
-    def is_client_vpn_enabled(self):
-        """Check basic client vpn things."""
-        # Is client vpn enabled?)
-        return self.orgs_dict[self.active_org_id]['node_groups'][
-            self.active_network_id]['client_vpn_enabled']
 
     def get_network_users(self):
         """Get the network users.
@@ -550,71 +492,9 @@ class DashboardBrowser:
         for key in users_dict.keys():
             eid = self.orgs_dict[self.active_org_id]['node_groups'][
                 self.active_network_id]['eid']
-            self.orgs_dict[self.active_org_id]['node_groups'][
-                self.active_network_id]['users'] = {
+            self.orgs_dict[self.active_org_id][
+                'node_groups'][self.active_network_id]['users'] = {
                     'name': users_dict[key]['name'],
                     'email': users_dict[key]['email'],
                     'is_admin': users_dict[key]['is_manage_user'],
-                    'is_authorized': eid in users_dict[key]['authed_networks'],
-                }
-
-    def troubleshoot_client_vpn(self):
-        """
-        Sample JSON example of bad firewall ports:
-        "port_forwarding_settings":[{"ip":"10.0.0.1","allowed_ips":["any"],
-            "name":"break client vpn","proto":"tcp","public_port":"500",
-            "local_port":"500","inet":"Both"}],
-        "one_to_one_nat_settings":[{"name":"alpha","lanip":"10.0.0.1",
-            "uplink":"1","allowed_inbound":[{"proto":"udp","dst_port":["500",
-            "4500"],"allowed_ips":["any"]}],"wanip":"4.0.0.1"}]
-        """
-        # If the user is behind their firewall, they will not be able to
-        # connect (and a VPN connection would be pointless.)
-        self.open_route('/nodes/new_wired_status')
-        client_public_ip = self.get_json_value('request_ip')
-        firewall_public_ip = self.get_json_value('{"public_ip')
-        if client_public_ip == firewall_public_ip:
-            return "ERROR: You cannot connect to your firewall if you are " \
-                   "behind it!"
-        # 0 = online, 2 = temporarily offline, 3 = offline for a week+
-        firewall_status_code = self.get_json_value("status#")
-        if firewall_status_code == -1:
-            return "ERROR: There is no firewall in this network!"
-        elif firewall_status_code == '0':
-            return "ERROR: You cannot connect if your firewall is offline!"
-
-        # An IPSEC connection uses UDP port 500, and UDP port 4500 if NAT.
-        # If the following text exists, they're port forwarding these ports:
-        # '"public_port":"500"', '"public_port":"4500"'
-        self.open_route('/configure/firewall')
-        pagetext = self.browser.get_current_page().text
-        port_forwarding_ipsec_ports = re.search(
-            r'"udp","public_port":"[4]?500"', pagetext)
-        if port_forwarding_ipsec_ports:
-            return "ERROR: You are port forwarding IPSEC udp ports 500 and " \
-                   "4500!"
-        natting_ipsec_ports = re.search(
-            r'"dst_port":\[[0-9",]*"[4]?500"[0-9",]*\]', pagetext)
-        if natting_ipsec_ports:
-            return "ERROR: You are natting IPSEC udp ports 500 and " \
-                   "4500!"
-
-        # Verify whether firewall is reachable by pinging 4 times
-        # If at least one ping that made it, mark this test as successful.
-        from sys import platform
-        from os import system
-        address = self.get_client_vpn_address()
-        if platform == 'win32':  # Identifies any form of Windows
-            # ping 4 times every 1000ms
-            ping_string = "ping " + address
-        else:  # *nix of some kind
-            # ping 4 times every 200ms
-            ping_string = "ping -c 5 -i 0.2 " + address
-        ping_response = system(ping_string)
-        # Non-0 ping responses mean failure. Error codes are OS-dependent.
-        if ping_response != 0:
-            # Failure error dialog and then return
-            return "ERROR: Cannot reach device!"
-
-        return "No common misconfigurations found."
-
+                    'is_authorized': eid in users_dict[key]['authed_networks']}
