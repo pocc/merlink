@@ -30,11 +30,11 @@ class SystrayIcon:
         app (QMainWindow): Set to MainWindow object (required binding for Qt)
         tray_icon (QSystemTrayIcon): System Tray object that has all of the
           functionality that this class requires.
+
     """
 
     def __init__(self, app):
-        # Init QSystemTrayIcon
-        # Set the Window and Tray Icons
+        """Init QSystemTrayIcon and set the Window and Tray Icons."""
         self.app = app
         self.app.setWindowIcon(QIcon(pyinstaller_path('src/media/miles.ico')))
         self.tray_icon = QSystemTrayIcon(app)
@@ -42,7 +42,6 @@ class SystrayIcon:
         connection_status = 'VPN disconnected'
         self.tray_icon.setToolTip("Merlink - " + connection_status)
 
-        # TODO this should be a drop down of saved connections
         connect_action = QAction("Connect to ...", app)
         # These 3 lines are to make "Connect to ..." bold
         font = QFont()
@@ -75,7 +74,7 @@ class SystrayIcon:
         self.tray_icon.activated.connect(self.icon_activated)
 
     def icon_activated(self, reason):
-        """The user has clicked on the systray icon, so respond
+        """Respond to the user has clicking on the systray icon.
 
         If single or double click, show the application
         If middle click, go to meraki.cisco.com
@@ -83,12 +82,12 @@ class SystrayIcon:
 
         Args:
             reason (QSystemTrayIcon.ActivationReason): An enum of
-                [0,4] of how the user interacted with the system tray
-                ~
-                More information on ActivationReasons can be found here:
-                http://doc.qt.io/qt-5/qsystemtrayicon.html#ActivationReason-enum
-        """
+              [0,4] of how the user interacted with the system tray
+              ~
+              More information on ActivationReasons can be found here:
+              http://doc.qt.io/qt-5/qsystemtrayicon.html#ActivationReason-enum
 
+        """
         if reason in (QSystemTrayIcon.Trigger, QSystemTrayIcon.DoubleClick):
             self.app.show()  # So it will show up in taskbar
             self.app.raise_()  # for macOS
@@ -109,7 +108,8 @@ class SystrayIcon:
         Show an icon of Miles with a red interdictory circle and let
         the user know the connection failed.
         """
-        self.tray_icon.setIcon(QIcon(pyinstaller_path('src/media/unmiles.ico')))
+        self.tray_icon.setIcon(QIcon(pyinstaller_path(
+            'src/media/unmiles.ico')))
         # Provide system VPN settings if the user wants more info
         self.tray_icon.messageClicked.connect(open_vpnsettings)
         # Show the user this message so they know where the program went

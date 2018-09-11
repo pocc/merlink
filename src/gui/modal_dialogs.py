@@ -12,14 +12,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" https://ux.stackexchange.com/questions/12045/what-is-a-modal-dialog-window
+"""This script contains multiple GUI modal dialogs.
+
+https://ux.stackexchange.com/questions/12045/what-is-a-modal-dialog-window
 
     "A modal dialog is a window that forces the user to interact with it
     before they can go back to using the parent application."
+"""
 
-This script contains multiple GUI modal dialogs."""
-
-# Python modules
 from PyQt5.QtWidgets import QMessageBox
 
 
@@ -44,6 +44,7 @@ def show_question_dialog(message):
     Returns:
         result (QDialog.DialogCode): Returns a QDialog code of Rejected (no) |
         Accepted (yes) depending on user input.
+
     """
     question_dialog = QMessageBox()
     question_dialog.setIcon(QMessageBox.Question)

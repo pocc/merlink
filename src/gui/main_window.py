@@ -35,11 +35,13 @@ class MainWindow(QMainWindow):
         browser (DashboardBrowser): Browser used to store user credentials
         menu_widget (MenuBars): Used to tie the menu bars to the MainWindow
         tray_icon (SystrayIcon): Used to tie the tray icon to the MainWindow
+
     """
 
     # Telling PyCharm linter not to (incorrectly) inspect PyQt function args
     # noinspection PyArgumentList
     def __init__(self):
+        """Initialize GUI objects, decorate main window object, and show it."""
         super(MainWindow, self).__init__()
 
         self.browser = DashboardBrowser()
@@ -65,7 +67,7 @@ class MainWindow(QMainWindow):
         self.setEnabled(True)
 
     def init_ui(self):
-        """Show the main menu GUI
+        """Show the main menu GUI.
 
         Is called on main_window instantiation. Creates the
         scaffolding for the main menu GUI and generates all GUI elements
@@ -105,10 +107,10 @@ class MainWindow(QMainWindow):
         self.connect_btn.clicked.connect(self.setup_vpn)
 
     def change_organization(self):
-        """Change the org by getting required data and showing it to user
+        """Change the org by getting required data and showing it to user.
 
         * If we don't have data for this org, get info; otherwise don't.
-        * If the user has not selected an organization, this fn will do nothing.
+        * If the user has not selected an organization, this fn will do naught.
         """
         # -1 due to having a 'select' option.
         selected_org_index = self.org_dropdown.currentIndex() - 1
@@ -130,12 +132,11 @@ class MainWindow(QMainWindow):
                                     self.browser.get_active_org_name())
 
     def change_network(self):
-        """Change the network to new value for both model and view
+        """Change the network to new value for both model and view.
 
         This will have been triggered by a network dropdown change. Get
         network info for this network and let user know.
         """
-
         # Off by 1 due to Select option
         current_network_index = self.network_dropdown.currentIndex() - 1
         if current_network_index == -1:
@@ -184,10 +185,10 @@ class MainWindow(QMainWindow):
         self.network_dropdown.addItems(current_org_network_list)
 
     def setup_vpn(self):
-        """Setup VPN vars and start OS-dependent connection scripts
+        """Set up VPN vars and start OS-dependent connection scripts.
 
-        Passes vpn vars that are required for an L2TP connection as
-        list vpn_data. Passes OS-specific parameters as list <OS>_options.
+        Pass vpn vars that are required for an L2TP connection as
+        list vpn_data. Pass OS-specific parameters as list <OS>_options.
         """
         if DEBUG:
             print("entering attempt_connection function")
@@ -284,7 +285,8 @@ class MainWindow(QMainWindow):
                                  self.client_vpn_text,
                                  self.current_ddns,
                                  self.current_primary_ip)
-        tshoot_failed_vpn_dialog(result.get_test_results())"""
+        tshoot_failed_vpn_dialog(result.get_test_results())
+        """
         self.status.showMessage("Status: Ready to connect to " +
                                 self.network_dropdown.currentText() + ".")
 

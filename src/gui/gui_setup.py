@@ -91,7 +91,7 @@ def login_widget_setup(app):
 
 
 def login_window_setup(app):
-    """Set options for the login widnow itapp."""
+    """Set options for the login window app."""
     app.setModal(True)  # Make the login window prevent program usage
     app.meraki_img = QLabel('<a href=https://meraki.cisco.com/products'
                             '/wireless#mr-new>MR advertisement</a>')
@@ -140,7 +140,7 @@ def login_tfa_set_layout(app):
 
 
 def tfa_widget_setup(app):
-    """TWOFACTOR_DIALOG UI SETUP"""
+    """Set up the two-factor dialog UI."""
     app.get_twofactor_code.clear()  # Clear if exists
     # QDialog that gets 6 digit two-factor code
     app.twofactor_dialog.setWindowTitle("Two-Factor Authentication")
@@ -156,7 +156,7 @@ def tfa_widget_setup(app):
 
 
 def tfa_set_layout(app):
-    """Set up TFA layout."""
+    """Set up the TFA layout."""
     # Layout code
     dialog_layout = QVBoxLayout()
     twofactor_code_layout = QHBoxLayout()
@@ -169,7 +169,7 @@ def tfa_set_layout(app):
 
 
 def main_window_widget_setup(app):
-    """Sets up the main window object and org/net dropdowns."""
+    """Set up the main window object and org/net dropdowns."""
     # QMainWindow requires that a central app be set
     app.cw = QWidget(app)
     app.setCentralWidget(app.cw)
@@ -186,7 +186,7 @@ def main_window_widget_setup(app):
 
 
 def main_window_user_auth_setup(app):
-    """Set initial vars for username/password fields for dasboard/guest user"""
+    """Set initial vars for user/pass fields for dasboard/guest user."""
     app.radio_username_label = QLabel("Email")
     app.radio_username_label.setStyleSheet("color: #606060")  # Gray
     app.radio_username_textfield = QLineEdit()
@@ -211,7 +211,7 @@ def main_window_user_auth_setup(app):
 
 
 def main_window_vpn_vars_setup(app):
-    """Setup the vpn vars region."""
+    """Set up the vpn vars UI region."""
     # Allow the user to change the VPN name
     app.vpn_name_layout = QHBoxLayout()
     app.vpn_name_label = QLabel("VPN Name:")
@@ -280,11 +280,11 @@ def main_window_set_layout(app):
 
 
 def main_window_set_admin_layout(app):
-    """Set the dashboard user layout
+    """Set the dashboard user layout.
 
     Hides guest user layout as we will only be connecting with one user.
-    The user will see the username/obfuscated password they entered."""
-
+    The user will see the username/obfuscated password they entered.
+    """
     app.radio_username_textfield.setText(app.browser.username)
     app.radio_username_textfield.setReadOnly(True)
     app.radio_password_textfield.setText(app.browser.password)
@@ -292,12 +292,12 @@ def main_window_set_admin_layout(app):
 
 
 def main_window_set_guest_layout(app):
-    """Set the guest user layout
+    """Set the guest user layout.
 
     Hides dashboard user layout as we will only be connecting with one user.
     The user will see blank user/pass text fields where they can enter
-    information for a guest user."""
-
+    information for a guest user.
+    """
     app.radio_username_textfield.clear()
     app.radio_username_textfield.setReadOnly(False)
     app.radio_password_textfield.clear()

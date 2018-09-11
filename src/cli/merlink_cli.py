@@ -12,7 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
+
+# This docstring is used for docopt and requires specific formatting.
+r"""
 MERLINK
 
 Usage:
@@ -34,8 +36,8 @@ Options:
                         you will be asked securely with getparse.
   -o, --org-id          Your organization's ID. You can get this from the API.
   -n, --network-id      Your network's ID. You can get this from the API.
-      --org-name        Your organization's name. Will fail if it is not unique.
-      --network-name    Your network's name. Will fail if it is not unique.
+      --org-name        Your organization's name. Will fail if not unique.
+      --network-name    Your network's name. Will fail if not unique.
 
 Notes on Usages[0-2]:
   - Usage[0]        Launches the GUI. GUI > CLI featureset.
@@ -44,15 +46,16 @@ Notes on Usages[0-2]:
 
 Examples:
   1. With org_id and network_id:
-     $ merlink ֊֊username 'wile.e.coyote@acme.corp' \\
-               ֊֊password 'SuperGenius!' \\
-               ֊֊org-id 12345 \\
+     $ merlink ֊֊username 'wile.e.coyote@acme.corp' \
+               ֊֊password 'SuperGenius!' \
+               ֊֊org-id 12345 \
                ֊֊network-id 67890
   2. With org_name and network_name:
-     $ merlink ֊֊username 'wile.e.coyote@acme.corp' \\
-               ֊֊password 'SuperGenius!' \\
-               ֊֊org-name 'ACME Corp' \\
+     $ merlink ֊֊username 'wile.e.coyote@acme.corp' \
+               ֊֊password 'SuperGenius!' \
+               ֊֊org-name 'ACME Corp' \
                ֊֊network-name 'Wild West'
+
 """
 import sys
 import getpass
@@ -65,16 +68,18 @@ from src.__version__ import __version__
 
 
 class MainCli:
-    """MerLink CLI : Less featured alternative to the GUI
+    """MerLink CLI : Less featured alternative to the GUI.
 
     Attributes:
         args (dict): A dict of all user-entered variables.
         browser (DashboardBrowser): Browser to hold state.
         username (string): Username to login with.
         password (string): Password to login with.
+
     """
 
     def __init__(self):
+        """Initialize object and parse/store cli args."""
         super(MainCli, self).__init__()
 
         self.args = docopt.docopt(__doc__)
@@ -82,11 +87,10 @@ class MainCli:
 
         # Determine which routine to do based on arguments
         if self.args['--version']:
-            print("Welcome to Merlink " + __version__ + "!")
             # 48w made by hand with ASCII characters
             with open("src/media/ascii-miles-48w.txt") as miles:
                 miles = miles.read().replace('version', __version__.center(7))
-                print(miles)
+                print('\n' + miles + '\n')
             sys.exit()
 
         # Required vars username/password
@@ -97,14 +101,14 @@ class MainCli:
             self.password = getpass.getpass()
 
     def attempt_login(self):
-        """Login to dashboard using username/password"""
+        """Login to dashboard using username/password."""
         auth_result = self.browser.attempt_login(self.username, self.password)
         if auth_result == 'auth_error':
             print('ERROR: Invalid username or password. Now exiting...')
             sys.exit()
         elif auth_result == 'sms_auth':
-            tfa_code = input("TFA required for " + self.username + ": ").strip()
-            tfa_success = self.browser.tfa_submit_info(tfa_code)
+            tfa_code = input("TFA code required for " + self.username + ": ")
+            tfa_success = self.browser.tfa_submit_info(tfa_code.strip())
             if not tfa_success:
                 print("ERROR: Invalid TFA code. Exiting...")
                 sys.exit()
@@ -133,8 +137,9 @@ class MainCli:
         self.attempt_connection(
             [vpn_name, address, psk, self.username, self.password])
 
-    def set_active_orgnet_ids(self, org_id, network_id, org_name, network_name):
-        """Set the active organization and network ids
+    def set_active_orgnet_ids(self, org_id, network_id,
+                              org_name, network_name):
+        """Set the active organization and network ids.
 
         This fn is necessary to set the browser to open the correct network.
 
@@ -166,12 +171,12 @@ class MainCli:
                               if org_dict[i]['name'] == org_name)
                 self.browser.active_org_id = org_id
                 try:
-                    # orgs_dict "t" version of network name has - instead of ' '
+                    # orgs_dict "t" key of network name has - instead of ' '
                     network_name = network_name.replace(' ', '-')
-                    network_dict = self.browser.orgs_dict[org_id]['node_groups']
+                    net_dict = self.browser.orgs_dict[org_id]['node_groups']
                     network_id = next(
-                        network_id for network_id in network_dict
-                        if network_dict[network_id]['t'] == network_name)
+                        network_id for network_id in net_dict
+                        if net_dict[network_id]['t'] == network_name)
                     self.browser.active_network_id = network_id
                 except StopIteration:
                     self.alert_invalid_data("network name", network_name)
@@ -181,7 +186,7 @@ class MainCli:
             self.tui()
 
     def tui(self):
-        """Shows MerLink Text User Interface when only user/pass are entered.
+        """Show MerLink Text User Interface when only user/pass are entered.
 
         Args:
             Will trigger only iff --username and --password are specified.
@@ -202,7 +207,7 @@ class MainCli:
 
     @staticmethod
     def get_user_input_from_list(list_name, list_type):
-        """Show the user a numbered list and return the index they enter"""
+        """Show the user a numbered list and return the index they enter."""
         # Create a heading and underline it.
         print('\n' + list_type.upper() + 'S\n' + (len(list_type) + 1) * '=')
         # Get user org index choice and update the browser

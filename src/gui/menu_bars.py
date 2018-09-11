@@ -26,7 +26,7 @@ from src.gui.modal_dialogs import show_error_dialog
 
 
 class MenuBars:
-    """Menubars of the GUI
+    """Menubars of the GUI.
 
     This class contains mostly boilerplate Qt UI.
 
@@ -35,11 +35,13 @@ class MenuBars:
         file_menu (QAction): File menu
         edit_menu (QAction): Edit menu
         help_menu (QAction): Help menu
+
     """
 
     # Telling PyCharm linter not to (incorrectly) inspect PyQt function args
     # noinspection PyArgumentList
     def __init__(self, menu_bar):
+        """Initialize all of the program menus."""
         super(MenuBars, self).__init__()
         self.menu_bar = menu_bar
         self.file_menu = menu_bar.addMenu('&File')
@@ -51,7 +53,6 @@ class MenuBars:
 
         NOTE: Some of the menu additions here are planned features
         """
-
         # File options
         file_sysprefs = QAction('&Open VPN System Prefs', self.menu_bar)
         file_sysprefs.setShortcut('Ctrl+O')
@@ -80,10 +81,11 @@ class MenuBars:
 
     @staticmethod
     def file_sysprefs():
-        """Open system VPN settings
+        """Open the system VPN settings.
 
         Raises:
             FileNotFoundError: If vpn settings are not found
+
         """
         try:
             open_vpnsettings()
@@ -99,7 +101,7 @@ class MenuBars:
 
     @staticmethod
     def edit_prefs_action():
-        """Shows the preferences
+        """Show the preferences.
 
         Currently, it merely shows an HTML heading, but the hope is be able
         to control more settings from this pane.
@@ -107,7 +109,6 @@ class MenuBars:
         > It may be worthwhile to use a QSettings object here instead
         (http://doc.qt.io/qt-5/qsettings.html).
         """
-
         # Preferences should go here.
         # How many settings are here will depend on the feature set
         prefs = QDialog()
@@ -119,7 +120,7 @@ class MenuBars:
 
     @staticmethod
     def help_about_action():
-        """Shows an about dialog containing the license."""
+        """Show an 'about' dialog containing the license."""
         about_popup = QDialog()
         about_popup.setWindowTitle("Meraki Client VPN: About")
         about_program = QLabel()

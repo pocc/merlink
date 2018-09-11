@@ -30,8 +30,8 @@ def tshoot_failed_vpn_dialog(has_passed_validation):
     Returns:
         (QListWidget): A QListWidget that has checkmark/X icons and
         accompanying text according to whether that text's test passed.
-    """
 
+    """
     validation_list = QListWidget()
     validation_textlist = [
         "Is the MX online?", "Can the client ping the firewall's public IP?",

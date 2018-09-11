@@ -27,6 +27,7 @@ class LoginDialog(QDialog):
 
     Attributes:
         browser (MechanicalSoup): A browser in which to store user credentials.
+
     """
 
     # Telling PyCharm linter not to (incorrectly) inspect PyQt function args
@@ -39,7 +40,7 @@ class LoginDialog(QDialog):
         self.show_login()
 
     def show_login(self):
-        """Shows the login window and records if the login button is pressed.
+        """Show the login window and records if the login button is pressed.
 
         Uses methods stored in gui_setup to decorate the dialog object.
         If the login button is pressed, check whether the credentials are
@@ -55,18 +56,17 @@ class LoginDialog(QDialog):
         self.login_btn.clicked.connect(self.check_login_attempt)
 
     def get_login_info(self):
-        """Returns the values currently in the user/pass text fields"""
+        """Return the values currently in the user/pass text fields."""
         return self.username_field.text(), self.password_field.text()
 
     def check_login_attempt(self):
-        """Verifies whether entered username/password combination is correct
+        """Verify whether entered username/password combination is correct.
 
-        NOTE: Keeping this code in here even though it is interface-independent.
+        NOTE: Keeping this code in here even though it's interface-independent.
         If we don't keep this here, then the login button will need to connect
         to self.close. It may look weird if the login window closes due to
         the user incorrectly entering user/pass and then reopens
         """
-
         result = self.browser.attempt_login(self.username_field.text(),
                                             self.password_field.text())
 
@@ -79,16 +79,15 @@ class LoginDialog(QDialog):
         elif result == 'auth_success':
             self.close()
         elif 'ConnectionError' in str(type(result)):
-            show_error_dialog('ERROR: No internet connection!\n\nAccess to the '
-                              'internet is required for MerLink to work. '
-                              'Please check your network settings and try '
-                              'again. Now exiting...')
+            show_error_dialog("""ERROR: No internet connection!\n\nAccess to
+                the internet is required for MerLink to work. Please check
+                your network settings and try again. Now exiting...""")
             sys.exit()
         else:
             show_error_dialog("ERROR: Invalid authentication type!")
 
     def tfa_dialog_setup(self):
-        """Create and execute the UI for the TFA dialog"""
+        """Create and execute the UI for the TFA dialog."""
         # Create dialog window with login window object
         guify.tfa_widget_setup(self)
         guify.tfa_set_layout(self)
