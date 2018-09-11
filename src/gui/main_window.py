@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Main Window is the controlling class for the GUI."""
-import sys
-
 from PyQt5.QtWidgets import QMainWindow
 
 from src.dashboard_browser.client_vpn_browser import ClientVpnBrowser
@@ -192,9 +190,6 @@ class MainWindow(QMainWindow):
         Pass vpn vars that are required for an L2TP connection as
         list vpn_data. Pass OS-specific parameters as list <OS>_options.
         """
-        if DEBUG:
-            print("entering attempt_connection function")
-
         # If they have not selected organization or network
         if 'Select' in self.org_dropdown.currentText() or \
                 'Select' in self.network_dropdown.currentText():
@@ -203,61 +198,43 @@ class MainWindow(QMainWindow):
                                    'AND network before connecting!')
 
         else:
-            # Get current network from dropdown
-            # Set VPN name to the network name +/- cosmetic things
-
-            # If the user is logging in as a guest user
-            if self.radio_admin_user.isChecked() == 0:
-                username = self.radio_username_textfield.text()
-                password = self.radio_password_textfield.text()
-            else:
-                username = self.login_dict['username']
-                password = self.login_dict['password']
-
-            # Change status to reflect we're connecting.
-            # For fast connections, you might not see this message
             self.status.showMessage('Status: Connecting...')
-            # Send a list to attempt_connection containing data
-            # from all the textboxes and spinboxes
+            connection = VpnConnection(vpn_data=self.get_vpn_data(),
+                                       vpn_options=self.get_vpn_options())
 
-            # Create VPN connection
-            vpn_data = [
-                self.vpn_name_textfield.text(),
-                self.browser.get_client_vpn_address(),
-                self.browser.get_client_vpn_psk(), username, password
-            ]
-            print('vpn_data being sent to script: ', vpn_data)
-            vpn_options = [
-                self.dns_suffix_txtbox.text(),
-                self.idle_disconnect_spinbox.value(),
-                self.split_tunneled_chkbox.checkState(),
-                self.remember_credential_chkbox.checkState(),
-                self.use_winlogon_chkbox.checkState(),
-                DEBUG,
-            ]
-            connection = VpnConnection(vpn_data, vpn_options)
-
-            if sys.platform == 'win32':
-                return_code = \
-                    connection.attempt_windows_vpn()
-
-            elif sys.platform == 'darwin':
-                return_code = \
-                    connection.attempt_macos_vpn()
-
-            # linux, linux2 are valid for linux distros
-            elif sys.platform.startswith('linux'):
-                return_code = \
-                    connection.attempt_linux_vpn()
-
-            else:
-                return_code = False
-
+            return_code = connection.attempt_vpn()
             successful_connection = (return_code == 0)
             if successful_connection:
                 self.communicate_vpn_success()
             else:
                 self.communicate_vpn_failure()
+
+    def get_vpn_data(self):
+        """Gather the VPN data from various sources."""
+        # If the user is logging in as a guest user
+        if self.radio_admin_user.isChecked() == 0:
+            username = self.radio_username_textfield.text()
+            password = self.radio_password_textfield.text()
+        else:
+            username = self.login_dict['username']
+            password = self.login_dict['password']
+
+        vpn_name = self.vpn_name_textfield.text()
+        address = self.browser.get_client_vpn_address()
+        psk = self.browser.get_client_vpn_psk()
+        return [vpn_name, address, psk, username, password]
+
+    def get_vpn_options(self):
+        """Return with vpn options."""
+        vpn_options = [
+            self.dns_suffix_txtbox.text(),
+            self.idle_disconnect_spinbox.value(),
+            self.split_tunneled_chkbox.checkState(),
+            self.remember_credential_chkbox.checkState(),
+            self.use_winlogon_chkbox.checkState(),
+            DEBUG,
+        ]
+        return vpn_options
 
     def communicate_vpn_success(self):
         """Let the user know that they are connected."""

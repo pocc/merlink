@@ -107,7 +107,7 @@ class DashboardBrowser:
             self.browser.open(
                 'https://account.meraki.com/login/dashboard_login')
         except requests.exceptions.ConnectionError as error:
-            return error
+            return type(error).__name__
 
         form = self.browser.select_form()
         self.browser["email"] = username

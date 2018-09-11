@@ -82,7 +82,7 @@ class LoginDialog(QDialog):
             self.login_dict['username'] = username
             self.login_dict['password'] = password
             self.close()
-        elif 'ConnectionError' in str(type(result)):
+        elif result == 'ConnectionError':
             show_error_dialog("""ERROR: No internet connection!\n\nAccess to
                 the internet is required for MerLink to work. Please check
                 your network settings and try again. Now exiting...""")

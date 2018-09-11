@@ -90,21 +90,37 @@ class ClientVpnBrowser(DashboardBrowser):
     def troubleshoot_client_vpn(self):
         """Troubleshoot Client VPN.
 
-        Five-ish tests currently to see what might be wrong.
-
-        Sample JSON example of bad firewall ports:
-        "port_forwarding_settings":[{"ip":"10.0.0.1","allowed_ips":["any"],
-            "name":"break client vpn","proto":"tcp","public_port":"500",
-            "local_port":"500","inet":"Both"}],
-        "one_to_one_nat_settings":[{"name":"alpha","lanip":"10.0.0.1",
-            "uplink":"1","allowed_inbound":[{"proto":"udp","dst_port":["500",
-            "4500"],"allowed_ips":["any"]}],"wanip":"4.0.0.1"}]
+        Six tests are used to see what might be wrong.
+            check_firewall_page_errors
+                1. Is the user behind the firewall?
+                2. Is there a firewall in the network?
+                3. Is the firewall online?
+            check_nat_rules
+                4. Is 500 + 4500 traffic being forwarded?
+                5. Is 500 + 4500 traffic being natted?
+            check_firewall_connectivity
+                6. Can the client ping the firewall?
         """
         # If the user is behind their firewall, they will not be able to
         # connect (and a VPN connection would be pointless.)
-        self.open_route('/nodes/new_wired_status')
         errors = ''
+        errors += self.check_firewall_page_errors()
+        errors += self.check_nat_rules()
+        errors += self.check_firewall_connectivity()
 
+        if errors:
+            return errors
+        return "No common misconfigurations found."
+
+    def check_firewall_page_errors(self):
+        """Check 3 things using info from Appliance Status page.
+
+        1. Is the user behind the firewall?
+        2. Is there a firewall in the network?
+        3. Is the firewall online?
+        """
+        errors = ''
+        self.open_route('/nodes/new_wired_status')
         client_public_ip = self.get_json_value('request_ip')
         firewall_public_ip = self.get_json_value('{"public_ip')
         if client_public_ip == firewall_public_ip:
@@ -116,9 +132,22 @@ class ClientVpnBrowser(DashboardBrowser):
             errors += "\nERROR: There is no firewall in this network!"
         elif firewall_status_code == '0':
             errors += "\nERROR: Your firewall is offline!"
-        # An IPSEC connection uses UDP port 500, and UDP port 4500 if NAT.
-        # If the following text exists, they're port forwarding these ports:
-        # '"public_port":"500"', '"public_port":"4500"'
+        return errors
+
+    def check_nat_rules(self):
+        """Check whether a nat or port forwarding rule is causing vpn failure.
+
+        An IPSEC connection uses UDP port 500, and UDP port 4500 if NAT.
+
+        Sample JSON example of bad firewall ports:
+        "port_forwarding_settings":[{"ip":"10.0.0.1","allowed_ips":["any"],
+            "name":"break client vpn","proto":"tcp","public_port":"500",
+            "local_port":"500","inet":"Both"}],
+        "one_to_one_nat_settings":[{"name":"alpha","lanip":"10.0.0.1",
+            "uplink":"1","allowed_inbound":[{"proto":"udp","dst_port":["500",
+            "4500"],"allowed_ips":["any"]}],"wanip":"4.0.0.1"}]
+        """
+        errors = ''
         self.open_route('/configure/firewall')
         pagetext = self.browser.get_current_page().text
         port_forwarding_ipsec_ports = re.search(
@@ -131,7 +160,13 @@ class ClientVpnBrowser(DashboardBrowser):
         if natting_ipsec_ports:
             errors += "\nERROR: You are natting " \
                       "IPSEC udp ports 500 and 4500!"
+        return errors
 
+    def check_firewall_connectivity(self):
+        """Check whether the user can ping the firewall.
+
+        Connectivity between sites is not necessarily transitive.
+        """
         # Verify whether firewall is reachable by pinging 4 times
         # If at least one ping that made it, mark this test as successful.
         address = self.get_client_vpn_address()
@@ -145,8 +180,5 @@ class ClientVpnBrowser(DashboardBrowser):
         # Non-0 ping responses mean failure. Error codes are OS-dependent.
         if ping_response != 0:
             # Failure error dialog and then return
-            errors += "\nERROR: Cannot ping device!"
-
-        if errors:
-            return errors
-        return "No common misconfigurations found."
+            return "\nERROR: Cannot ping device!"
+        return ""
