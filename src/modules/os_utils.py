@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """OS utilities that do not belong to a class."""
 import os
 import sys
@@ -30,7 +29,7 @@ def kill_duplicate_applications(program_name):
 
 
 def is_online():
-    """Detects whether the device is connected to the internet"""
+    """Detect whether the device is connected to the internet."""
     # Initialize vars
     result = ''
     ping_command = ''
@@ -53,8 +52,7 @@ def is_online():
     while 'unreachable' not in result and 'failure' not in result and i < 4 \
             and '0 packets received' not in result:
         unprocessed_result = subprocess.Popen(
-            ping_command.split(),
-            stdout=subprocess.PIPE)
+            ping_command.split(), stdout=subprocess.PIPE)
         result = unprocessed_result.communicate()[0].decode('utf-8')
         i += 1
 
@@ -65,23 +63,24 @@ def is_online():
 
 
 def list_vpns():
-    """This script will get the existing VPN connections from the OS."""
+    """List the existing VPN connections from the OS."""
     if sys.platform == 'win32':
         vpn_list = subprocess.check_output(['powershell', 'get-vpnconnection'])
     elif sys.platform == 'darwin':
-        vpn_list = subprocess.check_output(['networksetup',
-                                            '-listpppoeservices'])
+        vpn_list = subprocess.check_output(
+            ['networksetup', '-listpppoeservices'])
     else:
         # Get all connections, filter by type vpn, and then print as columns
         vpn_list = subprocess.check_output(
-            ['nmcli -f UUID,TYPE,NAME con | awk \'$2 =="vpn" {print $3, $1}\' '
-             '| column -t'], shell=True).decode('UTF-8')
+            ['nmcli -f UUID,TYPE,NAME con | awk \'$2 =="vpn" '
+             '{print $3, $1}\' | column -t'],
+            shell=True).decode('UTF-8')
 
     return vpn_list
 
 
 def open_vpnsettings():
-    """Opens OS-specific VPN settings."""
+    """Open OS-specific VPN settings."""
     if sys.platform == 'win32':
         # Opens Windows 10 Settings > Network & Internet > VPN
         os.system('start ms-settings:network-vpn')
@@ -94,7 +93,9 @@ def open_vpnsettings():
 
 
 def pyinstaller_path(relative_path):
-    """When using the --onefile flag, PyInstaller will by default extract
+    """Modify the path so that assets can be found in PyInstaller's onefile.
+
+    When using the --onefile flag, PyInstaller will by default extract
     necessary files into a temporary folder named '_MEIPASS2'. In order for
     the executable to access them, file paths must be modified to include
     this folder name.

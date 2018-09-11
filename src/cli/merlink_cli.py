@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 MERLINK
 
@@ -124,8 +123,7 @@ class MainCli:
             org_id=self.args['<org_id>'],
             network_id=self.args['<network_id>'],
             org_name=self.args['<org_name>'],
-            network_name=self.args['<network_name>'],
-        )
+            network_name=self.args['<network_name>'],)
 
         self.browser.get_client_vpn_data()
         vpn_name = self.browser.get_active_network_name() + " - VPN"
@@ -206,21 +204,20 @@ class MainCli:
     def get_user_input_from_list(list_name, list_type):
         """Show the user a numbered list and return the index they enter"""
         # Create a heading and underline it.
-        print('\n' + list_type.upper() + 'S\n' + (len(list_type)+1)*'=')
+        print('\n' + list_type.upper() + 'S\n' + (len(list_type) + 1) * '=')
         # Get user org index choice and update the browser
         for index, item_name in enumerate(list_name):
             print(str(index) + '.', item_name)
         choice = int(input("\nEnter the " + list_type + " number: "))
         while choice not in range(len(list_name)):
-            choice = int(input("Not a valid number! Please enter a number "
-                               "between 0 and " + str(len(list_name)) + ": "))
+            choice = int(
+                input("Not a valid number! Please enter a number "
+                      "between 0 and " + str(len(list_name)) + ": "))
 
         return choice
 
     @staticmethod
     def attempt_connection(vpn_data):
         """Create a VPN object and connect with it."""
-        connection = VpnConnection(
-            vpn_data=vpn_data,
-            vpn_options={})
+        connection = VpnConnection(vpn_data=vpn_data, vpn_options={})
         connection.attempt_vpn()

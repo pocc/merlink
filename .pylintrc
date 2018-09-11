@@ -1,3 +1,5 @@
 [MASTER]
 extension-pkg-whitelist=PyQt5
-disable=C0103  # dmgsettings.py does not use consts
+# C0103: 				dmgsettings.py does not use consts
+# redefined-builtin: 	sphinx conf.py
+disable=C0103,redefined-builtin

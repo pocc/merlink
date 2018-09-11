@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """API to interact with the Meraki Dashboard using the requests module."""
 import re
 import json
@@ -35,7 +34,7 @@ class DashboardBrowser:
         vpn_vars (dict): List of VPN variables (does the browser need access
         to this?)
 
-        orgs_dict (dict): A list of orgs/networks derived from administered_orgs
+        orgs_dict (dict): A list of orgs/networks taken from administered_orgs
             See method scrape_administered_orgs for more information. Only
             difference from json blob is that network_eid key is replaced
             with network_id key
@@ -63,6 +62,7 @@ class DashboardBrowser:
         active_network_id (int): id of active network.
         is_network_admin (string): If admin has networks but no org access
     """
+
     def __init__(self):
         super(DashboardBrowser, self).__init__()
 
@@ -72,9 +72,8 @@ class DashboardBrowser:
             raise_on_404=True,
             # User Agent String is for the Nintendo Switch because why not
             user_agent='Mozilla/5.0 (Nintendo Switch; ShareApplet) '
-                       'AppleWebKit/601.6 (KHTML, like Gecko) '
-                       'NF/4.0.0.5.9 NintendoBrowser/5.1.0.13341',
-        )
+            'AppleWebKit/601.6 (KHTML, like Gecko) '
+            'NF/4.0.0.5.9 NintendoBrowser/5.1.0.13341',)
 
         # Setup browser for use by other components
         self.username = ''
@@ -183,7 +182,7 @@ class DashboardBrowser:
         # NOTE: Until you choose an organization, Dashboard will not let you
         # visit pages you should have access to
         page = self.browser.get_current_page()
-        # 2+ orgs choice page : https://account.meraki.com/login/org_list?go=%2F
+        # 2+ orgs page : https://account.meraki.com/login/org_list?go=%2F
         if self.browser.get_url().find('org_list'):  # Admin orgs = 2
             self.bypass_org_choose_page(page)
 
@@ -200,15 +199,13 @@ class DashboardBrowser:
                 self.active_org_id = administered_orgs[org_id]['id']
             # Filter for wired as we only care about firewall networks
             self.orgs_dict[org_id] = self.filter_org_data(
-                administered_orgs[org_id],
-                ['wired']
-            )
+                administered_orgs[org_id], ['wired'])
 
-        self.active_network_id = list(self.orgs_dict[self.active_org_id][
-            'node_groups'])[0]
+        self.active_network_id = list(
+            self.orgs_dict[self.active_org_id]['node_groups'])[0]
 
     def bypass_org_choose_page(self, page):
-        """Bypass page for admins with 2+ orgs that normally requires user input
+        """Bypass page for admins with 2+ orgs that usually requires user input
 
         Admins with 2+ orgs are shown a page where they need to choose an
         organization to enter. This function will follow the link associated
@@ -225,7 +222,8 @@ class DashboardBrowser:
         # Get the number of orgs
         self.org_qty = len(org_href_lines)
         # Choose link for first org so we have something to connect to
-        bootstrap_url = 'https://account.meraki.com' + org_href_lines[0]['href']
+        bootstrap_url = 'https://account.meraki.com' \
+                        + org_href_lines[0]['href']
         self.browser.open(bootstrap_url)
 
     def scrape_administered_orgs(self):
@@ -300,10 +298,10 @@ class DashboardBrowser:
         for eid in org_dict['node_groups']:
             # Only add the network dicts for network types we care about
             eid_dict = org_dict['node_groups'][eid]
-            is_filtered_network_type = eid_dict['network_type'] in network_types
-            is_templated = eid_dict['is_template_child'] or eid_dict[
-                'is_config_template']
-            if is_filtered_network_type and not is_templated:
+            is_filtered_type = eid_dict['network_type'] in network_types
+            is_templated = eid_dict['is_template_child'] \
+                or eid_dict['is_config_template']
+            if is_filtered_type and not is_templated:
                 # Same network ID as in API
                 network_id = org_dict['node_groups'][eid]['id']
                 filtered_dict['node_groups'][network_id] = \
@@ -339,8 +337,8 @@ class DashboardBrowser:
 
     def set_active_network_index(self, network_index):
         """Sets the active network by its index."""
-        self.active_network_id = list(self.orgs_dict[self.active_org_id][
-            'node_groups'])[network_index]
+        self.active_network_id = list(
+            self.orgs_dict[self.active_org_id]['node_groups'])[network_index]
 
     def get_active_org_name(self):
         """Return the active org name."""
@@ -362,8 +360,7 @@ class DashboardBrowser:
         pagetext = self.browser.get_current_page().text
         json_text = re.findall(
             r'window\.initializeSideNavigation\([ -(*-~\r\n]*\)',
-            pagetext,
-        )[0][48:-1]
+            pagetext,)[0][48:-1]
         json_dict = json.loads(json_text)
         # Format of this dict: {tab_menu: {tab: {'url': val, 'name': val}, ...
         page_url_dict = {}
@@ -372,7 +369,7 @@ class DashboardBrowser:
                 category = json_dict['tab_menu']['tabs'][tab_menu]['name']
                 page_url_dict[category] = {}
                 qty_tabs = len(json_dict['tab_menu']['tabs'][tab_menu][
-                    'menus'][menu]['items'])
+                                   'menus'][menu]['items'])
                 for tab in range(qty_tabs):
                     name = json_dict['tab_menu']['tabs'][tab_menu]['menus'][
                         menu]['items'][tab]['name']
@@ -445,8 +442,8 @@ class DashboardBrowser:
             try:
                 self.browser.open(target_url)
             except mechanicalsoup.utils.LinkNotFoundError as error:
-                print('Attempting to open', network_partial + '/manage' + route,
-                      'and failed.', error)
+                print('Attempting to open', network_partial + '/manage'
+                      + route, 'and failed.', error)
 
     def get_node_settings_json(self):
         """The CSUI JSON contains most node data (route:/configure/settings)"""
@@ -522,7 +519,7 @@ class DashboardBrowser:
         pagetext = self.browser.get_current_page().text
         value_start = pagetext.find(key) + len(key) + 3
         value_end = pagetext[value_start:].find('\"') + value_start
-        value = pagetext[value_start: value_end]
+        value = pagetext[value_start:value_end]
         print('For key', key, 'retrieved value', value)
         return value
 

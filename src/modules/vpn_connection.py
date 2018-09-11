@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Given VPN vars, uses OS built-ins to create/connect a L2TP/IPSEC VPN."""
 import sys
 import subprocess
@@ -22,30 +21,31 @@ from src.modules.os_utils import pyinstaller_path
 
 
 class VpnConnection:
-    """
-    VpnConnection list arguments
-        vpn_data
-            vpn_name
-            address (ddns or ip)
-            psk
-            username
-            password
-        windows_options
-            dns_suffix
-            idle_disconnect_seconds
-            split_tunneled
-            remember_credentials
-            use_winlogon
-            DEBUG
+    """Python interface to create/connect with OS-dependent VPN scripts.
 
     VpnConnection takes 2 lists as args: vpn_data and vpn_options
         Required VPN parameters will arrive in vpn_data
         Any OS-specific VPN parameters will go into vpn_options
+
+    vpn_data
+        vpn_data
+        vpn_name
+        address (ddns or ip)
+        psk
+        username
+        password
+    windows_options
+        dns_suffix
+        idle_disconnect_seconds
+        split_tunneled
+        remember_credentials
+        use_winlogon
+        DEBUG
     """
 
     def __init__(self, vpn_data, vpn_options):
+        """Initialize vpn dicts and sanitize variables going into them."""
         super(VpnConnection, self).__init__()
-        print('showing')
         self.vpn_data = vpn_data
         self.vpn_options = vpn_options
         self.vpn_name = ''
@@ -104,10 +104,11 @@ class VpnConnection:
             # Convert to string
             self.vpn_options[i] = str(self.vpn_options[i])
 
-        return subprocess.call(
-            [powershell_path, '-ExecutionPolicy', 'Unrestricted',
-             pyinstaller_path('src\\scripts\\connect_windows.ps1'),
-             *self.vpn_data, *self.vpn_options])
+        return subprocess.call([
+            powershell_path, '-ExecutionPolicy', 'Unrestricted',
+            pyinstaller_path('src\\scripts\\connect_windows.ps1'),
+            *self.vpn_data, *self.vpn_options
+        ])
         # subprocess.Popen([], creationflags=subprocess.CREATE_NEW_CONSOLE)
         #  open ps window
 
@@ -132,7 +133,7 @@ class VpnConnection:
         print("scutil_string: " + scutil_string)
         # Create an applescript execution string so we don't
         # need to bother with parsing arguments with Popen
-        command = 'do shell script \"/bin/bash src/scripts/build_macos_vpn.sh' \
+        command = 'do shell script \"/bin/bash src/scripts/build_macos_vpn.sh'\
                   + ' \'' + vpn_name + '\' \'' + psk + \
                   '\' \'' + address + '\' \'' + username + \
                   '\' \'' + password + '\'; ' + scutil_string + \
@@ -140,8 +141,8 @@ class VpnConnection:
         # Applescript will prompt the user for credentials in order to create
         #  the VPN connection
         print("command being run: " + command)
-        result = subprocess.Popen(['/usr/bin/osascript', '-e', command],
-                                  stdout=subprocess.PIPE)
+        result = subprocess.Popen(
+            ['/usr/bin/osascript', '-e', command], stdout=subprocess.PIPE)
 
         # Get the result of VPN creation and print
         output = result.stdout.read()
@@ -152,10 +153,7 @@ class VpnConnection:
         print("Connecting to macOS VPN")
         print("Current working directory: " + str(system('pwd')))
         return subprocess.call(
-            ['bash',
-             'src/scripts/connect_macos.sh',
-             self.vpn_name]
-        )
+            ['bash', 'src/scripts/connect_macos.sh', self.vpn_name])
 
     def attempt_linux_vpn(self):
         """Attempt to connect on linux.
@@ -170,41 +168,33 @@ class VpnConnection:
         * *self.vpn_data not possible due to the way the shell interprets it.
         """
         vpn_name, address, psk, username, password = self.vpn_data
-        vpn_cmd = 'pkexec ' + pyinstaller_path('src/scripts/connect_linux.sh') \
+        vpn_cmd = 'pkexec ' + pyinstaller_path('src/scripts/connect_linux.sh')\
             + ' ' + vpn_name + ' ' + address + ' ' + psk + ' ' + username \
             + ' ' + password
         print("Command being run: ", vpn_cmd)
         return subprocess.Popen([vpn_cmd], shell=True)
 
     def disconnect(self):
-        """Disconnect all connected VPNs"""
+        """Disconnect all connected VPNs."""
         if self.is_vpn_connected():
             linux_command = 'nmcli con down uuid '
             command_string = [
-                'rasdial ' + self.vpn_name + '/disconnect',
-                '',
-                linux_command + self.vpn_uuid,
-                '']
+                'rasdial ' + self.vpn_name + '/disconnect', '',
+                linux_command + self.vpn_uuid, ''
+            ]
             subprocess.call(
-                [command_string[self.os_index]],
-            )
+                [command_string[self.os_index]],)
 
     def get_all_vpn_uuids(self):
-        """Return a list of type-vpn uuids"""
+        """Return a list of type-vpn uuids."""
         linux_command = "nmcli --fields uuid,type con show | grep vpn " \
                         "| awk '{print $1}'"
-        command_string = [
-            "",
-            "",
-            linux_command,
-            ""
-        ]
+        command_string = ["", "", linux_command, ""]
 
         command_output = subprocess.Popen(
             [command_string[self.os_index]],
             shell=True,
-            stdout=subprocess.PIPE,
-        ).communicate()[0]
+            stdout=subprocess.PIPE,).communicate()[0]
         uuid_list = command_output.decode('utf-8').split('\n')
         return uuid_list
 
@@ -222,15 +212,13 @@ class VpnConnection:
         ]
 
         subprocess_output = subprocess.Popen(
-            [vpn_command[self.os_index]],
-            stdout=subprocess.PIPE
-        )
+            [vpn_command[self.os_index]], stdout=subprocess.PIPE)
         command_stdout = subprocess_output.communicate()[0].decode('utf-8')
         # if the search string is in the command stdout, there are active vpns
         return search_string[self.os_index] in command_stdout
 
     def get_vpn_name_by_uuid(self, uuid):
-        """Get the VPN name given a UUID"""
+        """Get the VPN name given a UUID."""
         # Get all connections, filter by uuid, and return the 2nd field (name)
         linux_command = "nmcli --fields uuid,name con show | grep " + \
                         uuid + " | cut -d\\  -f2-"
@@ -245,7 +233,6 @@ class VpnConnection:
         vpn_name = subprocess.Popen(
             [vpn_command[self.os_index]],
             shell=True,
-            stdout=subprocess.PIPE,
-        ).communicate()[0].decode('utf-8').strip()
+            stdout=subprocess.PIPE,).communicate()[0].decode('utf-8').strip()
 
         return vpn_name

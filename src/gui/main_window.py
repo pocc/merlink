@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Main Window is the controlling class for the GUI."""
 import sys
 
@@ -37,6 +36,7 @@ class MainWindow(QMainWindow):
         menu_widget (MenuBars): Used to tie the menu bars to the MainWindow
         tray_icon (SystrayIcon): Used to tie the tray icon to the MainWindow
     """
+
     # Telling PyCharm linter not to (incorrectly) inspect PyQt function args
     # noinspection PyArgumentList
     def __init__(self):
@@ -91,8 +91,8 @@ class MainWindow(QMainWindow):
         # Get the data we need and remove the cruft we don't
         current_org = org_list[self.browser.get_active_org_index()]
         print('main window orgs', org_list)
-        self.status.showMessage("Status: Fetching networks in "
-                                + current_org + "...")
+        self.status.showMessage("Status: Fetching networks in " + current_org +
+                                "...")
         self.connect_btn.setEnabled(False)
         self.vpn_name_textfield.setEnabled(False)
         # Remove all elements from the network UI dropdown
@@ -122,12 +122,12 @@ class MainWindow(QMainWindow):
             self.status.showMessage("Status: Fetching organizations...")
             # Change primary organization
             self.browser.set_active_org_index(selected_org_index)
-            print("In change_organization and this is the network list "
-                  + str(self.browser.get_network_names()))
+            print("In change_organization and this is the network list " +
+                  str(self.browser.get_network_names()))
 
             self.refresh_network_dropdown()
-            self.status.showMessage("Status: In org "
-                                    + self.browser.get_active_org_name())
+            self.status.showMessage("Status: In org " +
+                                    self.browser.get_active_org_name())
 
     def change_network(self):
         """Change the network to new value for both model and view
@@ -146,8 +146,8 @@ class MainWindow(QMainWindow):
             network_list = self.browser.get_network_names()
             print('main window network list', network_list)
             current_network = network_list[current_network_index]
-            self.status.showMessage("Status: Fetching network data for "
-                                    + current_network + "...")
+            self.status.showMessage("Status: Fetching network data for " +
+                                    current_network + "...")
 
             self.browser.set_active_network_index(current_network_index)
 
@@ -164,8 +164,8 @@ class MainWindow(QMainWindow):
                                         "enable it and try again.")
             else:
                 self.connect_btn.setEnabled(True)
-                self.status.showMessage("Status: Ready to connect to "
-                                        + current_network + ".")
+                self.status.showMessage("Status: Ready to connect to " +
+                                        current_network + ".")
                 vpn_name = current_network.replace('- appliance', '') + '- VPN'
                 self.vpn_name_textfield.setText(vpn_name)
                 self.vpn_name_textfield.setEnabled(True)
@@ -221,9 +221,7 @@ class MainWindow(QMainWindow):
             vpn_data = [
                 self.vpn_name_textfield.text(),
                 self.browser.get_client_vpn_address(),
-                self.browser.get_client_vpn_psk(),
-                username,
-                password
+                self.browser.get_client_vpn_psk(), username, password
             ]
             print('vpn_data being sent to script: ', vpn_data)
             vpn_options = [
@@ -275,8 +273,8 @@ class MainWindow(QMainWindow):
         self.tray_icon.set_vpn_failure()
 
         # Start troubleshooting
-        self.status.showMessage("Status: Verifying configuration for "
-                                + self.network_dropdown.currentText() + "...")
+        self.status.showMessage("Status: Verifying configuration for " +
+                                self.network_dropdown.currentText() + "...")
         self.tshoot_vpn_fail_gui()
 
     def tshoot_vpn_fail_gui(self):
@@ -287,8 +285,8 @@ class MainWindow(QMainWindow):
                                  self.current_ddns,
                                  self.current_primary_ip)
         tshoot_failed_vpn_dialog(result.get_test_results())"""
-        self.status.showMessage("Status: Ready to connect to "
-                                + self.network_dropdown.currentText() + ".")
+        self.status.showMessage("Status: Ready to connect to " +
+                                self.network_dropdown.currentText() + ".")
 
     def set_admin_layout(self):
         """Set the dashboard admin layout."""

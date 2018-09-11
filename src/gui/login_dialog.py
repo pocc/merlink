@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Login dialog GUI elements."""
 import sys
 
@@ -29,6 +28,7 @@ class LoginDialog(QDialog):
     Attributes:
         browser (MechanicalSoup): A browser in which to store user credentials.
     """
+
     # Telling PyCharm linter not to (incorrectly) inspect PyQt function args
     # noinspection PyArgumentList
     def __init__(self):
@@ -67,10 +67,8 @@ class LoginDialog(QDialog):
         the user incorrectly entering user/pass and then reopens
         """
 
-        result = self.browser.attempt_login(
-            self.username_field.text(),
-            self.password_field.text()
-        )
+        result = self.browser.attempt_login(self.username_field.text(),
+                                            self.password_field.text())
 
         if result == 'auth_error':
             show_error_dialog('ERROR: Invalid username or password.')

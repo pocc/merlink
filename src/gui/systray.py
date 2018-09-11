@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """This class manages the system tray icon."""
 import webbrowser
 import sys
@@ -101,12 +100,8 @@ class SystrayIcon:
 
     def application_minimized(self):
         """Minimize the window."""
-        self.tray_icon.showMessage(
-            "Merlink",
-            "Merlink is now minimized",
-            QSystemTrayIcon.Information,
-            1000
-        )
+        self.tray_icon.showMessage("Merlink", "Merlink is now minimized",
+                                   QSystemTrayIcon.Information, 1000)
 
     def set_vpn_failure(self):
         """Tell user that VPN connection was unsuccessful.
@@ -118,12 +113,8 @@ class SystrayIcon:
         # Provide system VPN settings if the user wants more info
         self.tray_icon.messageClicked.connect(open_vpnsettings)
         # Show the user this message so they know where the program went
-        self.tray_icon.showMessage(
-            "Merlink",
-            "Connection failure!",
-            QSystemTrayIcon.Information,
-            1500
-        )
+        self.tray_icon.showMessage("Merlink", "Connection failure!",
+                                   QSystemTrayIcon.Information, 1500)
 
     def set_vpn_success(self):
         """Tell user that VPN connection was successful.
@@ -135,14 +126,10 @@ class SystrayIcon:
         This function will set the icon to Miles with 3D glasses and
         show a message that the connection was successful.
         """
-        self.tray_icon.setIcon(QIcon(pyinstaller_path(
-            'src/media/connected_miles.ico')))
+        self.tray_icon.setIcon(
+            QIcon(pyinstaller_path('src/media/connected_miles.ico')))
         # Provide system VPN settings if the user wants more info
         self.tray_icon.messageClicked.connect(open_vpnsettings)
         # Show the user this message so they know where the program went
-        self.tray_icon.showMessage(
-            "Merlink",
-            "Connection success!",
-            QSystemTrayIcon.Information,
-            1500
-        )
+        self.tray_icon.showMessage("Merlink", "Connection success!",
+                                   QSystemTrayIcon.Information, 1500)

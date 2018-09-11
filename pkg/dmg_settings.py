@@ -78,10 +78,7 @@ badge_icon = icon_from_app(CURRENT_DIR + '/dist/merlink.app')
 # badge_icon = icon_from_app(application)
 
 # Where to put the icons
-icon_locations = {
-    appname:        (140, 120),
-    'Applications': (500, 120)
-    }
+icon_locations = {appname: (140, 120), 'Applications': (500, 120)}
 
 # .. Window configuration .....................................................
 

@@ -8,6 +8,7 @@ class MxPageUtils:
         * Network page is loaded in the browser
         * Browser is passed into this function
     """
+
     def __init__(self, browser):
         self.browser = browser
 
@@ -19,8 +20,7 @@ class MxPageUtils:
         self.browser.open_route(route='/configure/router_settings')
         dropdown_value = self.get_mx_dropdown_value(
             self.browser.get_current_page(),
-            var_id='wired_config_vlans_enabled',
-        )
+            var_id='wired_config_vlans_enabled',)
         return dropdown_value == 'Enabled'
 
     def get_mx_ddns_enabled(self):
@@ -31,8 +31,7 @@ class MxPageUtils:
         self.browser.open_route(route='/configure/router_settings')
         dropdown_value = self.get_mx_dropdown_value(
             self.browser.get_current_page(),
-            var_id='wired_config_dynamic_dns_enabled',
-        )
+            var_id='wired_config_dynamic_dns_enabled',)
         return dropdown_value == 'Enabled'
 
     def get_mx_ddns_configurable_substring(self):
@@ -50,8 +49,7 @@ class MxPageUtils:
         self.browser.open_route(route='/configure/router_settings')
         return self.get_input_var_value(
             soup=self.browser.get_current_page(),
-            var_id='wired_config_dynamic_dns_label',
-        )
+            var_id='wired_config_dynamic_dns_label',)
 
     def set_mx_ddns_configurable_substring(self, ddns_substring):
         """Set the first part of an appliance's ddns with specified string.
@@ -78,8 +76,7 @@ class MxPageUtils:
         self.browser.open_route(route='/configure/client_vpn_settings')
         return self.get_input_var_value(
             soup=self.browser.get_current_page(),
-            var_id='wired_config_client_vpn_subnet',
-        )
+            var_id='wired_config_client_vpn_subnet',)
 
     def get_mx_client_vpn_dns_mode(self):
         """Get the Client VPN DNS mode (string).
@@ -97,8 +94,7 @@ class MxPageUtils:
         self.browser.open_route(route)
         return self.get_mx_dropdown_value(
             soup=self.browser.get_current_page(),
-            var_id='wired_config_client_vpn_dns_mode',
-        )
+            var_id='wired_config_client_vpn_dns_mode',)
 
     def get_mx_custom_name_servers(self):
         """Returns a list of custom name servers.
@@ -112,10 +108,8 @@ class MxPageUtils:
         """
         route = '/configure/client_vpn_settings'
         self.browser.open_route(route)
-        return self.get_textarea_list(
-            self.browser.get_current_page(),
-            'wired_config_client_vpn_dns'
-        )
+        return self.get_textarea_list(self.browser.get_current_page(),
+                                      'wired_config_client_vpn_dns')
 
     def get_mx_client_vpn_wins_enabled(self):
         """Returns a bool of whether Client VPN WINS is enabled.
@@ -131,8 +125,7 @@ class MxPageUtils:
         self.browser.open_route(route='/configure/client_vpn_settings')
         dropdown_value = self.get_mx_dropdown_value(
             soup=self.browser.get_current_page(),
-            var_id='wired_config_client_vpn_wins_enabled',
-        )
+            var_id='wired_config_client_vpn_wins_enabled',)
         return dropdown_value == 'Enabled'
 
     def get_mx_client_vpn_secret(self):
@@ -149,8 +142,7 @@ class MxPageUtils:
         self.browser.open_route(route='/configure/router_settings')
         return self.get_input_var_value(
             soup=self.browser.get_current_page(),
-            var_id='wired_config_client_vpn_secret',
-        )
+            var_id='wired_config_client_vpn_secret',)
 
     def get_mx_client_auth_type(self):
         """Get the Client VPN authentication type
@@ -167,8 +159,7 @@ class MxPageUtils:
         self.browser.open_route(route='/configure/router_settings')
         return self.get_mx_dropdown_value(
             soup=self.browser.get_current_page(),
-            var_id='wired_config_client_vpn_auth_type',
-        )
+            var_id='wired_config_client_vpn_auth_type',)
 
     def get_mx_sentry_vpn_enabled(self):
         """Return the bool of whether Sentry VPN is enabled
@@ -184,8 +175,7 @@ class MxPageUtils:
         self.browser.open_route(route='/configure/router_settings')
         dropdown_value = self.get_mx_dropdown_value(
             soup=self.browser.get_current_page(),
-            var_id='wired_config_client_vpn_pcc_access_enabled',
-        )
+            var_id='wired_config_client_vpn_pcc_access_enabled',)
         return dropdown_value == 'Enabled'
 
     def get_mx_active_directory_enabled(self):
@@ -202,8 +192,7 @@ class MxPageUtils:
         self.browser.open_route(route='/configure/active_directory')
         dropdown_value = self.get_mx_dropdown_value(
             soup=self.browser.get_current_page(),
-            var_id='active_directory_enabled_select',
-        )
+            var_id='active_directory_enabled_select',)
         return dropdown_value == 'Authenticate users with Active Directory'
 
     def get_mx_primary_uplink(self):
@@ -220,8 +209,7 @@ class MxPageUtils:
         self.browser.open_route(route='/configure/traffic_shaping')
         return self.get_mx_dropdown_value(
             soup=self.browser.get_current_page(),
-            var_id='wired_config_primary_uplink',
-        )
+            var_id='wired_config_primary_uplink',)
 
     def get_mx_amp_enabled(self):
         """Get the bool of whether AMP is enabled
@@ -236,8 +224,7 @@ class MxPageUtils:
         self.browser.open_route(route='/configure/security_filtering')
         dropdown_value = self.get_mx_dropdown_value(
             soup=self.browser.get_current_page(),
-            var_id='wired_config_primary_uplink',
-        )
+            var_id='wired_config_primary_uplink',)
         return dropdown_value == 'Enabled'
 
     def get_mx_ids_mode(self):
@@ -254,8 +241,7 @@ class MxPageUtils:
         self.browser.open_route(route='/configure/security_filtering')
         return self.get_mx_dropdown_value(
             soup=self.browser.get_current_page(),
-            var_id='ids_mode_select',
-        )
+            var_id='ids_mode_select',)
 
     def get_mx_ids_ruleset(self):
         """Return the ids mode of ['Connectivity', 'Balanced', 'Security']
@@ -275,8 +261,7 @@ class MxPageUtils:
         self.browser.open_route(route='/configure/security_filtering')
         return self.get_mx_dropdown_value(
             soup=self.browser.get_current_page(),
-            var_id='ids_ruleset_select',
-        )
+            var_id='ids_ruleset_select',)
 
     @staticmethod
     def get_textarea_list(soup, var_id):

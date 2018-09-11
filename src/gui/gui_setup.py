@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Functions that take a Qt object and decorate it like a cake.
 
 This file exists to take much of the UI content of the MainWindow and
@@ -97,8 +96,7 @@ def login_window_setup(app):
     app.meraki_img = QLabel('<a href=https://meraki.cisco.com/products'
                             '/wireless#mr-new>MR advertisement</a>')
     app.meraki_img.setOpenExternalLinks(True)
-    app.meraki_img.setPixmap(
-        QPixmap(pyinstaller_path('src/media/new-mr.jpg')))
+    app.meraki_img.setPixmap(QPixmap(pyinstaller_path('src/media/new-mr.jpg')))
     # Background for program will be #Meraki green = #78be20
     app.setStyleSheet("background-color:#eee")
     app.setWindowTitle('MerLink - Login Window')
@@ -228,24 +226,19 @@ def main_window_vpn_vars_setup(app):
     app.idle_disconnect_spinbox.setValue(0)
     # Negative seconds aren't useful here
     app.idle_disconnect_spinbox.setMinimum(0)
-    app.idle_disconnect_layout.addWidget(
-        app.idle_disconnect_chkbox)
-    app.idle_disconnect_layout.addWidget(
-        app.idle_disconnect_spinbox)
+    app.idle_disconnect_layout.addWidget(app.idle_disconnect_chkbox)
+    app.idle_disconnect_layout.addWidget(app.idle_disconnect_spinbox)
 
     app.dns_suffix_layout = QHBoxLayout()
     app.dns_suffix_chkbox = QCheckBox("DNS Suffix?")
     app.dns_suffix_txtbox = QLineEdit('-')
-    app.dns_suffix_layout.addWidget(
-        app.dns_suffix_chkbox)
-    app.dns_suffix_layout.addWidget(
-        app.dns_suffix_txtbox)
+    app.dns_suffix_layout.addWidget(app.dns_suffix_chkbox)
+    app.dns_suffix_layout.addWidget(app.dns_suffix_txtbox)
 
     # Boolean asks of the user
     app.split_tunneled_chkbox = QCheckBox("Split-Tunnel?")
     app.remember_credential_chkbox = QCheckBox("Remember Credentials?")
-    app.use_winlogon_chkbox = QCheckBox(
-        "Use Windows Logon Credentials?")
+    app.use_winlogon_chkbox = QCheckBox("Use Windows Logon Credentials?")
 
     app.connect_btn = QPushButton("Connect")
 

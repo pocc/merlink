@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """This should run after a connection has resulted in failure."""
 
 from sys import platform
@@ -71,15 +70,13 @@ class TroubleshootVpn:
         Raises:
             In progress...
         """
-        is_online_status_code = int(
-            self.pagetext['fw_status'][
-                self.pagetext['fw_status'].find("status#") + 9])
+        is_online_status_code = int(self.pagetext['fw_status'][
+            self.pagetext['fw_status'].find("status#") + 9])
         # Default for test_results is true, so else isn't necessary
         # 0 is online, 2 is unreachable. There are probably other statuses
         if is_online_status_code != 0:
             self.test_results[0] = False
-
-        """ try except clause will be more useful if we know exactly which error
+        """ try except clause will be more useful if exact error is known.
         it causes so we can except it
         try:
         except:
@@ -100,7 +97,7 @@ class TroubleshootVpn:
             # ping 4 times every 200ms
             ping_string = "ping -c 5 -i 0.2 " + self.addr['ddns']
         ping_response = system(ping_string)
-        # Ping responses other than 0 mean failure. Error codes are OS-dependent
+        # Non-0 ping responses mean failure. Error codes are OS-dependent.
         if ping_response != 0:
             self.test_results[1] = False
             # Failure error dialog and then return
@@ -158,8 +155,8 @@ class TroubleshootVpn:
     def test5_incompatible_port_forwards(self):
         """Test for port forwards that break an IPSEC VPN.
 
-        An IPSEC connection uses UDP port 500 and UDP port 4500 if there is NAT.
-        If the following text exists, they're port forwarding ports 500 or 4500:
+        An IPSEC connection uses UDP port 500 and UDP port 4500 if there is NAT
+        If the following text exists, they're port forwarding ports 500 or 4500
         "public_port":"500"
         "public_port":"4500"
         """
@@ -175,7 +172,6 @@ class TroubleshootVpn:
         if is_forwarding_4500:
             show_error_dialog("ERROR: You are forwarding port 4500!")
             self.test_results[5] = False
-
         """
         # *** TEST 6 *** : CURRENTLY ON HOLD
         # Is user authorized for Client VPN?

@@ -21,7 +21,8 @@ PyQt5<5.11
 sip>=4.19.8
 
 # Linting
-coala-bears
+pylint
+bandit
 
 # Maintainers:
 # Grab the latest pyinstaller develop version (currently 3.4)

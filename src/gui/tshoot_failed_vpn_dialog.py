@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """After a failure to connect, this function will GUIfy the cause."""
 from PyQt5.QtWidgets import QListWidgetItem, QListWidget
 from PyQt5.QtGui import QIcon
@@ -35,12 +34,11 @@ def tshoot_failed_vpn_dialog(has_passed_validation):
 
     validation_list = QListWidget()
     validation_textlist = [
-        "Is the MX online?",
-        "Can the client ping the firewall's public IP?",
-        "Is the user behind the firewall?",
-        "Is Client VPN enabled?",
+        "Is the MX online?", "Can the client ping the firewall's public IP?",
+        "Is the user behind the firewall?", "Is Client VPN enabled?",
         "Is authentication type Meraki Auth?",
-        "Are UDP ports 500/4500 port forwarded through firewall?"]
+        "Are UDP ports 500/4500 port forwarded through firewall?"
+    ]
     # "Is the user authorized for Client VPN?",
     # For as many times as items in the validation_textlist
     for i, _ in enumerate(validation_textlist):

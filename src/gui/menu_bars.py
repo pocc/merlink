@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """This class contains the menubars of the program."""
 import sys
 
@@ -94,8 +93,9 @@ class MenuBars:
                     str(error) + '\n\nThis happens when gnome-network-manager '
                     'is not installed and vpn prefs are opened in linux.')
             else:
-                show_error_dialog(str(error) + '\n\nUnknown error: VPN '
-                                               'settings not found')
+                show_error_dialog(
+                    str(error) + '\n\nUnknown error: VPN '
+                    'settings not found')
 
     @staticmethod
     def edit_prefs_action():

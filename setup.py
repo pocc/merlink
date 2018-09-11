@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """MerLink setup.py"""
 from setuptools import setup
 
@@ -25,5 +24,4 @@ setup(
     author='Ross Jacobs',
     author_email='merlinkproject@gmail.com',
     description='cross-platform VPN client to connect to Mearki firewalls',
-    python_requires='>3.6',
-)
+    python_requires='>3.6',)

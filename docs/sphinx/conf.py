@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """ Configuration file for the Sphinx documentation builder.
 
 This file does only contain a selection of the most common options. For a
@@ -26,12 +25,10 @@ add these directories to sys.path here. If the directory is relative to the
 documentation root, use os.path.abspath to make it absolute, like shown here.
 """
 
-
 import os
 import sys
 # Assumes current directory is docs/sphinx
 sys.path.insert(0, os.path.abspath('../..'))
-
 
 # -- Project information -----------------------------------------------------
 
@@ -43,7 +40,6 @@ author = 'Ross Jacobs'
 version = '0.8'
 # The full version, including alpha/beta/rc tags
 release = '0.8.5'
-
 
 # -- General configuration ---------------------------------------------------
 
@@ -63,7 +59,6 @@ extensions = [
     'sphinx.ext.githubpages',
     'sphinx.ext.napoleon',
 ]
-
 
 # Force Sphinx to interpret docstrings as google docstring type
 napoleon_google_docstring = True
@@ -99,7 +94,6 @@ exclude_patterns = []
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 
-
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -128,12 +122,10 @@ html_static_path = ['_static']
 #
 # html_sidebars = {}
 
-
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'MerLinkdoc'
-
 
 # -- Options for LaTeX output ------------------------------------------------
 
@@ -159,20 +151,15 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'MerLink.tex', 'MerLink Documentation',
-     'Ross Jacobs', 'manual'),
+    (master_doc, 'MerLink.tex', 'MerLink Documentation', 'Ross Jacobs',
+     'manual'),
 ]
-
 
 # -- Options for manual page output ------------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    (master_doc, 'merlink', 'MerLink Documentation',
-     [author], 1)
-]
-
+man_pages = [(master_doc, 'merlink', 'MerLink Documentation', [author], 1)]
 
 # -- Options for Texinfo output ----------------------------------------------
 
@@ -180,10 +167,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'MerLink', 'MerLink Documentation',
-     author, 'MerLink', 'One line description of project.',
-     'Miscellaneous'),
+    (master_doc, 'MerLink', 'MerLink Documentation', author, 'MerLink',
+     'One line description of project.', 'Miscellaneous'),
 ]
-
 
 # -- Extension configuration -------------------------------------------------
