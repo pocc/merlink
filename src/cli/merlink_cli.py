@@ -221,8 +221,18 @@ class MainCli:
 
         return choice
 
-    @staticmethod
-    def attempt_connection(vpn_data):
+    def attempt_connection(self, vpn_data):
         """Create a VPN object and connect with it."""
         connection = VpnConnection(vpn_data=vpn_data, vpn_options={})
-        connection.attempt_vpn()
+        error_code = connection.attempt_vpn()
+        if error_code:
+            print("VPN connection unsuccessful.")
+            sys.exit()
+        else:
+            print("VPN successfully connected! Now exiting...")
+            self.tshoot_vpn_failure()
+
+    def tshoot_vpn_failure(self):
+        """Start the browser's client vpn troubleshooting method."""
+        print("Troubleshooting connection...")
+        print(self.browser.troubleshoot_client_vpn())

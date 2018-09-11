@@ -155,7 +155,7 @@ class MainWindow(QMainWindow):
             self.browser.set_active_network_index(current_network_index)
 
             self.browser.get_client_vpn_data()
-            if not self.browser.client_vpn_checks():
+            if not self.browser.is_client_vpn_enabled():
                 self.connect_btn.setEnabled(False)
                 self.vpn_name_textfield.setEnabled(False)
                 error_message = "ERROR: Client VPN is not enabled on " + \
@@ -266,7 +266,8 @@ class MainWindow(QMainWindow):
 
         # Show this when connected
         self.tray_icon.set_vpn_success()
-
+        self.status.showMessage("Status: Connected to " +
+                                self.network_dropdown.currentText() + ".")
         self.hide()
 
     def communicate_vpn_failure(self):
@@ -275,22 +276,10 @@ class MainWindow(QMainWindow):
         show_error_dialog("Connection Failure")
         self.tray_icon.set_vpn_failure()
 
-        # Start troubleshooting
-        self.status.showMessage("Status: Verifying configuration for " +
-                                self.network_dropdown.currentText() + "...")
-        self.tshoot_vpn_fail_gui()
-
-    def tshoot_vpn_fail_gui(self):
-        """Troubleshoot VPN failure and then show the user the results.
-
-        result = TroubleshootVpn(self.fw_status_text,
-                                 self.client_vpn_text,
-                                 self.current_ddns,
-                                 self.current_primary_ip)
-        tshoot_failed_vpn_dialog(result.get_test_results())
-        """
-        self.status.showMessage("Status: Ready to connect to " +
+        self.status.showMessage("Status: Connection failed to " +
                                 self.network_dropdown.currentText() + ".")
+        # Show user error text if available
+        show_error_dialog(self.browser.troubleshoot_client_vpn())
 
     def set_admin_layout(self):
         """Set the dashboard admin layout."""

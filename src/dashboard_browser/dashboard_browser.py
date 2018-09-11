@@ -504,13 +504,16 @@ class DashboardBrowser:
 
         """
         pagetext = self.browser.get_current_page().text
+        key_location = pagetext.find(key)
+        if key_location == -1:  # If key is not found
+            return -1
         value_start = pagetext.find(key) + len(key) + 3
         value_end = pagetext[value_start:].find('\"') + value_start
         value = pagetext[value_start:value_end]
-        print('For key', key, 'retrieved value', value)
+        print('For key:', key, 'retrieved value:', value)
         return value
 
-    def client_vpn_checks(self):
+    def is_client_vpn_enabled(self):
         """Check basic client vpn things."""
         # Is client vpn enabled?)
         return self.orgs_dict[self.active_org_id]['node_groups'][
@@ -554,3 +557,64 @@ class DashboardBrowser:
                     'is_admin': users_dict[key]['is_manage_user'],
                     'is_authorized': eid in users_dict[key]['authed_networks'],
                 }
+
+    def troubleshoot_client_vpn(self):
+        """
+        Sample JSON example of bad firewall ports:
+        "port_forwarding_settings":[{"ip":"10.0.0.1","allowed_ips":["any"],
+            "name":"break client vpn","proto":"tcp","public_port":"500",
+            "local_port":"500","inet":"Both"}],
+        "one_to_one_nat_settings":[{"name":"alpha","lanip":"10.0.0.1",
+            "uplink":"1","allowed_inbound":[{"proto":"udp","dst_port":["500",
+            "4500"],"allowed_ips":["any"]}],"wanip":"4.0.0.1"}]
+        """
+        # If the user is behind their firewall, they will not be able to
+        # connect (and a VPN connection would be pointless.)
+        self.open_route('/nodes/new_wired_status')
+        client_public_ip = self.get_json_value('request_ip')
+        firewall_public_ip = self.get_json_value('{"public_ip')
+        if client_public_ip == firewall_public_ip:
+            return "ERROR: You cannot connect to your firewall if you are " \
+                   "behind it!"
+        # 0 = online, 2 = temporarily offline, 3 = offline for a week+
+        firewall_status_code = self.get_json_value("status#")
+        if firewall_status_code == -1:
+            return "ERROR: There is no firewall in this network!"
+        elif firewall_status_code == '0':
+            return "ERROR: You cannot connect if your firewall is offline!"
+
+        # An IPSEC connection uses UDP port 500, and UDP port 4500 if NAT.
+        # If the following text exists, they're port forwarding these ports:
+        # '"public_port":"500"', '"public_port":"4500"'
+        self.open_route('/configure/firewall')
+        pagetext = self.browser.get_current_page().text
+        port_forwarding_ipsec_ports = re.search(
+            r'"udp","public_port":"[4]?500"', pagetext)
+        if port_forwarding_ipsec_ports:
+            return "ERROR: You are port forwarding IPSEC udp ports 500 and " \
+                   "4500!"
+        natting_ipsec_ports = re.search(
+            r'"dst_port":\[[0-9",]*"[4]?500"[0-9",]*\]', pagetext)
+        if natting_ipsec_ports:
+            return "ERROR: You are natting IPSEC udp ports 500 and " \
+                   "4500!"
+
+        # Verify whether firewall is reachable by pinging 4 times
+        # If at least one ping that made it, mark this test as successful.
+        from sys import platform
+        from os import system
+        address = self.get_client_vpn_address()
+        if platform == 'win32':  # Identifies any form of Windows
+            # ping 4 times every 1000ms
+            ping_string = "ping " + address
+        else:  # *nix of some kind
+            # ping 4 times every 200ms
+            ping_string = "ping -c 5 -i 0.2 " + address
+        ping_response = system(ping_string)
+        # Non-0 ping responses mean failure. Error codes are OS-dependent.
+        if ping_response != 0:
+            # Failure error dialog and then return
+            return "ERROR: Cannot reach device!"
+
+        return "No common misconfigurations found."
+
