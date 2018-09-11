@@ -38,7 +38,7 @@ from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QDialog
 from PyQt5.Qt import QPixmap
 
-from src.modules.os_utils import pyinstaller_path
+from src.l2tp_vpn.os_utils import pyinstaller_path
 
 
 def login_widget_setup(app):
@@ -285,9 +285,9 @@ def main_window_set_admin_layout(app):
     Hides guest user layout as we will only be connecting with one user.
     The user will see the username/obfuscated password they entered.
     """
-    app.radio_username_textfield.setText(app.browser.username)
+    app.radio_username_textfield.setText(app.login_dict['username'])
     app.radio_username_textfield.setReadOnly(True)
-    app.radio_password_textfield.setText(app.browser.password)
+    app.radio_password_textfield.setText(app.login_dict['password'])
     app.radio_password_textfield.setReadOnly(True)
 
 

@@ -23,7 +23,7 @@ from src.gui.login_dialog import LoginDialog
 from src.gui.modal_dialogs import show_error_dialog, vpn_status_dialog
 from src.gui.systray import SystrayIcon
 import src.gui.gui_setup as guify
-from src.modules.vpn_connection import VpnConnection
+from src.l2tp_vpn.vpn_connection import VpnConnection
 
 DEBUG = True
 
@@ -50,6 +50,7 @@ class MainWindow(QMainWindow):
         self.menu_widget = MenuBars(self.menuBar())
         self.menu_widget.generate_menu_bars()
         self.tray_icon = SystrayIcon(self)
+        self.login_dict = {'username': '', 'password': ''}
         guify.main_window_widget_setup(self)
         guify.main_window_user_auth_setup(self)
         guify.main_window_vpn_vars_setup(self)
@@ -64,6 +65,7 @@ class MainWindow(QMainWindow):
         login_dialog = LoginDialog()
         login_dialog.exec_()
         self.browser = login_dialog.browser
+        self.login_dict = login_dialog.login_dict
         self.setEnabled(True)
 
     def init_ui(self):
@@ -209,8 +211,8 @@ class MainWindow(QMainWindow):
                 username = self.radio_username_textfield.text()
                 password = self.radio_password_textfield.text()
             else:
-                username = self.browser.username
-                password = self.browser.password
+                username = self.login_dict['username']
+                password = self.login_dict['password']
 
             # Change status to reflect we're connecting.
             # For fast connections, you might not see this message

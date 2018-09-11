@@ -63,7 +63,7 @@ import getpass
 import docopt
 
 from src.dashboard_browser.dashboard_browser import DashboardBrowser
-from src.modules.vpn_connection import VpnConnection
+from src.l2tp_vpn.vpn_connection import VpnConnection
 from src.__version__ import __version__
 
 

@@ -27,8 +27,6 @@ class DashboardBrowser:
     https://n<shard_id>.meraki.com/o/<eid>/manage/organization/
 
     Attributes:
-        username (string): User-entered username, used to login
-        password (string): User-entered password, used to login
         browser (MechanicalSoup): Main browser object to send data to dashboard
 
         vpn_vars (dict): List of VPN variables (does the browser need access
@@ -61,12 +59,12 @@ class DashboardBrowser:
         active_org_id (int): id of active org.
         active_network_id (int): id of active network.
         is_network_admin (string): If admin has networks but no org access
+
     """
 
     def __init__(self):
+        """Initialize the browser and other class-wide variables."""
         super(DashboardBrowser, self).__init__()
-
-        # Instantiate browser
         self.browser = mechanicalsoup.StatefulBrowser(
             soup_config={'features': 'lxml'},  # Use the lxml HTML parser
             raise_on_404=True,
@@ -74,10 +72,6 @@ class DashboardBrowser:
             user_agent='Mozilla/5.0 (Nintendo Switch; ShareApplet) '
             'AppleWebKit/601.6 (KHTML, like Gecko) '
             'NF/4.0.0.5.9 NintendoBrowser/5.1.0.13341',)
-
-        # Setup browser for use by other components
-        self.username = ''
-        self.password = ''
 
         # Initialize organization dictionary {Name: Link} and
         # list for easier access. org_list is org_links.keys()
@@ -93,7 +87,7 @@ class DashboardBrowser:
         self.vpn_vars = {}
 
     def attempt_login(self, username, password):
-        """Verifies whether credentials are valid
+        """Verify whether the credentials are valid.
 
         Uses a MechanicalSoup object to send and submit username/password.
         The resultant URL is different for each auth eventuality and
@@ -106,12 +100,8 @@ class DashboardBrowser:
         Returns:
             (string): One of ('auth_error', 'sms_auth', 'auth_success')
               indicating the next login step.
+
         """
-
-        # Set up required vars
-        self.username = username
-        self.password = password
-
         # Navigate to login page
         try:
             self.browser.open(
@@ -120,8 +110,8 @@ class DashboardBrowser:
             return error
 
         form = self.browser.select_form()
-        self.browser["email"] = self.username
-        self.browser["password"] = self.password
+        self.browser["email"] = username
+        self.browser["password"] = password
         form.choose_submit('commit')  # Click login button
         self.browser.submit_selected()  # response should be '<Response [200]>'
         print("browser url in attempt login " + str(self.browser.get_url()))
@@ -147,7 +137,6 @@ class DashboardBrowser:
             tfa_code (string): The user-entered TFA string
             (should consist of 6 digits)
         """
-
         form = self.browser.select_form()
         print(self.browser.get_url())
         self.browser['code'] = tfa_code
@@ -165,7 +154,7 @@ class DashboardBrowser:
     # Fns that set up the browser for use
     ###########################################################################
     def org_data_setup(self):
-        """Count whether the admin has access to 0, 1, or 2+ orgs
+        """Set up the orgs_dict for the rest of the program.
 
         This fn will set org qty correctly and add names and urls to org_data.
 
@@ -176,9 +165,6 @@ class DashboardBrowser:
             self.org_qty: We should know how many orgs from data on this page
             self.org_data: org names and urls will be added
         """
-
-        print("in fn [count_admin_orgs]")
-
         # NOTE: Until you choose an organization, Dashboard will not let you
         # visit pages you should have access to
         page = self.browser.get_current_page()
@@ -187,7 +173,6 @@ class DashboardBrowser:
             self.bypass_org_choose_page(page)
 
         administered_orgs = self.scrape_administered_orgs()
-        print(administered_orgs)
         # Sort alphabetically by org name
         alphabetized_org_id_list = sorted(
             administered_orgs,
@@ -205,7 +190,7 @@ class DashboardBrowser:
             self.orgs_dict[self.active_org_id]['node_groups'])[0]
 
     def bypass_org_choose_page(self, page):
-        """Bypass page for admins with 2+ orgs that usually requires user input
+        """Bypass page for admins with 2+ orgs that requires user input.
 
         Admins with 2+ orgs are shown a page where they need to choose an
         organization to enter. This function will follow the link associated
@@ -215,6 +200,7 @@ class DashboardBrowser:
         Args:
             page (BeautifulSoup): Soup object that we can use to load a link
             to the first org.
+
         """
         # Get a list of all org links. href comes before a link in HTML.
         org_href_lines = page.findAll(
@@ -227,7 +213,7 @@ class DashboardBrowser:
         self.browser.open(bootstrap_url)
 
     def scrape_administered_orgs(self):
-        """Retrieve the administered_orgs json blob
+        """Retrieve the administered_orgs json blob.
 
         For orgs that are not being accessed by the browser, node_groups = {}.
         For this reason, the administered_orgs json needs to be retrieved every
@@ -261,7 +247,6 @@ class DashboardBrowser:
                 ...
             }
         """
-
         base_url = self.browser.get_url().split('/manage')[0] + '/manage'
         administered_orgs_partial = '/organization/administered_orgs'
         administered_orgs_url = base_url + administered_orgs_partial
@@ -278,7 +263,8 @@ class DashboardBrowser:
 
     @staticmethod
     def filter_org_data(org_dict, network_types):
-        """
+        """Filter the specifie dict by the network types provided.
+
         Args:
             org_dict (dict): A dict that looks like: administered_orgs[org_id].
             network_types (list): List of strings of target network types
@@ -288,8 +274,8 @@ class DashboardBrowser:
             node_groups types not included in network_types
 
             Also changes network_eid to network_id
-        """
 
+        """
         filtered_dict = dict(org_dict)
         # Remove all networks so we can manually add the ones we want
         filtered_dict['node_groups'] = {}
@@ -311,9 +297,8 @@ class DashboardBrowser:
 
     # Fns that operate independent of which URL the browser is at
     ###########################################################################
-
     def get_org_names(self):
-        """Get a list of org names"""
+        """Get a list of org names."""
         return [self.orgs_dict[org_id]['name'] for org_id in self.orgs_dict]
 
     def get_active_org_index(self):
@@ -336,7 +321,7 @@ class DashboardBrowser:
             self.orgs_dict[self.active_org_id] = filtered_org_dict
 
     def set_active_network_index(self, network_index):
-        """Sets the active network by its index."""
+        """Set the active network by its index."""
         self.active_network_id = list(
             self.orgs_dict[self.active_org_id]['node_groups'])[network_index]
 
@@ -345,7 +330,7 @@ class DashboardBrowser:
         return self.orgs_dict[self.active_org_id]['name']
 
     def get_network_names(self):
-        """Get the network name for every network in the active org"""
+        """Get the network name for every network in the active org."""
         networks = self.orgs_dict[self.active_org_id]['node_groups']
         print('networks', networks)
         return [networks[network_id]['n'] for network_id in networks]
@@ -356,7 +341,7 @@ class DashboardBrowser:
             self.active_network_id]['n']
 
     def get_page_links(self):
-        """Get all page links from current page's pagetext"""
+        """Get all page links from current page's pagetext."""
         pagetext = self.browser.get_current_page().text
         json_text = re.findall(
             r'window\.initializeSideNavigation\([ -(*-~\r\n]*\)',
@@ -368,8 +353,8 @@ class DashboardBrowser:
             for menu in ('Monitor', 'Configure'):
                 category = json_dict['tab_menu']['tabs'][tab_menu]['name']
                 page_url_dict[category] = {}
-                qty_tabs = len(json_dict['tab_menu']['tabs'][tab_menu][
-                                   'menus'][menu]['items'])
+                qty_tabs = len(json_dict['tab_menu']['tabs'][
+                    tab_menu]['menus'][menu]['items'])
                 for tab in range(qty_tabs):
                     name = json_dict['tab_menu']['tabs'][tab_menu]['menus'][
                         menu]['items'][tab]['name']
@@ -381,7 +366,7 @@ class DashboardBrowser:
 
     @staticmethod
     def get_mkiconf_vars(pagetext):
-        """Most dashboard pages have mkiconf vars. This fn returns them.
+        """Return the mkiconf vars found on most dashboard pages.
 
         These variables are largely the same as administered orgs, but could
         be useful elsewhere. Keeping this here is in case I could use this of
@@ -400,6 +385,7 @@ class DashboardBrowser:
 
         Returns:
             (dict) All available Mkiconf vars.
+
         """
         mki_lines = re.findall(' Mkiconf[ -:<-~]*;', pagetext)
         mki_dict = {}
@@ -418,7 +404,7 @@ class DashboardBrowser:
         return mki_dict
 
     def open_route(self, route):
-        """Redirects the browser to a page, given its route
+        """Redirect the browser to a page, given its route.
 
         Each page in dashboard has a route. If we're already at the page we
         need to be at to scrape, don't use the browser to open a page.
@@ -446,7 +432,7 @@ class DashboardBrowser:
                       + route, 'and failed.', error)
 
     def get_node_settings_json(self):
-        """The CSUI JSON contains most node data (route:/configure/settings)"""
+        """Return the JSON containing node-data(route:/configure/settings)."""
         self.open_route('/configure/settings')
         current_url = self.browser.get_url()
         cookiejar = self.browser.get_cookiejar()
@@ -454,7 +440,7 @@ class DashboardBrowser:
         return json.loads(json_text)
 
     def get_client_vpn_data(self):
-        """Return client VPN variables"""
+        """Return client VPN variables."""
         # If one of the expected keys has not been set in this network dict,
         # set variables. Otherwise, we're pulling data for the same network.
         if 'client_vpn_enabled' not in self.orgs_dict[self.active_org_id][
@@ -483,7 +469,7 @@ class DashboardBrowser:
                     self.active_network_id][var] = var_dict['wdc'][var]
 
     def get_client_vpn_psk(self):
-        """Return the Client VPN PSK"""
+        """Return the Client VPN PSK."""
         psk = self.orgs_dict[self.active_org_id]['node_groups'][
             self.active_network_id]['client_vpn_secret']
         return psk
@@ -506,7 +492,7 @@ class DashboardBrowser:
         return address
 
     def get_json_value(self, key):
-        """Returns a value for a key in a JSON blob in the HTML of a page.
+        """Return a value for a key in a JSON blob in the HTML of a page.
 
         Args:
             key (string): The key we want the value for.
@@ -515,6 +501,7 @@ class DashboardBrowser:
 
         Returns:
             (String): The value of the passed-in key.
+
         """
         pagetext = self.browser.get_current_page().text
         value_start = pagetext.find(key) + len(key) + 3
@@ -524,13 +511,13 @@ class DashboardBrowser:
         return value
 
     def client_vpn_checks(self):
-        """Check basic client vpn things"""
+        """Check basic client vpn things."""
         # Is client vpn enabled?)
         return self.orgs_dict[self.active_org_id]['node_groups'][
             self.active_network_id]['client_vpn_enabled']
 
     def get_network_users(self):
-        """Get the network users from
+        """Get the network users.
 
         Location: Network-wide > Users
 

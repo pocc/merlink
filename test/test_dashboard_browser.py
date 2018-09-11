@@ -1,17 +1,22 @@
 # -*- coding: utf-8 -*-
 
-"""Test dashboard browser class"""
+"""Test dashboard browser class."""
 import unittest
 from src.dashboard_browser.dashboard_browser import DashboardBrowser
 
 
 class TestDashboardBrowser(unittest.TestCase):
-    def setUp(self):
+    """Test the dashboard browser class."""
+
+    @staticmethod
+    def set_up():
+        """Set up the test."""
         pass
 
-    def something(self):
-        DashboardBrowser.org_data_setup()
-        """
+    @staticmethod
+    def test_a_fn():
+        """Test these functions... eventually.
+
         DataScraper.bypass_org_choose_page()
         DataScraper.filter_org_data()
         DataScraper.get_active_network_url()
@@ -28,6 +33,8 @@ class TestDashboardBrowser(unittest.TestCase):
         DataScraper.scrape_psk()
         DataScraper.set_active_org_index()
         """
+        browser = DashboardBrowser()
+        browser.org_data_setup()
 
 
 if __name__ == '__main__':

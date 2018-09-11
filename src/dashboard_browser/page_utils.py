@@ -4,16 +4,18 @@
 
 class MxPageUtils:
     """Utilities to scrape elements from / input text into a page.
+
     Requirements:
-        * Network page is loaded in the browser
+        * A page from the target network is loaded in the browser
         * Browser is passed into this function
     """
 
     def __init__(self, browser):
+        """Get the browser and set it as a class variable."""
         self.browser = browser
 
     def get_mx_vlans_configured(self):
-        """Get the bool of whether VLANs are enabled
+        """Get the bool of whether VLANs are enabled.
 
         Location: Security Appliance > Addressing & VLANs > Routing
         """
@@ -24,7 +26,7 @@ class MxPageUtils:
         return dropdown_value == 'Enabled'
 
     def get_mx_ddns_enabled(self):
-        """Get the bool of whether DDNS is enabled
+        """Get the bool of whether DDNS is enabled.
 
         Location: Security Appliance > Addressing & VLANs > Dynamic DNS
         """
@@ -35,16 +37,16 @@ class MxPageUtils:
         return dropdown_value == 'Enabled'
 
     def get_mx_ddns_configurable_substring(self):
-        """Users can set the first part of an appliance's ddns. Scrape that.
+        """Scrape the first part of an appliance's ddns that users can set.
 
         Location: Security Appliance > Addressing & VLANs > Dynamic DNS
 
         Sample HTML for DDNS name:
             <input id="wired_config_dynamic_dns_label" maxlength="32"
             name="wired_config[dynamic_dns_label]" size="25" type="text"
-            value="network-name-wired">
+            value="networkname-wired">
 
-        Sample ddns from above HTML: network-name-wired-abcdefghij.dynamic-m.com
+        Sample ddns from above HTML: networkname-wired-abcdefghij.dynamic-m.com
         """
         self.browser.open_route(route='/configure/router_settings')
         return self.get_input_var_value(
@@ -97,7 +99,7 @@ class MxPageUtils:
             var_id='wired_config_client_vpn_dns_mode',)
 
     def get_mx_custom_name_servers(self):
-        """Returns a list of custom name servers.
+        r"""Return a list of custom name servers.
 
         Location: Security Appliance > Client VPN > Client VPN
 
@@ -112,15 +114,15 @@ class MxPageUtils:
                                       'wired_config_client_vpn_dns')
 
     def get_mx_client_vpn_wins_enabled(self):
-        """Returns a bool of whether Client VPN WINS is enabled.
+        """Return a bool of whether Client VPN WINS is enabled.
 
         Location: Security Appliance > Client VPN > Client VPN
 
         Sample HTML:
             <select id="wired_config_client_vpn_wins_enabled" name=
-            "wired_config[client_vpn_wins_enabled]"><option value="true">Specify
-             WINS servers...</option><option value="false" selected="selected">
-            No WINS servers</option></select>
+            "wired_config[client_vpn_wins_enabled]"><option value="true">
+            Specify WINS servers...</option><option value="false"
+            selected="selected">No WINS servers</option></select>
         """
         self.browser.open_route(route='/configure/client_vpn_settings')
         dropdown_value = self.get_mx_dropdown_value(
@@ -129,7 +131,7 @@ class MxPageUtils:
         return dropdown_value == 'Enabled'
 
     def get_mx_client_vpn_secret(self):
-        """Get Client VPN secret
+        """Get Client VPN secret.
 
         Location: Security Appliance > Client VPN > Client VPN
 
@@ -145,7 +147,7 @@ class MxPageUtils:
             var_id='wired_config_client_vpn_secret',)
 
     def get_mx_client_auth_type(self):
-        """Get the Client VPN authentication type
+        """Get the Client VPN authentication type.
 
         Location: Security Appliance > Client VPN > Client VPN
 
@@ -162,7 +164,7 @@ class MxPageUtils:
             var_id='wired_config_client_vpn_auth_type',)
 
     def get_mx_sentry_vpn_enabled(self):
-        """Return the bool of whether Sentry VPN is enabled
+        """Return the bool of whether Sentry VPN is enabled.
 
         Location: Security Appliance > Client VPN > Client VPN
 
@@ -196,7 +198,7 @@ class MxPageUtils:
         return dropdown_value == 'Authenticate users with Active Directory'
 
     def get_mx_primary_uplink(self):
-        """Return the MX's primary uplink of ['WAN1', 'WAN2', 'Cellular']
+        """Return the MX's primary uplink of ['WAN1', 'WAN2', 'Cellular'].
 
         Location: Security Appliance > Traffic Shaping > Uplink selection
 
@@ -212,12 +214,13 @@ class MxPageUtils:
             var_id='wired_config_primary_uplink',)
 
     def get_mx_amp_enabled(self):
-        """Get the bool of whether AMP is enabled
+        """Get the bool of whether AMP is enabled.
 
         Location: Security Appliance > Threat Protection > AMP
 
         Sample HTML:
-            <select id="scanning_enabled_select" name="scanning_enabled_select">
+            <select id="scanning_enabled_select"
+            name="scanning_enabled_select">
                 <option value="true" selected="selected">Enabled</option>
                 <option value="false">Disabled</option></select>
         """
@@ -228,7 +231,7 @@ class MxPageUtils:
         return dropdown_value == 'Enabled'
 
     def get_mx_ids_mode(self):
-        """Return the ids mode of ['Disabled', 'Detection', 'Prevention']
+        """Return the ids mode of ['Disabled', 'Detection', 'Prevention'].
 
         Location: Security Applaiance > Threat Protection > IDS/IPS
 
@@ -244,7 +247,7 @@ class MxPageUtils:
             var_id='ids_mode_select',)
 
     def get_mx_ids_ruleset(self):
-        """Return the ids mode of ['Connectivity', 'Balanced', 'Security']
+        """Return the ids mode of ['Connectivity', 'Balanced', 'Security'].
 
         Location: Security Applaiance > Threat Protection > IDS/IPS
 
@@ -265,7 +268,7 @@ class MxPageUtils:
 
     @staticmethod
     def get_textarea_list(soup, var_id):
-        """Return a list of values (split by \n) from a <textarea>."""
+        r"""Return a list of values (split by \\n) from a <textarea>."""
         textarea_list = soup.find("textarea", {'id': var_id}).text.split('\n')
         # Remove all '' elements. First element of this list will be ''
         # If there are no textarea elements, we would get ['', '', '']
@@ -274,7 +277,7 @@ class MxPageUtils:
 
     @staticmethod
     def get_mx_dropdown_value(soup, var_id):
-        """Get the value from variables starting with 'wired_config'
+        """Get the value from variables starting with 'wired_config'.
 
         Use when you see a dropdown in this HTML format:
         <select id="var-id" name="var-name">
@@ -287,7 +290,8 @@ class MxPageUtils:
             soup (BeautifulSoup): A soup object containing the HTML
             var_id (string): the id of a var, used to find its value
         Returns:
-            (string): The text of the
+            (string): The text of the dropdown value.
+
         """
         dropdown = soup.find("select", {"id": var_id})
         dropdown_value = dropdown.find("option", selected=True).text
@@ -295,7 +299,7 @@ class MxPageUtils:
 
     @staticmethod
     def get_input_var_value(soup, var_id):
-        """Get the value from text input variables
+        """Get the value from text input variables.
 
         Use when you see this HTML format:
          <input id="wired_config_var" ... value="value">
@@ -305,10 +309,11 @@ class MxPageUtils:
             var_id (string): the id of a var, used to find its value
         Returns:
             (string): The value of the variable
+
         """
         var_value = soup.find('input', {'id': var_id}).get('value')
         return var_value
 
     def save_page(self):
         """Click the 'Save' button after making a change."""
-        print("Not implemented yet!", self.save_page())
+        print("Not implemented yet!", self.save_page)

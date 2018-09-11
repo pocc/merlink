@@ -37,6 +37,7 @@ class LoginDialog(QDialog):
         super(LoginDialog, self).__init__()
         self.browser = DashboardBrowser()
         self.tfa_success = False
+        self.login_dict = {'username': '', 'password': ''}
         self.show_login()
 
     def show_login(self):
@@ -67,8 +68,9 @@ class LoginDialog(QDialog):
         to self.close. It may look weird if the login window closes due to
         the user incorrectly entering user/pass and then reopens
         """
-        result = self.browser.attempt_login(self.username_field.text(),
-                                            self.password_field.text())
+        username = self.username_field.text()
+        password = self.password_field.text()
+        result = self.browser.attempt_login(username, password)
 
         if result == 'auth_error':
             show_error_dialog('ERROR: Invalid username or password.')
@@ -77,6 +79,8 @@ class LoginDialog(QDialog):
             self.tfa_dialog_setup()
             self.close()
         elif result == 'auth_success':
+            self.login_dict['username'] = username
+            self.login_dict['password'] = password
             self.close()
         elif 'ConnectionError' in str(type(result)):
             show_error_dialog("""ERROR: No internet connection!\n\nAccess to

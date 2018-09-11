@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Settings file for dmgbuild
+"""Settings file for dmgbuild.
 
 Note that as this is a python file, any python can be used.
 Use like this: dmgbuild -s settings.py "Test Volume" test.dmg
@@ -30,7 +30,8 @@ import biplist
 
 CURRENT_DIR = getcwd()
 print("dmgbuild directory: " + CURRENT_DIR)
-application = defines.get('app', '/Applications/Merlink.app')
+dest = '/Applications/Merlink.app'
+application = defines.get('app', dest)  # pylint:disable=undefined-variable
 appname = path.basename(application)
 
 
@@ -55,7 +56,7 @@ def icon_from_app(app_path):
 volume_name = 'MerLink'
 
 # Volume format (see hdiutil create -help)
-format = defines.get('format', 'UDBZ')
+format = defines.get('format', 'UDBZ')  # pylint:disable=undefined-variable
 
 # Volume size
 # size = defines.get('size', None)
@@ -68,9 +69,9 @@ symlinks = {'Applications': '/Applications'}
 
 # Volume icon
 #
-# You can either define icon, in which case that icon file will be copied to the
-# image, *or* you can define badge_icon, in which case the icon file you specify
-# will be used to badge the system's Removable Disk icon
+# You can either define icon, in which case that icon file will be copied to
+# the image, *or* you can define badge_icon, in which case the icon file you
+#  specifywill be used to badge the system's Removable Disk icon.
 #
 # badge_icon = /path/to/icon
 badge_icon = icon_from_app(CURRENT_DIR + '/dist/merlink.app')

@@ -13,19 +13,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""This file is an entry point to start the controller (MVC) for merlink"""
+"""Entry point to for MerLink."""
 import sys
 
 from PyQt5.QtWidgets import QApplication
 
 from src.gui.main_window import MainWindow
 from src.cli.merlink_cli import MainCli
-from src.modules.os_utils import kill_duplicate_applications
+from src.l2tp_vpn.os_utils import kill_duplicate_applications
 
 
 def main():
-    """This program will connect desktop clients to Meraki firewalls
-    Build this with './venv/bin/python3 setup.py build' from project root"""
+    """Connect desktop clients to Meraki firewalls.
+
+    Build this with './venv/bin/python3 setup.py build' from project root
+    """
     kill_duplicate_applications('merlink')
 
     # If there are no command line args, start GUI; otherwise CLI

@@ -19,18 +19,16 @@ PYTHONPATH := ".:$(VENDORPATH)"
 PYTHON := PYTHONPATH=$(PYTHONPATH) "$(shell which python3)"
 VENDOR := $(PYTHON) -m pip install --target "$(VENDORPATH)"
 PROJDIR := "$(shell pwd)"
+PYTHONFILES := merlink.py src docs pkg test
 
 all: build
 
 clean:
 	$(RM) -r ./build ./dist
 
-lint: vendor
-    $(PYTHON) -m pylint ./
-
-# Linting for major releases
-release:
-    coala
+lint: $(PYTHONFILES)
+	$(PYTHON) -m pylint $(PYTHONFILES)
+	$(PYTHON) -m flake8 $(PYTHONFILES)
 
 # TODO
 test:
