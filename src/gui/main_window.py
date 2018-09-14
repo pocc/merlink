@@ -30,7 +30,7 @@ class MainWindow(QMainWindow):
     """Main Window is the controlling class for the GUI.
 
     Attributes:
-        browser (DashboardBrowser): Browser used to store user credentials
+        browser (ClientVpnBrowser): Browser used to store user credentials
         menu_widget (MenuBars): Used to tie the menu bars to the MainWindow
         tray_icon (SystrayIcon): Used to tie the tray icon to the MainWindow
 
@@ -62,7 +62,7 @@ class MainWindow(QMainWindow):
         self.setEnabled(False)
         login_dialog = LoginDialog()
         login_dialog.exec_()
-        self.browser = login_dialog.browser
+        self.browser.browser = login_dialog.browser.browser
         self.login_dict = login_dialog.login_dict
         self.setEnabled(True)
 
