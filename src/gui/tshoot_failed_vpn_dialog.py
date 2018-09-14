@@ -17,7 +17,7 @@ from PyQt5.QtWidgets import QListWidgetItem, QListWidget
 from PyQt5.QtGui import QIcon
 
 # Local modules
-from src.vpn_scripts import pyinstaller_path
+from src.l2tp_vpn.os_utils import pyinstaller_path
 
 
 def tshoot_failed_vpn_dialog(has_passed_validation):

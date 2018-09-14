@@ -17,7 +17,7 @@ import sys
 import subprocess
 from os import system
 
-from src.vpn_scripts import pyinstaller_path
+from src.l2tp_vpn.os_utils import pyinstaller_path
 
 
 class VpnConnection:
