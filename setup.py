@@ -23,5 +23,5 @@ setup(
     license='Apache 2.0',
     author='Ross Jacobs',
     author_email='merlinkproject@gmail.com',
-    description='Cross-platform VPN client to connect to Mearki firewalls',
+    description='Cross-platform VPN client to connect to Meraki firewalls',
     python_requires='>=3.5',)

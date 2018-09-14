@@ -45,6 +45,7 @@ help:
 	@echo "PACKAGING"
 	@echo "  install:     Install locally to dist/merlink/"
 	@echo "  package:     Create an exe/dmg/deb+rpm for this OS in build/"
+	@echo "  archive      Compress merlink into tar (POSIX systems) or zip"
 	@echo "  docs:        Compile documentation using sphinx with `make html`"
 	@echo "  publish:     Upload to PyPy"
 
@@ -89,11 +90,11 @@ endif
 venv: venv/bin/activate configure
 PYTHON = venv/bin/python3
 ifeq ("$(UNAME_S)", "Linux")
-	VENV_ACTIVATE := $(shell source $(VENV_NAME))
+	VENV_ACTIVATE = $(shell source $(VENV_NAME))
 else ifeq ("$(UNAME_S)", "Darwin")
-	VENV_ACTIVATE := $(shell source $(VENV_NAME))
+	VENV_ACTIVATE = $(shell source $(VENV_NAME))
 else
-	VENV_ACTIVATE := $(shell $(VENV_NAME))
+	VENV_ACTIVATE = $(shell $(VENV_NAME))
 endif
 
 
@@ -105,11 +106,6 @@ endif
 	$(PYTHON) -m pip install -e .
 	$(PYTHON) -m pip install -Ur requirements.txt
 	$(VENV_ACTIVATE)
-
-
-all: install
-install: venv
-	$(PYTHON) -m PyInstaller -y merlink.spec
 
 
 clean:
@@ -127,8 +123,18 @@ clean_all: clean
     #################
 
 
+all: install
+install: venv
+	$(PYTHON) -m PyInstaller -y merlink.spec
+
+
 package: install
 	$(PYTHON) pkg/make_package.py
+
+
+archive: setup.py
+	$(PYTHON) setup.py sdist
+
 
 # Trigger Sphinx's makefile `make html`
 docs:

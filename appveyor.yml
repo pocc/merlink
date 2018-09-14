@@ -30,6 +30,9 @@ matrix:
   allow_failures:
     - platform: x64
 
+install:
+  - ps: choco install make
+
 build_script:
   - ps: make package
 

@@ -93,11 +93,11 @@ def login_widget_setup(app):
 def login_window_setup(app):
     """Set options for the login window app."""
     app.setModal(True)  # Make the login window prevent program usage
-    app.meraki_img = QLabel('<a href=https://meraki.cisco.com/products'
-                            '/wireless#mr-new>MR advertisement</a>')
+    app.meraki_img = QLabel()
     app.meraki_img.setOpenExternalLinks(True)
-    app.meraki_img.setPixmap(QPixmap(pyinstaller_path('src/media/new-mr.jpg')))
-    # Background for program will be #Meraki green = #78be20
+    pixmap = QPixmap(pyinstaller_path('src/media/cloud_miles.png'))
+    app.meraki_img.setPixmap(pixmap)
+    # Background for program should be #Meraki green = #78be20
     app.setStyleSheet("background-color:#eee")
     app.setWindowTitle('MerLink - Login Window')
 
@@ -112,9 +112,10 @@ def login_set_layout(app):
     # Create a widget to contain the login layout.
     # This allows us to paint the background of the widget
     login_widget = QWidget(app)
-    login_widget.setStyleSheet("background-color:white")
+    login_widget.setStyleSheet("background-color:#fff")
     # Create labels and textboxes to form a login layout
     layout_login = QVBoxLayout(login_widget)
+    layout_login.addStretch()
     layout_login.addWidget(app.heading)
     layout_login.addWidget(app.username_lbl)
     layout_login.addWidget(app.username_field)
@@ -122,6 +123,7 @@ def login_set_layout(app):
     layout_login.addWidget(app.password_field)
     layout_login.addWidget(app.login_btn)
     layout_login.addLayout(layout_login_options)
+    layout_login.addStretch()
     layout_login.addStretch()
     layout_login.addWidget(app.about_lbl)
 
