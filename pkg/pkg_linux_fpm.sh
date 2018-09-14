@@ -56,7 +56,7 @@ echo "Working directory before using fpm: $(pwd)"
 # "NetworkManager", so we need separate dependency lists
 # folders (usr, opt) MUST be the last arguments
 # There are no config files, thus --deb-no-default-config-files
-fpm --output-type deb "${OPTIONS}" -p ${NAME}-${VERSION}_x64.deb \
+fpm --output-type deb ${OPTIONS} -p ${NAME}-${VERSION}_x64.deb \
     --description 'Cross-platform VPN editor' \
     --deb-no-default-config-files \
     --deb-priority optional \
@@ -66,7 +66,7 @@ fpm --output-type deb "${OPTIONS}" -p ${NAME}-${VERSION}_x64.deb \
     --deb-suggests strongswan-plugin-openssl\
     opt usr
 # redhat doesn't believe in suggests. There's a suggestion I'd like to make.
-fpm --output-type rpm "${OPTIONS}" -p ${NAME}-${VERSION}_x64.rpm \
+fpm --output-type rpm ${OPTIONS} -p ${NAME}-${VERSION}_x64.rpm \
     --description 'Cross-platform VPN editor' \
     --depends NetworkManager \
     --depends NetworkManager-l2tp\

@@ -19,11 +19,18 @@
 .PHONY: package install docs publish
 
 VENV_NAME = venv/bin/activate
-PYTHON := $(shell which python3)
-WHICH_PIP := $(shell which pip)
 PYTHONFILES := merlink.py src/ docs/ test/ pkg/
 ROOTDIR := "$(shell pwd)"
 UNAME_S := "$(shell uname -s)"
+ifeq (UNAME_S, "Linux")
+	WHICH = shell which
+else ifeq (UNAME_S, "Darwin")
+	WHICH = shell which
+else
+	WHICH = shell get-command 2> $null
+endif
+PYTHON := $(WHICH) python3
+WHICH_PIP := $(WHICH) pip
 
 
     #############
@@ -85,9 +92,11 @@ ifeq ("$(WHICH_PIP)","")
 	python get-pip.py
 endif
 	$(PYTHON) -m pip install -U pip
+	$(PYTHON) -m pip install virtualenv
 
 
-venv: venv/bin/activate configure
+
+venv: configure venv/bin/activate
 PYTHON = venv/bin/python3
 ifeq ("$(UNAME_S)", "Linux")
 	VENV_ACTIVATE = $(shell source $(VENV_NAME))
