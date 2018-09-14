@@ -13,17 +13,107 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Main Window is the controlling class for the GUI."""
+import sys
+
 from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtWidgets import QDialog
 
-from src.dashboard_browser.client_vpn_browser import ClientVpnBrowser
-from src.gui.menu_bars import MenuBars
-from src.gui.login_dialog import LoginDialog
-from src.gui.modal_dialogs import show_error_dialog, vpn_status_dialog
-from src.gui.systray import SystrayIcon
-import src.gui.gui_setup as guify
-from src.l2tp_vpn.vpn_connection import VpnConnection
+import merlink.main_window_ui as guify
+from .dashboard_browser import ClientVpnBrowser, DashboardBrowser
+from .main_window_ui import MenuBars, SystrayIcon, show_error_dialog
+from .vpn_connection import VpnConnection
 
-DEBUG = True
+
+class LoginDialog(QDialog):
+    """This class provides dialog GUI elements.
+
+    Attributes:
+        browser (MechanicalSoup): A browser in which to store user credentials.
+
+    """
+
+    def __init__(self):
+        """Create UI vars necessary for login window to be shown."""
+        super(LoginDialog, self).__init__()
+        self.browser = DashboardBrowser()
+        self.tfa_success = False
+        self.login_dict = {'username': '', 'password': ''}
+        self.show_login()
+
+    def show_login(self):
+        """Show the login window and records if the login button is pressed.
+
+        Uses methods stored in gui_setup to decorate the dialog object.
+        If the login button is pressed, check whether the credentials are
+        valid by sending them to the virtual browser.
+        """
+        # Decorate login window with gui functions
+        guify.login_widget_setup(self)
+        guify.login_window_setup(self)
+        guify.login_set_layout(self)
+        guify.login_tfa_set_layout(self)
+
+        self.show()
+        self.login_btn.clicked.connect(self.check_login_attempt)
+
+    def get_login_info(self):
+        """Return the values currently in the user/pass text fields."""
+        return self.username_field.text(), self.password_field.text()
+
+    def check_login_attempt(self):
+        """Verify whether entered username/password combination is correct.
+
+        NOTE: Keeping this code in here even though it's interface-independent.
+        If we don't keep this here, then the login button will need to connect
+        to self.close. It may look weird if the login window closes due to
+        the user incorrectly entering user/pass and then reopens
+        """
+        username = self.username_field.text()
+        password = self.password_field.text()
+        result = self.browser.attempt_login(username, password)
+
+        if result == 'auth_error':
+            guify.show_error_dialog('ERROR: Invalid username or password.')
+            self.password_field.setText('')
+        elif result == 'sms_auth':
+            self.tfa_dialog_setup()
+            self.close()
+        elif result == 'auth_success':
+            self.login_dict['username'] = username
+            self.login_dict['password'] = password
+            self.close()
+        elif result == 'ConnectionError':
+            guify.show_error_dialog("""ERROR: No internet
+            connection!\n\nAccess to
+                the internet is required for MerLink to work. Please check
+                your network settings and try again. Now exiting...""")
+            sys.exit()
+        else:
+            show_error_dialog("ERROR: Invalid authentication type!")
+
+    def tfa_dialog_setup(self):
+        """Create and execute the UI for the TFA dialog."""
+        # Create dialog window with login window object
+        guify.tfa_widget_setup(self)
+        guify.tfa_set_layout(self)
+
+        self.yesbutton.clicked.connect(self.tfa_verify)
+        self.nobutton.clicked.connect(self.twofactor_dialog.close)
+        while not self.tfa_success:
+            self.twofactor_dialog.exec_()
+
+    def tfa_verify(self):
+        """Submit the tfa code and communicate success/failure to user.
+
+        This fn is partially required because we need a function to connect
+        to the button click signal.
+        """
+        self.tfa_success = self.browser.tfa_submit_info(
+            self.get_twofactor_code.text())
+        if self.tfa_success:
+            self.twofactor_dialog.accept()
+        else:
+            guify.show_error_dialog('ERROR: Invalid verification code!')
 
 
 class MainWindow(QMainWindow):
@@ -159,7 +249,7 @@ class MainWindow(QMainWindow):
                 error_message = "ERROR: Client VPN is not enabled on " + \
                                 current_network + ".\n\nPlease enable it and"\
                                 + " try again."
-                show_error_dialog(error_message)
+                guify.show_error_dialog(error_message)
                 self.status.showMessage("Status: Client VPN is not enabled on "
                                         "'" + current_network + "'. Please "
                                         "enable it and try again.")
@@ -232,14 +322,15 @@ class MainWindow(QMainWindow):
             self.split_tunneled_chkbox.checkState(),
             self.remember_credential_chkbox.checkState(),
             self.use_winlogon_chkbox.checkState(),
-            DEBUG,
+            1,
         ]
         return vpn_options
 
     def communicate_vpn_success(self):
         """Let the user know that they are connected."""
         self.status.showMessage('Status: Connected')
-        vpn_status_dialog("Connection Success", "Successfully Connected!")
+        guify.vpn_status_dialog("Connection Success",
+                                "Successfully Connected!")
 
         # Show this when connected
         self.tray_icon.set_vpn_success()
@@ -250,13 +341,13 @@ class MainWindow(QMainWindow):
     def communicate_vpn_failure(self):
         """Let the user know that the VPN connection failed."""
         self.status.showMessage('Status: Connection Failed')
-        show_error_dialog("Connection Failure")
+        guify.show_error_dialog("Connection Failure")
         self.tray_icon.set_vpn_failure()
 
         self.status.showMessage("Status: Connection failed to " +
                                 self.network_dropdown.currentText() + ".")
         # Show user error text if available
-        show_error_dialog(self.browser.troubleshoot_client_vpn())
+        guify.show_error_dialog(self.browser.troubleshoot_client_vpn())
 
     def set_admin_layout(self):
         """Set the dashboard admin layout."""

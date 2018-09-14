@@ -61,9 +61,9 @@ import getpass
 
 import docopt
 
-from src.dashboard_browser.client_vpn_browser import ClientVpnBrowser
-from src.l2tp_vpn.vpn_connection import VpnConnection
-from src.__version__ import __version__
+from .dashboard_browser import ClientVpnBrowser
+from .vpn_connection import VpnConnection
+from . import __version__
 
 
 class MainCli:
@@ -87,7 +87,7 @@ class MainCli:
         # Determine which routine to do based on arguments
         if self.args['--version']:
             # 48w made by hand with ASCII characters
-            with open("src/media/ascii-miles-48w.txt") as miles:
+            with open("merlink/media/ascii-miles-48w.txt") as miles:
                 miles = miles.read().replace('version', __version__.center(7))
                 print('\n' + miles + '\n')
             sys.exit()

@@ -19,7 +19,7 @@
 .PHONY: package install docs publish
 
 VENV_NAME = venv/bin/activate
-PYTHONFILES := merlink.py src/ docs/ test/ pkg/
+PYTHONFILES := merlink.py merlink/
 ROOTDIR := "$(shell pwd)"
 UNAME_S := "$(shell uname -s)"
 ifeq (UNAME_S, "Linux")
@@ -96,7 +96,7 @@ endif
 
 
 
-venv: configure venv/bin/activate
+venv: venv/bin/activate configure
 PYTHON = venv/bin/python3
 ifeq ("$(UNAME_S)", "Linux")
 	VENV_ACTIVATE = $(shell source $(VENV_NAME))
@@ -138,7 +138,7 @@ install: venv
 
 
 package: install
-	$(PYTHON) pkg/make_package.py
+	$(PYTHON) pkg/make_packages.py
 
 
 archive: setup.py

@@ -23,10 +23,12 @@ files again (not a route I chose to go).
 Args (for any function):
     app (Qt Object): The window/dialog object that this function decorates.
 """
+import webbrowser
+import sys
+
 from PyQt5.QtWidgets import QFrame
 from PyQt5.QtWidgets import QStatusBar
 from PyQt5.QtWidgets import QComboBox
-from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QHBoxLayout
 from PyQt5.QtWidgets import QRadioButton
 from PyQt5.QtWidgets import QCheckBox
@@ -34,11 +36,17 @@ from PyQt5.QtWidgets import QSpinBox
 from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtWidgets import QWidget
-from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QDialog
+from PyQt5.QtWidgets import QLabel
+from PyQt5.QtWidgets import QVBoxLayout
+from PyQt5.QtWidgets import QTextEdit
+from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QAction, QMenu, QSystemTrayIcon
+from PyQt5.QtGui import QIcon, QFont
 from PyQt5.Qt import QPixmap
 
-from src.l2tp_vpn.os_utils import pyinstaller_path
+from .os_utils import open_vpnsettings
+from .os_utils import pyinstaller_path
 
 
 def login_widget_setup(app):
@@ -95,7 +103,7 @@ def login_window_setup(app):
     app.setModal(True)  # Make the login window prevent program usage
     app.meraki_img = QLabel()
     app.meraki_img.setOpenExternalLinks(True)
-    pixmap = QPixmap(pyinstaller_path('src/media/cloud_miles.png'))
+    pixmap = QPixmap(pyinstaller_path('media/cloud_miles.png'))
     app.meraki_img.setPixmap(pixmap)
     # Background for program should be #Meraki green = #78be20
     app.setStyleSheet("background-color:#eee")
@@ -304,3 +312,277 @@ def main_window_set_guest_layout(app):
     app.radio_username_textfield.setReadOnly(False)
     app.radio_password_textfield.clear()
     app.radio_password_textfield.setReadOnly(False)
+
+
+class SystrayIcon:
+    """This class manages the system tray icon of the main program, post-login.
+    Attributes:
+        app (QMainWindow): Set to MainWindow object (required binding for Qt)
+        tray_icon (QSystemTrayIcon): System Tray object that has all of the
+          functionality that this class requires.
+    """
+
+    def __init__(self, app):
+        """Init QSystemTrayIcon and set the Window and Tray Icons."""
+        self.app = app
+        self.app.setWindowIcon(QIcon(pyinstaller_path('media/miles.ico')))
+        self.tray_icon = QSystemTrayIcon(app)
+        self.tray_icon.setIcon(QIcon(pyinstaller_path('media/miles.ico')))
+        connection_status = 'VPN disconnected'
+        self.tray_icon.setToolTip("Merlink - " + connection_status)
+
+        connect_action = QAction("Connect to ...", app)
+        # These 3 lines are to make "Connect to ..." bold
+        font = QFont()
+        font.setBold(True)
+        connect_action.setFont(font)
+
+        disconnect_action = QAction("Disconnect", app)
+        show_action = QAction("Show", app)
+        quit_action = QAction("Exit", app)
+        hide_action = QAction("Hide", app)
+        # Allow this if we're not connected
+        connect_action.triggered.connect(app.setup_vpn)
+        disconnect_action.triggered.connect(app.disconnect)
+        show_action.triggered.connect(app.show)
+        hide_action.triggered.connect(app.hide)
+        quit_action.triggered.connect(sys.exit)
+
+        tray_menu = QMenu()
+        tray_menu.addAction(connect_action)
+        tray_menu.addAction(disconnect_action)
+        tray_menu.addSeparator()
+        tray_menu.addAction(show_action)
+        tray_menu.addAction(hide_action)
+        tray_menu.addAction(quit_action)
+        self.tray_icon.setContextMenu(tray_menu)
+        self.tray_icon.show()
+
+        # If systray icon is clicked
+        # If they click on the connected message, show them the VPN connection
+        self.tray_icon.activated.connect(self.icon_activated)
+
+    def icon_activated(self, reason):
+        """Respond to the user has clicking on the systray icon.
+        If single or double click, show the application
+        If middle click, go to meraki.cisco.com
+        Override closeEvent, to intercept the window closing event
+        Args:
+            reason (QSystemTrayIcon.ActivationReason): An enum of
+              [0,4] of how the user interacted with the system tray
+              ~
+              More information on ActivationReasons can be found here:
+              http://doc.qt.io/qt-5/qsystemtrayicon.html#ActivationReason-enum
+        """
+        if reason in (QSystemTrayIcon.Trigger, QSystemTrayIcon.DoubleClick):
+            self.app.show()  # So it will show up in taskbar
+            self.app.raise_()  # for macOS
+            self.app.activateWindow()  # for Windows
+
+        elif reason == QSystemTrayIcon.MiddleClick:
+            # Open Meraki's homepage
+            webbrowser.open("https://meraki.cisco.com/")
+
+    def application_minimized(self):
+        """Minimize the window."""
+        self.tray_icon.showMessage("Merlink", "Merlink is now minimized",
+                                   QSystemTrayIcon.Information, 1000)
+
+    def set_vpn_failure(self):
+        """Tell user that VPN connection was unsuccessful.
+        Show an icon of Miles with a red interdictory circle and let
+        the user know the connection failed.
+        """
+        self.tray_icon.setIcon(QIcon(pyinstaller_path(
+            'media/unmiles.ico')))
+        # Provide system VPN settings if the user wants more info
+        self.tray_icon.messageClicked.connect(open_vpnsettings)
+        # Show the user this message so they know where the program went
+        self.tray_icon.showMessage("Merlink", "Connection failure!",
+                                   QSystemTrayIcon.Information, 1500)
+
+    def set_vpn_success(self):
+        """Tell user that VPN connection was successful.
+        NOTE: There's no such thing as "minimize to system tray".
+        What we're doing is hiding the window and
+        then adding an icon to the system tray
+        This function will set the icon to Miles with 3D glasses and
+        show a message that the connection was successful.
+        """
+        self.tray_icon.setIcon(
+            QIcon(pyinstaller_path('media/connected_miles.ico')))
+        # Provide system VPN settings if the user wants more info
+        self.tray_icon.messageClicked.connect(open_vpnsettings)
+        # Show the user this message so they know where the program went
+        self.tray_icon.showMessage("Merlink", "Connection success!",
+                                   QSystemTrayIcon.Information, 1500)
+
+
+class MenuBars:
+    """Menubars of the GUI.
+    This class contains mostly boilerplate Qt UI.
+    Attributes:
+        menu_bar (QMenuBar): The Main Window's built-in menu bar object
+        file_menu (QAction): File menu
+        edit_menu (QAction): Edit menu
+        help_menu (QAction): Help menu
+    """
+
+    # Telling PyCharm linter not to (incorrectly) inspect PyQt function args
+    # noinspection PyArgumentList
+    def __init__(self, menu_bar):
+        """Initialize all of the program menus."""
+        super(MenuBars, self).__init__()
+        self.menu_bar = menu_bar
+        self.file_menu = menu_bar.addMenu('&File')
+        self.edit_menu = menu_bar.addMenu('&Edit')
+        self.help_menu = menu_bar.addMenu('&Help')
+
+    def generate_menu_bars(self):
+        """Create each of the menu bars.
+        NOTE: Some of the menu additions here are planned features
+        """
+        # File options
+        file_sysprefs = QAction('&Open VPN System Prefs', self.menu_bar)
+        file_sysprefs.setShortcut('Ctrl+O')
+        file_quit = QAction('&Quit', self.menu_bar)
+        file_quit.setShortcut('Ctrl+Q')
+
+        # Edit options
+        edit_preferences = QAction('&Prefrences', self.menu_bar)
+        edit_preferences.setShortcut('Ctrl+P')
+
+        # Help options
+        help_support = QAction('Get S&upport', self.menu_bar)
+        help_support.setShortcut('Ctrl+U')
+        help_about = QAction('A&bout', self.menu_bar)
+        help_about.setShortcut('Ctrl+B')
+
+        self.file_menu.addAction(file_sysprefs)
+        self.file_menu.addAction(file_quit)
+        self.edit_menu.addAction(edit_preferences)
+        self.help_menu.addAction(help_about)
+
+        file_sysprefs.triggered.connect(self.file_sysprefs)
+        file_quit.triggered.connect(sys.exit)
+        edit_preferences.triggered.connect(self.edit_prefs_action)
+        help_about.triggered.connect(self.help_about_action)
+
+    @staticmethod
+    def file_sysprefs():
+        """Open the system VPN settings.
+        Raises:
+            FileNotFoundError: If vpn settings are not found
+        """
+        try:
+            open_vpnsettings()
+        except FileNotFoundError as error:
+            if sys.platform.startswith('linux'):
+                show_error_dialog(
+                    str(error) + '\n\nThis happens when gnome-network-manager '
+                    'is not installed and vpn prefs are opened in linux.')
+            else:
+                show_error_dialog(
+                    str(error) + '\n\nUnknown error: VPN '
+                    'settings not found')
+
+    @staticmethod
+    def edit_prefs_action():
+        """Show the preferences.
+        Currently, it merely shows an HTML heading, but the hope is be able
+        to control more settings from this pane.
+        > It may be worthwhile to use a QSettings object here instead
+        (http://doc.qt.io/qt-5/qsettings.html).
+        """
+        # Preferences should go here.
+        # How many settings are here will depend on the feature set
+        prefs = QDialog()
+        layout = QVBoxLayout()
+        prefs_heading = QLabel('<h1>Preferences</h1>')
+        layout.addWidget(prefs_heading)
+        prefs.setLayout(layout)
+        prefs.show()
+
+    @staticmethod
+    def help_about_action():
+        """Show an 'about' dialog containing the license."""
+        about_popup = QDialog()
+        about_popup.setWindowTitle("Meraki Client VPN: About")
+        about_program = QLabel()
+        about_program.setText("<h1>Meraki VPN Client 0.8.5</h1>\n"
+                              "Developed by Ross Jacobs<br><br><br>"
+                              "This project is licensed with the "
+                              "Apache License, which can be viewed below:")
+        license_text = open("LICENSE.txt").read()
+        licenses = QTextEdit()
+        licenses.setText(license_text)
+        # People shouldn't be able to edit licenses!
+        licenses.setReadOnly(True)
+        popup_layout = QVBoxLayout()
+        popup_layout.addWidget(about_program)
+        popup_layout.addWidget(licenses)
+        about_popup.setLayout(popup_layout)
+        about_popup.setMinimumSize(600, 200)
+        about_popup.exec_()
+
+
+def show_error_dialog(message):
+    """Show an error dialog with a message.
+
+    This script contains multiple GUI modal dialogs:
+    https://ux.stackexchange.com/questions/12045/what-is-a-modal-dialog-window
+
+    "A modal dialog is a window that forces the user to interact with it
+    before they can go back to using the parent application."
+
+    Args:
+        message (string): A message telling the user what is wrong.
+    """
+    error_dialog = QMessageBox()
+    error_dialog.setIcon(QMessageBox.Critical)
+    error_dialog.setWindowTitle("Error!")
+    error_dialog.setText(message)
+    error_dialog.exec_()
+
+
+def show_question_dialog(message):
+    """Send the user a question and record their decision.
+
+    Args:
+        message (string): A question asking the user what they want to do.
+    Returns:
+        result (QDialog.DialogCode): Returns a QDialog code of Rejected (no) |
+        Accepted (yes) depending on user input.
+
+    """
+    question_dialog = QMessageBox()
+    question_dialog.setIcon(QMessageBox.Question)
+    question_dialog.setWindowTitle("Error!")
+    question_dialog.setText(message)
+    question_dialog.setStandardButtons(QMessageBox.No | QMessageBox.Yes)
+    question_dialog.setDefaultButton(QMessageBox.Yes)
+    decision = question_dialog.exec_()
+    return decision
+
+
+def show_feature_in_development_dialog():
+    """Informs the user that something is a feature in development."""
+    fid_message = QMessageBox()
+    fid_message.setIcon(QMessageBox.Information)
+    fid_message.setWindowTitle("Meraki Client VPN: Features in Progress")
+    fid_message.setText('This feature is currently in progress.')
+    fid_message.exec_()
+
+
+def vpn_status_dialog(title, message):
+    """Tells the user the status of the VPN connection.
+
+    args:
+        title (string): A window title to summarize the message.
+        message (string): A message to give to the user.
+    """
+    success_message = QMessageBox()
+    success_message.setIcon(QMessageBox.Information)
+    success_message.setWindowTitle(title)
+    success_message.setText(message)
+    success_message.exec_()

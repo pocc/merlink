@@ -2,7 +2,7 @@
 
 """Test dashboard browser class."""
 import unittest
-from src.dashboard_browser.dashboard_browser import DashboardBrowser
+from merlink.dashboard_browser import DashboardBrowser
 
 
 class TestDashboardBrowser(unittest.TestCase):

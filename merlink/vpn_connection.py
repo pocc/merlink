@@ -17,7 +17,7 @@ import sys
 import subprocess
 from os import system
 
-from src.l2tp_vpn.os_utils import pyinstaller_path
+from .os_utils import pyinstaller_path
 
 
 class VpnConnection:
@@ -110,7 +110,7 @@ class VpnConnection:
 
         return subprocess.call([
             powershell_path, '-ExecutionPolicy', 'Unrestricted',
-            pyinstaller_path('src\\scripts\\connect_windows.ps1'),
+            pyinstaller_path('merlink\\scripts\\connect_windows.ps1'),
             *self.vpn_data, *self.vpn_options
         ])
         # subprocess.Popen([], creationflags=subprocess.CREATE_NEW_CONSOLE)
@@ -137,7 +137,8 @@ class VpnConnection:
         print("scutil_string: " + scutil_string)
         # Create an applescript execution string so we don't
         # need to bother with parsing arguments with Popen
-        command = 'do shell script \"/bin/bash src/scripts/build_macos_vpn.sh'\
+        command = 'do shell script \"/bin/bash ' \
+                  'merlink/l2tp_vpn/build_macos_vpn.sh'\
                   + ' \'' + vpn_name + '\' \'' + psk + \
                   '\' \'' + address + '\' \'' + username + \
                   '\' \'' + password + '\'; ' + scutil_string + \
@@ -157,7 +158,7 @@ class VpnConnection:
         print("Connecting to macOS VPN")
         print("Current working directory: " + str(system('pwd')))
         return subprocess.call(
-            ['bash', 'src/scripts/connect_macos.sh', self.vpn_name])
+            ['bash', 'merlink/scripts/connect_macos.sh', self.vpn_name])
 
     def attempt_linux_vpn(self):
         """Attempt to connect on linux.
@@ -172,7 +173,8 @@ class VpnConnection:
         * *self.vpn_data not possible due to the way the shell interprets it.
         """
         vpn_name, address, psk, username, password = self.vpn_data
-        vpn_cmd = 'pkexec ' + pyinstaller_path('src/scripts/connect_linux.sh')\
+        vpn_cmd = 'pkexec ' + pyinstaller_path(
+            'merlink/l2tp_vpn/connect_linux.sh')\
             + ' ' + vpn_name + ' ' + address + ' ' + psk + ' ' + username \
             + ' ' + password
         print("Command being run: ", vpn_cmd)

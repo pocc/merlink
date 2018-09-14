@@ -16,7 +16,7 @@
 """Create an installable package for this platform."""
 import sys
 import subprocess
-from src.__version__ import __version__
+from .. import __version__
 
 unixlike = True
 opensource = True
@@ -52,4 +52,4 @@ if unixlike:
 else:
     print("Calling windows makensis exe creator...")
     subprocess.call(['makensis /DPRODUCT_VERSION=' + __version__ +
-                     ' .\pkg\pkg_windows_nsis.nsh'], shell=True)
+                     ' .\\pkg\\pkg_windows_nsis.nsh'], shell=True)

@@ -18,7 +18,7 @@ from setuptools import setup
 setup(
     name='merlink',
     version='0.8.6',
-    packages=['src'],
+    packages=['merlink'],
     url='pocc.github.io/merlink',
     license='Apache 2.0',
     author='Ross Jacobs',

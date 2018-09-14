@@ -18,9 +18,9 @@ import sys
 
 from PyQt5.QtWidgets import QApplication
 
-from src.gui.main_window import MainWindow
-from src.cli.merlink_cli import MainCli
-from src.l2tp_vpn.os_utils import kill_duplicate_applications
+from merlink.main_window import MainWindow
+from merlink.main_cli import MainCli
+from merlink.os_utils import kill_duplicate_applications
 
 
 def main():
