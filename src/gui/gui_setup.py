@@ -38,7 +38,7 @@ from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QDialog
 from PyQt5.Qt import QPixmap
 
-from src.l2tp_vpn.os_utils import pyinstaller_path
+from src.vpn_scripts import pyinstaller_path
 
 
 def login_widget_setup(app):

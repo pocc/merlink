@@ -19,8 +19,8 @@ import sys
 from PyQt5.QtWidgets import QAction, QMenu, QSystemTrayIcon
 from PyQt5.QtGui import QIcon, QFont
 
-from src.l2tp_vpn.os_utils import pyinstaller_path
-from src.l2tp_vpn.os_utils import open_vpnsettings
+from src.vpn_scripts import pyinstaller_path
+from src.vpn_scripts import open_vpnsettings
 
 
 class SystrayIcon:

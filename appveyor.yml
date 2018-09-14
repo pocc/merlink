@@ -2,7 +2,8 @@
 # For appveyor.yml validation: https://ci.appveyor.com/tools/validate-yaml
 # Build environment: https://www.appveyor.com/docs/build-environment/
 
-clone_depth: 50            # clone entire repository history if not defined
+# clone entire repository history if not defined
+clone_depth: 50
 # Start builds on tags only (GitHub and BitBucket)
 skip_non_tags: true
 # Skipping commits with particular message or from specific user

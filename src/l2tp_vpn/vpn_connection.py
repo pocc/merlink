@@ -17,7 +17,7 @@ import sys
 import subprocess
 from os import system
 
-from src.l2tp_vpn.os_utils import pyinstaller_path
+from src.vpn_scripts import pyinstaller_path
 
 
 class VpnConnection:
@@ -59,13 +59,17 @@ class VpnConnection:
         # Numbers arbitrarily chosen
         if platform == 'win32':
             self.os_index = 0
-            self.attempt_windows_vpn()
+            exit_code = self.attempt_windows_vpn()
         elif platform == 'darwin':
             self.os_index = 1
-            self.attempt_macos_vpn()
+            exit_code = self.attempt_macos_vpn()
         elif platform.startswith('linux'):
             self.os_index = 2
-            self.attempt_linux_vpn()
+            exit_code = self.attempt_linux_vpn()
+        else:  # Unknown OS
+            exit_code = 255
+
+        return exit_code
 
     def sanitize_variables(self):
         """Sanitize variables for powershell/bash input."""

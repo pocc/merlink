@@ -20,7 +20,7 @@ from PyQt5.QtWidgets import QApplication
 
 from src.gui.main_window import MainWindow
 from src.cli.merlink_cli import MainCli
-from src.l2tp_vpn.os_utils import kill_duplicate_applications
+from src.vpn_scripts import kill_duplicate_applications
 
 
 def main():

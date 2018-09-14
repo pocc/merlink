@@ -24,7 +24,6 @@ sip>=4.19.8
 pylint
 flake8
 radon
-dodgy
 
 # Maintainers:
 # Grab the latest pyinstaller develop version (currently 3.4)

@@ -2,4 +2,5 @@
 extension-pkg-whitelist=PyQt5
 # C0103: 				dmgsettings.py does not use consts
 # redefined-builtin: 	sphinx conf.py
+ignore=__pycache__,.git,.idea,.virtualenv,venv,vendor,build,dist
 disable=C0103,redefined-builtin

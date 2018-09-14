@@ -21,7 +21,7 @@ from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QTextEdit
 
-from src.l2tp_vpn.os_utils import open_vpnsettings
+from src.vpn_scripts import open_vpnsettings
 from src.gui.modal_dialogs import show_error_dialog
 
 

@@ -13,14 +13,17 @@
 # limitations under the License.
 
 PYTHON := PYTHONPATH=$(PYTHONPATH) "$(shell which python3)"
-PYTHONFILES := merlink.py src docs test pkg
-VENV := $(shell pwd)/venv
+WHICH_PIP := "$(shell which pip)"
+WHICH_PIPENV := "$(shell which pipenv)"
+PYTHONFILES := merlink.py src/ docs test/ pkg/
 ROOTDIR := "$(shell pwd)"
 
 
-	#############
-	### USING ###
-	#############
+
+    #############
+    ### USING ###
+    #############
+
 
 .PHONY: help
 help:
@@ -31,92 +34,113 @@ help:
 	@echo "  test:        Run the tests to generate coverage (in development)."
 	@echo "BUILDING"
 	@echo "  pipenv:      Create a venv and install all dependencies in it."
-	@echo "  build:       Compile program files specific to this OS."
+	@echo "  build:       Compile OS-specific program files to dist/merlink/"
 	@echo "  clean:       Remove the build artifacts."
 	@echo "  clean_all:   Remove the virtualenv and build artifacts."
 	@echo "PACKAGING"
 	@echo "  package:     Create a distributable executable for this OS."
 	@echo "  install:     Install program files to this computer."
 	@echo "  uninstall:   Delete installation files."
-	@echo "  docs:        Compile documentation using sphinx."
+	@echo "  docs:        Compile documentation using sphinx with `make html`."
 	@echo "  publish:     Upload to PyPy."
+
 
 .PHONY : default
 default: help
 
-.PHONY : all
-all: install
-
-# Linting with pylint, flake8, radon.
-# Checking for commits with sensitive info with dodgy.
-.PHONY : lint
-lint: $(PYTHONFILES) vendor
-	$(PYTHON) -m pylint $(PYTHONFILES)
-	$(PYTHON) -m flake8 $(PYTHONFILES)
-	radon cc -nc $(PYTHONFILES)
-	radon mi -nc $(PYTHONFILES)
-	dodgy $(PYTHONFILES)
-
-.PHONY : test
-test:
-	@echo "Feature in progress..."
-# https://wiki.python.org/moin/PyQt/GUI_Testing
-#	$(PYTHON) -m nose ./test
-
-
-	################
-	### BUILDING ###
-	################
-
-.PHONY : pipenv
-pipenv: requirements.txt
-# If Pipfile does not exist
-ifeq ("$(wildcard ./Pipfile)","")
-	$(PYTHON) -m pip install pipenv
-	$(PYTHON) -m pipenv install -r requirements.txt
-	$(PYTHON) -m pipenv shell $(ROOTDIR)
-endif
 
 .PHONY : run
 run: pipenv
 	$(PYTHON) merlink.py
 
+
+.PHONY : lint
+# Linting with pylint, flake8, radon.
+lint: $(PYTHONFILES) pipenv
+	$(PYTHON) -m pylint $(PYTHONFILES)
+	$(PYTHON) -m flake8 $(ROOTDIR)
+	radon cc -nc $(PYTHONFILES)
+	radon mi -nc $(PYTHONFILES)
+
+
+.PHONY : test
+# https://wiki.python.org/moin/PyQt/GUI_Testing
+#	$(PYTHON) -m nose ./test
+test:
+	@echo "Feature in progress..."
+
+
+
+    ################
+    ### BUILDING ###
+    ################
+
+.PHONY : pipenv
+pipenv: requirements.txt
+# If python3 isn't installed, quit.
+ifeq ("$(PYTHON)","")
+	@echo "python3 is not installed and is required. Exiting..."
+	exit 1
+endif
+# If pip is missing, install it.
+ifeq ("$(WHICH_PIP)","")
+	curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+	python get-pip.py
+endif
+ifeq ("$(WHICH_PIPENV)","")
+	$(PYTHON) -m pip install pipenv
+endif
+	$(PYTHON) -m pipenv install -r requirements.txt
+# If the user is already in a pipenv shell, they'll get an error stating such.
+	$(PYTHON) -m pipenv shell
+
+
 .PHONY : build
 build: merlink.spec vendor
 	$(PYTHON) -m PyInstaller -y $<
+
 
 .PHONY : clean
 clean:
 	$(RM) -r ./build ./dist
 
+
 .PHONY : clean_all
 clean_all:
-	$(RM) -r ./build ./dist ./venv
+	$(CLEAN)
+	pipenv --rm
+	exit
 
-	#################
-	### PACKAGING ###
-	#################
 
-# Create a package for this platform (in build)
-.PHONY : package
-package: build
-	$(PYTHON) pkg/package.py
 
-# Install files to appropriate directory per-OS
+    #################
+    ### PACKAGING ###
+    #################
+
+
+.PHONY : exe
+exe: build
+	$(PYTHON) pkg/make_exe.py
+
+
+.PHONY : all
+all: install
 .PHONY : install
 install: build
-	$(PYTHON) pkg/install.py
+	$(PYTHON) pkg/make_install.py
 
-# Delete files created by `make install`
+
 .PHONY : uninstall
 uninstall:
-	$(PYTHON) pkg/uninstall.py
+	$(PYTHON) pkg/make_uninstall.py
 
-# Generate Sphinx HTML docuentation
-.PHONY : html
-html:
-	cd docs
-	make html
+
+.PHONY : docs
+# Trigger Sphinx's makefile `make html`
+docs:
+	cd docs; make html;
+
 
 # When this gets on PyPy
-# publish:
+.PHONY : publish
+publish:

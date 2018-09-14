@@ -1,0 +1,3 @@
+debian-by-hand does not work and fpm is used to build .deb files.
+This directory exists in case this application ever needs to have a
+handmade deb file.
