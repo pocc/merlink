@@ -30,17 +30,8 @@ matrix:
   allow_failures:
     - platform: x64
 
-# scripts to run before build
-install:
-  - C:\Python36\python.exe -m pip install -r requirements.txt
-  # Get git version and get rid of prefaced 'v'
-  - ps: $GIT_VERSION=$(git describe --abbrev=0 --tags).substring(1)
-  - C:\Python36\Scripts\pyinstaller.exe -y merlink.spec
-  - ps: ECHO $GIT_VERSION
-
 build_script:
-  # /D specifies additional variables to be used in the script
-  - ps: makensis /DPRODUCT_VERSION=$GIT_VERSION .\pkg\windows_nsis_installer.nsh
+  - ps: make package
 
 # TESTS (add these at some point)
 # before_test:

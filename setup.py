@@ -17,11 +17,11 @@ from setuptools import setup
 
 setup(
     name='merlink',
-    version='0.8.5',
-    packages=['src', 'src.cli', 'src.modules', 'src.gui'],
+    version='0.8.6',
+    packages=['src'],
     url='pocc.github.io/merlink',
     license='Apache 2.0',
     author='Ross Jacobs',
     author_email='merlinkproject@gmail.com',
-    description='cross-platform VPN client to connect to Mearki firewalls',
-    python_requires='>3.6',)
+    description='Cross-platform VPN client to connect to Mearki firewalls',
+    python_requires='>=3.5',)

@@ -28,9 +28,6 @@ addons:
       - build-essential
 
 before_install:
-  # If target is osx, then brew install python3, pip, venv, and activate venv
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then bash pkg/macos_pre_install.sh; fi
-
   # Diagnostic info in case of failure
   - pwd
   - ls
@@ -42,11 +39,8 @@ before_install:
   - python --version
 
 install:
-  - python3 -m pip install -r requirements.txt
   - gem install fpm
-
-script:
-  - bash ./pkg/build_nix_packages.sh
+  - make package
 
 ### The following was setup with the following ###
 # travis setup releases
