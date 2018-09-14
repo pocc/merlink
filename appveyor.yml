@@ -30,11 +30,13 @@ matrix:
   allow_failures:
     - platform: x64
 
+# scripts to run before build
 install:
-  - ps: choco install make
+  - C:\Python36\python.exe -m pip install -r requirements.txt
+  - C:\Python36\Scripts\pyinstaller.exe -y merlink.spec
 
 build_script:
-  - ps: make package
+  - ps: C:\Python36\python.exe .\pkg\make_packages.py
 
 # TESTS (add these at some point)
 # before_test:
