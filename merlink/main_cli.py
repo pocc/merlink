@@ -17,13 +17,13 @@
 r"""MERLINK
 
 Usage:
-  merlink.py
-  merlink.py (--username <username>) [--password <password>]
-  merlink.py (--username <username>) [--password <password>]
+  run.py
+  run.py (--username <username>) [--password <password>]
+  run.py (--username <username>) [--password <password>]
              [(--org-id <org_id> | --org-name <org_name>)
               (--network-id <network_id> | --network-name <network_name>)]
-  merlink.py (-h | --help)
-  merlink.py (-v | --version)
+  run.py (-h | --help)
+  run.py (-v | --version)
 
 Options:
   -h, --help            Show this screen.

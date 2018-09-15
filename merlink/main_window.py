@@ -18,9 +18,8 @@ import sys
 from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtWidgets import QDialog
 
-import merlink.main_window_ui as guify
 from .dashboard_browser import ClientVpnBrowser, DashboardBrowser
-from .main_window_ui import MenuBars, SystrayIcon, show_error_dialog
+import merlink.main_window_ui as guify
 from .vpn_connection import VpnConnection
 
 
@@ -48,10 +47,7 @@ class LoginDialog(QDialog):
         valid by sending them to the virtual browser.
         """
         # Decorate login window with gui functions
-        guify.login_widget_setup(self)
-        guify.login_window_setup(self)
-        guify.login_set_layout(self)
-        guify.login_tfa_set_layout(self)
+        guify.LoginWindowUi(self)
 
         self.show()
         self.login_btn.clicked.connect(self.check_login_attempt)
@@ -89,13 +85,12 @@ class LoginDialog(QDialog):
                 your network settings and try again. Now exiting...""")
             sys.exit()
         else:
-            show_error_dialog("ERROR: Invalid authentication type!")
+            guify.show_error_dialog("ERROR: Invalid authentication type!")
 
     def tfa_dialog_setup(self):
         """Create and execute the UI for the TFA dialog."""
         # Create dialog window with login window object
-        guify.tfa_widget_setup(self)
-        guify.tfa_set_layout(self)
+        guify.TfaDialogUi(self)
 
         self.yesbutton.clicked.connect(self.tfa_verify)
         self.nobutton.clicked.connect(self.twofactor_dialog.close)
@@ -121,8 +116,8 @@ class MainWindow(QMainWindow):
 
     Attributes:
         browser (ClientVpnBrowser): Browser used to store user credentials
-        menu_widget (MenuBars): Used to tie the menu bars to the MainWindow
-        tray_icon (SystrayIcon): Used to tie the tray icon to the MainWindow
+        menu_widget (MenuBarsUi): Used to tie the menu bars to the MainWindow
+        tray_icon (SystrayIconUi): Used to tie the tray icon to the MainWindow
 
     """
 
@@ -135,14 +130,11 @@ class MainWindow(QMainWindow):
         self.browser = ClientVpnBrowser()
 
         # Tie the menu bars, tray_icon, and main window UI to this object.
-        self.menu_widget = MenuBars(self.menuBar())
+        self.menu_widget = guify.MenuBarsUi(self.menuBar())
         self.menu_widget.generate_menu_bars()
-        self.tray_icon = SystrayIcon(self)
+        self.tray_icon = guify.SystrayIconUi(self)
         self.login_dict = {'username': '', 'password': ''}
-        guify.main_window_widget_setup(self)
-        guify.main_window_user_auth_setup(self)
-        guify.main_window_vpn_vars_setup(self)
-        guify.main_window_set_layout(self)
+        self.main_window = guify.MainWindowUi(self)
 
         self.show()
 
@@ -174,9 +166,11 @@ class MainWindow(QMainWindow):
 
         """
         # Set up radio button for dashboard/admin user
-        guify.main_window_set_admin_layout(self)
-        self.radio_admin_user.toggled.connect(self.set_admin_layout)
-        self.radio_guest_user.toggled.connect(self.set_guest_layout)
+        self.main_window.main_window_set_admin_layout()
+        self.radio_admin_user.toggled.connect(
+            self.main_window.main_window_set_admin_layout)
+        self.radio_guest_user.toggled.connect(
+            self.main_window.main_window_set_guest_layout)
 
         org_list = self.browser.get_org_names()
         self.org_dropdown.addItems(org_list)
@@ -348,11 +342,3 @@ class MainWindow(QMainWindow):
                                 self.network_dropdown.currentText() + ".")
         # Show user error text if available
         guify.show_error_dialog(self.browser.troubleshoot_client_vpn())
-
-    def set_admin_layout(self):
-        """Set the dashboard admin layout."""
-        guify.main_window_set_admin_layout(self)
-
-    def set_guest_layout(self):
-        """Set the guest user layout."""
-        guify.main_window_set_guest_layout(self)
