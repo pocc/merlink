@@ -15,4 +15,12 @@
 # limitations under the License.
 """Entry point to for MerLink."""
 import merlink
-merlink.run()
+
+
+def main():
+    """Start merlink."""
+    merlink.start()
+
+
+if __name__ == '__main__':
+    main()

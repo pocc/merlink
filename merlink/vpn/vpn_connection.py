@@ -17,7 +17,7 @@ import sys
 import subprocess
 from os import system
 
-from .os_utils import pyinstaller_path
+from merlink.os_utils import pyinstaller_path
 
 
 class VpnConnection:
@@ -138,7 +138,7 @@ class VpnConnection:
         # Create an applescript execution string so we don't
         # need to bother with parsing arguments with Popen
         command = 'do shell script \"/bin/bash ' \
-                  'merlink/l2tp_vpn/build_macos_vpn.sh'\
+                  'merlink/vpn/build_macos_vpn.sh'\
                   + ' \'' + vpn_name + '\' \'' + psk + \
                   '\' \'' + address + '\' \'' + username + \
                   '\' \'' + password + '\'; ' + scutil_string + \
@@ -174,7 +174,7 @@ class VpnConnection:
         """
         vpn_name, address, psk, username, password = self.vpn_data
         vpn_cmd = 'pkexec ' + pyinstaller_path(
-            'merlink/l2tp_vpn/connect_linux.sh')\
+            'merlink/vpn/connect_linux.sh')\
             + ' ' + vpn_name + ' ' + address + ' ' + psk + ' ' + username \
             + ' ' + password
         print("Command being run: ", vpn_cmd)

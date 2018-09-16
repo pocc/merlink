@@ -61,9 +61,9 @@ import getpass
 
 import docopt
 
-from .dashboard_browser import ClientVpnBrowser
-from .vpn_connection import VpnConnection
-from . import __version__
+from merlink.browsers.client_vpn import ClientVpnBrowser
+from merlink.vpn.vpn_connection import VpnConnection
+from merlink import __version__
 
 
 class MainCli:

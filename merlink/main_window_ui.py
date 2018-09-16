@@ -45,8 +45,8 @@ from PyQt5.QtWidgets import QAction, QMenu, QSystemTrayIcon
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.Qt import QPixmap
 
-from .os_utils import open_vpnsettings
-from .os_utils import pyinstaller_path
+from merlink.os_utils import open_vpnsettings
+from merlink.os_utils import pyinstaller_path
 
 
 class LoginWindowUi:

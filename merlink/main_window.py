@@ -15,12 +15,14 @@
 """Main Window is the controlling class for the GUI."""
 import sys
 
+from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtWidgets import QDialog
 
-from .dashboard_browser import ClientVpnBrowser, DashboardBrowser
-import merlink.main_window_ui as guify
-from .vpn_connection import VpnConnection
+from merlink.browsers.dashboard import DashboardBrowser
+from merlink.browsers.client_vpn import ClientVpnBrowser
+from merlink import main_window_ui as guify
+from merlink.vpn.vpn_connection import VpnConnection
 
 
 class LoginDialog(QDialog):
@@ -126,7 +128,6 @@ class MainWindow(QMainWindow):
     def __init__(self):
         """Initialize GUI objects, decorate main window object, and show it."""
         super(MainWindow, self).__init__()
-
         self.browser = ClientVpnBrowser()
 
         # Tie the menu bars, tray_icon, and main window UI to this object.
