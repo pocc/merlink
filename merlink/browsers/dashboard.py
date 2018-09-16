@@ -343,6 +343,74 @@ class DashboardBrowser:
         return self.orgs_dict[self.active_org_id]['node_groups'][
             self.active_network_id]['n']
 
+    def set_org_id(self, org_id):
+        """Set the org_id.
+
+        Args:
+            org_id (int): Number that identifies an organization (unique)
+
+        """
+        if org_id in self.orgs_dict.keys():
+            self.browser.active_org_id = org_id
+        else:
+            print("\nERROR:", org_id, "is not one of your org ids!"
+                  "\nExiting...")
+            exit()
+
+    def set_network_id(self, network_id):
+        """Set the network_id.
+
+        Args:
+            network_id (int): Number that identifies a network (unique)
+
+        """
+        org_id = self.active_org_id
+        network_id_list = self.orgs_dict[org_id]['node_groups'].keys()
+        if network_id in network_id_list:
+            self.browser.active_network_id = network_id
+        else:
+            print("\nERROR:", network_id, "is not a network id in this org!"
+                  "\nExiting...")
+            exit()
+
+    def set_org_name(self, org_name):
+        """Set the org id by org name.
+
+        If there are multiple matches (org names are not necessarily unique),
+        choose the first one. Only the identifying part of the name needs to
+        be entered (i.e. 'Organi' for 'Organiztion')
+        """
+        print(org_name)
+        try:
+            org_id = next(i for i in self.orgs_dict if org_name.lower()
+                          in self.orgs_dict[i]['name'].lower())
+            self.browser.active_org_id = org_id
+        except StopIteration:
+            print("\nERROR:", org_name, "was not found among your orgs!"
+                  "\nExiting...")
+            exit()
+
+    def set_network_name(self, network_name):
+        """Set the active network id by network name.
+
+        If there are multiple matches (org names are not necessarily unique),
+        choose the first one. Only the identifying part of the name needs to
+        be entered (i.e. 'Netw' for 'Network')
+        """
+        try:
+            # orgs_dict "t" key of network name has - instead of ' '
+            org_id = self.active_org_id
+            network_name = network_name.replace(' ', '-')
+            net_dict = self.orgs_dict[org_id]['node_groups']
+            network_id = next(
+                network_id for network_id in net_dict
+                if network_name.lower() in net_dict[network_id]['t'].lower())
+            self.browser.active_network_id = network_id
+        except StopIteration:
+            print("\nERROR:", network_name, "was not found in this org!"
+                  "\nExiting...")
+            exit()
+
     def get_page_links(self):
         """Get all page links from current page's pagetext."""
         pagetext = self.browser.get_current_page().text

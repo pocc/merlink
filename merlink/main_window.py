@@ -148,6 +148,7 @@ class MainWindow(QMainWindow):
         self.browser.browser = login_dialog.browser.browser
         self.login_dict = login_dialog.login_dict
         self.setEnabled(True)
+        self.browser.org_data_setup()
 
     def init_ui(self):
         """Show the main menu GUI.

@@ -40,7 +40,6 @@ def start():
 
     # Login, set up data structures, and start the interface's UI.
     interface.attempt_login()
-    interface.browser.org_data_setup()
     interface.init_ui()
 
     if gui_application:

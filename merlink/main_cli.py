@@ -17,13 +17,13 @@
 r"""MERLINK
 
 Usage:
-  run.py
-  run.py (--username <username>) [--password <password>]
-  run.py (--username <username>) [--password <password>]
+  merlink.py
+  merlink.py (--username <username>) [--password <password>]
+  merlink.py (--username <username>) [--password <password>]
              [(--org-id <org_id> | --org-name <org_name>)
               (--network-id <network_id> | --network-name <network_name>)]
-  run.py (-h | --help)
-  run.py (-v | --version)
+  merlink.py (-h | --help)
+  merlink.py (-v | --version)
 
 Options:
   -h, --help            Show this screen.
@@ -119,6 +119,7 @@ class MainCli:
 
         # If not auth failure, then success!
         print("Authentication success!")
+        self.browser.org_data_setup()
 
     def init_ui(self):
         """Start the program, having a browser and all relevant vars."""
@@ -126,11 +127,16 @@ class MainCli:
         network_id = self.args['<network_id>']
         org_name = self.args['<org_name>']
         network_name = self.args['<network_name>']
-        if org_id and network_id:
-            self.set_active_orgnet_ids(org_id, network_id)
-        elif org_name and network_name:
-            self.set_active_orgnet_names(org_name, network_name)
-        else:
+        if org_id:
+            self.browser.set_org_id(org_id)
+        if network_id:
+            self.browser.set_network_id(network_id)
+        if org_name:
+            self.browser.set_org_name(org_name)
+        if network_name:
+            self.browser.set_network_name(network_name)
+        # If user did not enter an org, they will need to choose it in tui.
+        if not org_id and not org_name:
             self.tui()
 
         self.browser.get_client_vpn_data()
@@ -140,62 +146,6 @@ class MainCli:
 
         self.attempt_connection(
             [vpn_name, address, psk, self.username, self.password])
-
-    def set_active_orgnet_ids(self, org_id, network_id):
-        """Set the active organization and network ids with the id params.
-
-        In order to know which network it's in the browser needs to know the
-        network and org ids. This function sets user-entered ones.
-
-        Args:
-            org_id (int): Number that identifies an organization (unique)
-            network_id (int): Number that identifies a network (unique)
-        """
-        if org_id in self.browser.orgs_dict.keys():
-            self.browser.active_org_id = org_id
-            network_id_list = self.browser.orgs_dict[org_id][
-                'node_groups'].keys()
-            if network_id in network_id_list:
-                self.browser.active_network_id = network_id
-            else:
-                self.alert_invalid_data("Your network_id", network_id)
-        else:
-            self.alert_invalid_data("Your org_id", org_id)
-
-    def set_active_orgnet_names(self, org_name, network_name):
-        """Set the active organization and network ids using their names.
-
-        Setting the active org and network is much easier by id because
-        that's how DashboardBrowser keeps track of it. It's still possible
-        to set them by name because name is (mostly) unique. Network names
-        are unique because dashboard forces them to be, but org names do not
-        have to be.
-
-        For both org and network name, find the first instance if it
-        exists. If it does not, throw a StopIteration error and quit.
-
-        Args:
-            org_name (string): Name of an organization (usually unique)
-            network_name (string): Name of a network (unique)
-
-        """
-        try:
-            org_dict = self.browser.orgs_dict
-            org_id = next(i for i in org_dict
-                          if org_dict[i]['name'] == org_name)
-            self.browser.active_org_id = org_id
-            try:
-                # orgs_dict "t" key of network name has - instead of ' '
-                network_name = network_name.replace(' ', '-')
-                net_dict = self.browser.orgs_dict[org_id]['node_groups']
-                network_id = next(
-                    network_id for network_id in net_dict
-                    if net_dict[network_id]['t'] == network_name)
-                self.browser.active_network_id = network_id
-            except StopIteration:
-                self.alert_invalid_data("network name", network_name)
-        except StopIteration:
-            self.alert_invalid_data("organization name", org_name)
 
     def tui(self):
         """Show MerLink Text User Interface when only user/pass are entered.
@@ -210,12 +160,6 @@ class MainCli:
         network_list = self.browser.get_network_names()
         network_index = self.get_user_input_from_list(network_list, "network")
         self.browser.set_active_network_index(network_index)
-
-    @staticmethod
-    def alert_invalid_data(var_type, var):
-        """Let the user know they've entered invalid data and exit."""
-        print("ERROR: Your " + var_type + ", '" + var + "' is not valid!")
-        sys.exit()
 
     @staticmethod
     def get_user_input_from_list(list_name, list_type):
