@@ -89,7 +89,7 @@ class DashboardBrowser:
         # If it's set to '', then powershell will skip reading that parameter.
         self.vpn_vars = {}
 
-    def attempt_login(self, username, password):
+    def attempt_login(self, username, password, tfa_code=None):
         """Verify whether the credentials are valid.
 
         Uses a MechanicalSoup object to send and submit username/password.
@@ -99,6 +99,7 @@ class DashboardBrowser:
         Args:
             username (string): The username provided by the user
             password (string): The password provided by the user
+            tfa_code (string): The tfa_code provided by the user
 
         Returns:
             (string): One of ('auth_error', 'sms_auth', 'auth_success')
@@ -127,7 +128,13 @@ class DashboardBrowser:
             result_string = 'auth_error'
         # Two-Factor redirect: https://account.meraki.com/login/sms_auth?go=%2F
         elif result_url.find('sms_auth') != -1:
-            result_string = 'sms_auth'
+            if tfa_code:
+                if self.tfa_submit_info(tfa_code):
+                    result_string = 'auth_success'
+                else:
+                    result_string = 'auth_failure'
+            else:
+                result_string = 'sms_auth'
         else:
             result_string = 'auth_success'
 

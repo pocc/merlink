@@ -46,12 +46,12 @@ Notes on Usages[0-2]:
 Examples:
   1. With org_id and network_id:
      $ merlink ֊֊username 'wile.e.coyote@acme.corp' \
-               ֊֊password 'SuperGenius!' \
+               ֊֊password 'Roadrunner4Dinner' \
                ֊֊org-id 12345 \
                ֊֊network-id 67890
   2. With org_name and network_name:
      $ merlink ֊֊username 'wile.e.coyote@acme.corp' \
-               ֊֊password 'SuperGenius!' \
+               ֊֊password 'Roadrunner4Dinner' \
                ֊֊org-name 'ACME Corp' \
                ֊֊network-name 'Wild West'
 

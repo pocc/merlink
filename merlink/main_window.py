@@ -75,7 +75,6 @@ class LoginDialog(QDialog):
             self.password_field.setText('')
         elif result == 'sms_auth':
             self.tfa_dialog_setup()
-            self.close()
         elif result == 'auth_success':
             self.login_dict['username'] = username
             self.login_dict['password'] = password
