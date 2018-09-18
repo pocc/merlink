@@ -37,11 +37,16 @@ def start():
         interface = MainWindow()
     else:
         interface = MainCli()
-
     # Login, set up data structures, and start the interface's UI.
     interface.attempt_login()
-    interface.init_ui()
 
-    if gui_application:
-        app.exec_()  # Required Qt logic.
+    try:
+        interface.init_ui()
+        if gui_application:
+            app.exec_()  # Required Qt logic.
+    except (KeyboardInterrupt, KeyError) as error:
+        print("\nAttempting to gracefully exit...")
+        interface.browser.logout()
+        raise  # KeyboardInterrupt needs to be reraised.
+
     sys.exit()

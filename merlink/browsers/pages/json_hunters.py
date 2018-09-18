@@ -130,6 +130,7 @@ def open_route(self, target_route):
         target_route (string): Text following '/manage' in the url that
             identifies (and routes to) a page.
     """
+    print('Opening route', target_route)
     current_url = self.browser.get_url()
     network_partial, _ = current_url.split('/manage')
     network_base = network_partial.split('.com/')[0]
@@ -139,12 +140,13 @@ def open_route(self, target_route):
         self.active_network_id]['eid']
 
     target_url = network_base + '.com/' + network_name + '/n/' + eid + \
-                 '/manage' + target_route
+        '/manage' + target_route
     # Don't go to where we already are!
     has_pagetext = target_url in self.pagetexts.keys()
     if self.browser.get_url() != target_url and not has_pagetext:
         try:
             self.browser.open(target_url)
+            self.pagetexts[target_url] = self.browser.get_current_page()
             opened_url = self.browser.get_url()
             has_been_redirected = opened_url != target_url
             if has_been_redirected:

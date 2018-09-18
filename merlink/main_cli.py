@@ -103,7 +103,7 @@ class MainCli:
         """Login to dashboard using username/password."""
         auth_result = self.browser.attempt_login(self.username, self.password)
         if auth_result == 'auth_error':
-            print('ERROR: Invalid username or password. Now exiting...')
+            print('ERROR: Invalid username or password. \nNow exiting...\n')
             sys.exit()
         elif auth_result == 'sms_auth':
             tfa_code = input("TFA code required for " + self.username + ": ")
@@ -133,14 +133,13 @@ class MainCli:
         if org_name:
             self.browser.set_org_name(org_name)
         if network_name:
-            self.browser.set_network_name(network_name)
+            self.browser.set_network_name(network_name, 'wired')
         # If user did not enter an org, they will need to choose it in tui.
         if not org_id and not org_name:
             self.tui()
 
         self.browser.get_client_vpn_data()
-        network_id = self.browser.active_network_id
-        vpn_name = self.browser.get_network_name_by_id(network_id) + " - VPN"
+        vpn_name = self.browser.get_active_network_name() + " - VPN"
         address = self.browser.get_client_vpn_address()
         psk = self.browser.get_client_vpn_psk()
 

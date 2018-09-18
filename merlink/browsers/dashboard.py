@@ -193,7 +193,7 @@ class DashboardBrowser:
 
         self.active_network_id = list(
             self.orgs_dict[self.active_org_id]['node_groups'])[0]
-        print('org id', self.active_org_id, 'orgs dict\n', self.orgs_dict)
+        print('org id', self.active_org_id)
 
     def bypass_org_choose_page(self, page):
         """Bypass page for admins with 2+ orgs that requires user input.
@@ -217,6 +217,15 @@ class DashboardBrowser:
         bootstrap_url = 'https://account.meraki.com' \
                         + org_href_lines[0]['href']
         self.browser.open(bootstrap_url)
+
+    def url(self):
+        """Get the current url."""
+        self.browser.get_url()
+
+    def logout(self):
+        """Logout out of Dashboard."""
+        self.browser.open('https://account.meraki.com/login/logout')
+        print('logging out...')
 
     # Fns that operate independent of which URL the browser is at
     ###########################################################################
@@ -250,12 +259,11 @@ class DashboardBrowser:
         return self.orgs_dict[self.active_org_id]['node_groups'][
             self.active_network_id]['n']
 
-    def set_org_id(self, org_id, network_types=None):
+    def set_org_id(self, org_id):
         """Set the org_id.
 
         Args:
             org_id (int): Number that identifies an organization (unique)
-            network_types (list(string)): List of network types to include
 
         """
         if org_id in self.orgs_dict.keys():
@@ -269,11 +277,10 @@ class DashboardBrowser:
                 self.browser.open(new_org_url)
                 new_org_dict = self.scrape_administered_orgs()[
                     self.active_org_id]
-                print('getting new_administered org info', new_org_dict)
                 self.orgs_dict[self.active_org_id] = new_org_dict
         else:
             print("\nERROR:", org_id, "is not one of your org ids!"
-                  "\nExiting...")
+                  "\nExiting...\n")
 
     def set_network_id(self, network_id):
         """Set the network_id.
@@ -286,6 +293,7 @@ class DashboardBrowser:
         network_id_list = self.orgs_dict[org_id]['node_groups'].keys()
         if network_id in network_id_list:
             self.active_network_id = network_id
+            self.open_route('/usage/list')
         else:
             print("\nERROR:", network_id, "is not a network id in this org!"
                   "\nExiting...")
@@ -298,14 +306,13 @@ class DashboardBrowser:
         choose the first one. Only the identifying part of the name needs to
         be entered (i.e. 'Organi' for 'Organiztion')
         """
-        print(org_name)
         try:
             org_id = next(i for i in self.orgs_dict if org_name.lower()
                           in self.orgs_dict[i]['name'].lower())
             self.set_org_id(org_id)
         except StopIteration:
             print("\nERROR:", org_name, "was not found among your orgs!"
-                  "\nExiting...")
+                  "\nExiting...\n")
             exit()
 
     def set_network_name(self, network_name, network_type=None):
@@ -314,6 +321,11 @@ class DashboardBrowser:
         If there are multiple matches (org names are not necessarily unique),
         choose the first one. Only the identifying part of the name needs to
         be entered (i.e. 'Netw' for 'Network')
+
+        Args:
+            network_name (string): The name of the network to be set.
+            network_type (string): Network_type if there is ambiguity
+                due to a combined network. See below for valid types.
         """
         # If network type is not passed in, specify all.
         if not network_type:
@@ -325,7 +337,7 @@ class DashboardBrowser:
         for network_id in net_dict:
             ntwk_name = net_dict[network_id]['n'].lower()
             desired_network_type = \
-                (net_dict[network_id]['network_type'] == network_type)
+                (net_dict[network_id]['network_type'] in network_type)
             if network_name.lower() in ntwk_name and desired_network_type:
                 chosen_network_id = network_id
                 print('chosen_network_id', chosen_network_id)
@@ -333,7 +345,7 @@ class DashboardBrowser:
         # If chosen_network_id was not found.
         if not chosen_network_id:
             print("\nERROR:", network_name, "was not found in this org!"
-                  "\nExiting...")
+                  "\nExiting...\n")
             exit()
 
         self.set_network_id(chosen_network_id)
