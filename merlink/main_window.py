@@ -68,7 +68,7 @@ class LoginDialog(QDialog):
         """
         username = self.username_field.text()
         password = self.password_field.text()
-        result = self.browser.attempt_login(username, password)
+        result = self.browser.login(username, password)
 
         if result == 'auth_error':
             guify.show_error_dialog('ERROR: Invalid username or password.')

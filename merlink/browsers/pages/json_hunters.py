@@ -130,7 +130,6 @@ def open_route(self, target_route):
         target_route (string): Text following '/manage' in the url that
             identifies (and routes to) a page.
     """
-    print('Opening route', target_route)
     current_url = self.browser.get_url()
     network_partial, _ = current_url.split('/manage')
     network_base = network_partial.split('.com/')[0]
@@ -141,31 +140,34 @@ def open_route(self, target_route):
 
     target_url = network_base + '.com/' + network_name + '/n/' + eid + \
         '/manage' + target_route
-    # Don't go to where we already are!
-    has_pagetext = target_url in self.pagetexts.keys()
-    if self.browser.get_url() != target_url and not has_pagetext:
+    # Don't go to where we already are or have been!
+    has_pagetext = [i for i in self.pagetexts.keys() if target_route in i]
+    if self.url() != target_url and not has_pagetext:
         try:
+            print('Opening route', target_route)
             self.browser.open(target_url)
             self.pagetexts[target_url] = self.browser.get_current_page()
             opened_url = self.browser.get_url()
             has_been_redirected = opened_url != target_url
             if has_been_redirected:
-                self.handle_redirects(target_url, opened_url)
+                handle_redirects(target_url, opened_url)
         except mechanicalsoup.utils.LinkNotFoundError as error:
-            url = network_partial + '/manage' + target_route
-            print('Attempting to open', url, 'and failed.', error)
+            print('Attempting to open', self.url(), 'with route',
+                  target_route, 'and failed.', error)
 
 
 def handle_redirects(target_url, opened_url):
     """On redirect, determine whether this is intended behavior."""
-    print("ERROR: Redirected from intended route!"
+    print("ERROR: Redirected from intended route! You may be accessing "
+          "\na route that this network does not have"
+          "\n(i.e. '/configure/vpn_settings' on a switch network\n)."
           "\nTarget url:", target_url,
           "\nOpened url:", opened_url,
-          "\n\n")
+          "\n")
 
     # Redirected from Security/Content filtering to Addressing & VLANs
     if 'filtering' in target_url and 'router' in opened_url:
-        print("You are attempting to access content/security filtering "
+        print("\nYou are attempting to access content/security filtering "
               "\nfor a firewall that is not licensed for it.")
     raise LookupError
 

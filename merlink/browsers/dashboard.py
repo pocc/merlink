@@ -83,12 +83,13 @@ class DashboardBrowser:
         self.active_org_id = 0
         self.active_network_id = 0
         self.pagetexts = {}
+        self.pagelinks = []
 
         # VPN VARS: Powershell Variables set to defaults
         # If it's set to '', then powershell will skip reading that parameter.
         self.vpn_vars = {}
 
-    def attempt_login(self, username, password, tfa_code=None):
+    def login(self, username, password, tfa_code=None):
         """Verify whether the credentials are valid.
 
         Uses a MechanicalSoup object to send and submit username/password.
@@ -220,7 +221,7 @@ class DashboardBrowser:
 
     def url(self):
         """Get the current url."""
-        self.browser.get_url()
+        return self.browser.get_url()
 
     def logout(self):
         """Logout out of Dashboard."""
@@ -281,6 +282,7 @@ class DashboardBrowser:
         else:
             print("\nERROR:", org_id, "is not one of your org ids!"
                   "\nExiting...\n")
+            raise LookupError
 
     def set_network_id(self, network_id):
         """Set the network_id.
@@ -293,11 +295,12 @@ class DashboardBrowser:
         network_id_list = self.orgs_dict[org_id]['node_groups'].keys()
         if network_id in network_id_list:
             self.active_network_id = network_id
-            self.open_route('/usage/list')
+            # /configure/general is a route available to all network types.
+            self.open_route('/configure/general')
         else:
             print("\nERROR:", network_id, "is not a network id in this org!"
                   "\nExiting...")
-            exit()
+            raise LookupError
 
     def set_org_name(self, org_name):
         """Set the org id by org name.
@@ -313,7 +316,7 @@ class DashboardBrowser:
         except StopIteration:
             print("\nERROR:", org_name, "was not found among your orgs!"
                   "\nExiting...\n")
-            exit()
+            raise LookupError
 
     def set_network_name(self, network_name, network_type=None):
         """Set the active network id by network name.
@@ -332,7 +335,7 @@ class DashboardBrowser:
             network_type = ['wired', 'switch', 'wireless',
                             'camera', 'systems_manager', 'phone']
         org_id = self.active_org_id
-        chosen_network_id = ''
+        chosen_network_id = 0
         net_dict = self.orgs_dict[org_id]['node_groups']
         for network_id in net_dict:
             ntwk_name = net_dict[network_id]['n'].lower()
@@ -346,6 +349,6 @@ class DashboardBrowser:
         if not chosen_network_id:
             print("\nERROR:", network_name, "was not found in this org!"
                   "\nExiting...\n")
-            exit()
+            raise LookupError
 
         self.set_network_id(chosen_network_id)

@@ -18,10 +18,12 @@ r"""MERLINK
 
 Usage:
   merlink.py
-  merlink.py (--username <username>) [--password <password>]
-  merlink.py (--username <username>) [--password <password>]
-             [(--org-id <org_id> | --org-name <org_name>)
-              (--network-id <network_id> | --network-name <network_name>)]
+  merlink.py (--username <username>)
+               [--password <password>]
+  merlink.py (--username <username>)
+               [(--org-id <org_id> | --org-name <org_name>)
+                 (--network-id <network_id> | --network-name <network_name>)]
+               [--password <password>]
   merlink.py (-h | --help)
   merlink.py (-v | --version)
 
@@ -101,7 +103,7 @@ class MainCli:
 
     def attempt_login(self):
         """Login to dashboard using username/password."""
-        auth_result = self.browser.attempt_login(self.username, self.password)
+        auth_result = self.browser.login(self.username, self.password)
         if auth_result == 'auth_error':
             print('ERROR: Invalid username or password. \nNow exiting...\n')
             sys.exit()
