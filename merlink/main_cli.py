@@ -119,7 +119,6 @@ class MainCli:
 
         # If not auth failure, then success!
         print("Authentication success!")
-        self.browser.org_data_setup()
 
     def init_ui(self):
         """Start the program, having a browser and all relevant vars."""
@@ -140,7 +139,8 @@ class MainCli:
             self.tui()
 
         self.browser.get_client_vpn_data()
-        vpn_name = self.browser.get_active_network_name() + " - VPN"
+        network_id = self.browser.active_network_id
+        vpn_name = self.browser.get_network_name_by_id(network_id) + " - VPN"
         address = self.browser.get_client_vpn_address()
         psk = self.browser.get_client_vpn_psk()
 
@@ -154,12 +154,12 @@ class MainCli:
             Will trigger only iff --username and --password are specified.
         """
         org_list = self.browser.get_org_names()
-        org_index = self.get_user_input_from_list(org_list, "organization")
-        self.browser.set_active_org_index(org_index)
+        org_name = self.get_user_input_from_list(org_list, "organization")
+        self.browser.set_org_name(org_name)
 
-        network_list = self.browser.get_network_names()
-        network_index = self.get_user_input_from_list(network_list, "network")
-        self.browser.set_active_network_index(network_index)
+        network_list = self.browser.get_network_names(['wired'])
+        network_name = self.get_user_input_from_list(network_list, "network")
+        self.browser.set_network_name(network_name)
 
     @staticmethod
     def get_user_input_from_list(list_name, list_type):
@@ -175,7 +175,7 @@ class MainCli:
                 input("Not a valid number! Please enter a number "
                       "between 0 and " + str(len(list_name)) + ": "))
 
-        return choice
+        return list_name[choice]
 
     def attempt_connection(self, vpn_data):
         """Create a VPN object and connect with it."""

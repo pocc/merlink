@@ -19,6 +19,15 @@ from .pages.mx import mx_get_amp_enabled
 from .pages.mx import mx_get_ids_mode
 from .pages.mx import mx_get_ids_ruleset
 
+from .pages.json_hunters import scrape_administered_orgs
+from .pages.json_hunters import get_json_value
+from .pages.json_hunters import get_mkiconf_vars
+from .pages.json_hunters import get_network_users
+from .pages.json_hunters import get_node_settings_json
+from .pages.json_hunters import get_page_links
+from .pages.json_hunters import handle_redirects
+from .pages.json_hunters import open_route
+
 
 def add_functions_as_methods(functions):
     """docstring."""
@@ -48,5 +57,15 @@ page_scrapers = [
     mx_get_primary_uplink,
     mx_get_amp_enabled,
     mx_get_ids_mode,
-    mx_get_ids_ruleset
+    mx_get_ids_ruleset,
+
+    # JSON hunters
+    scrape_administered_orgs,
+    get_json_value,
+    get_mkiconf_vars,
+    get_network_users,
+    get_node_settings_json,
+    get_page_links,
+    handle_redirects,
+    open_route,
 ]
