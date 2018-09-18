@@ -31,7 +31,7 @@ def mx_get_client_vpn_subnet(self):
         "wired_config_client_vpn_subnet" name="wired_config[
         client_vpn_subnet]" size="20" type="text" value="10.0.0.0/24" />
     """
-    self.open_route(target_route='/configure/client_vpn_settings')
+    self.open_route('/configure/client_vpn_settings', redirect_ok=True)
     return page_utils.get_input_var_value(
         self.browser.get_current_page(),
         'wired_config_client_vpn_subnet')
@@ -66,8 +66,7 @@ def mx_get_client_vpn_nameservers(self):
         "wired_config_client_vpn_dns" name="wired_config[client_vpn_dns]"
         rows="2">\n10.0.0.2\n10.0.0.3</textarea>
     """
-    route = '/configure/client_vpn_settings'
-    self.open_route(route)
+    self.open_route('/configure/client_vpn_settings', redirect_ok=True)
     nameservers = page_utils.get_textarea_list(
         self.browser.get_current_page(),
         var_id='wired_config_client_vpn_dns')
@@ -84,10 +83,10 @@ def mx_get_client_vpn_wins_enabled(self):
     Sample HTML:
         <select id="wired_config_client_vpn_wins_enabled" name=
         "wired_config[client_vpn_wins_enabled]"><option value="true">
-        Specify WINS servers.mx_get_sentry_vpn_enabled..</option><option value="false"
+        Specify WINS servers...</option><option value="false"
         selected="selected">No WINS servers</option></select>
     """
-    self.open_route(target_route='/configure/client_vpn_settings')
+    self.open_route('/configure/client_vpn_settings', redirect_ok=True)
     dropdown_value = page_utils.get_dropdown_value(
         self.browser.get_current_page(),
         var_id='wired_config_client_vpn_wins_enabled')
@@ -105,7 +104,7 @@ def mx_get_client_vpn_secret(self):
         name="wired_config[client_vpn_secret]" size="25"
         value="my-client-vpn-psk" type="password">
     """
-    self.open_route(target_route='/configure/client_vpn_settings')
+    self.open_route('/configure/client_vpn_settings', redirect_ok=True)
     return page_utils.get_input_var_value(
         self.browser.get_current_page(),
         var_id='wired_config_client_vpn_secret')
@@ -123,7 +122,7 @@ def mx_get_client_auth_type(self):
         <option value="radius">RADIUS</option>
         <option value="active_directory">Active Directory</option></select>
     """
-    self.open_route(target_route='/configure/client_vpn_settings')
+    self.open_route('/configure/client_vpn_settings', redirect_ok=True)
     return page_utils.get_dropdown_value(
         self.browser.get_current_page(),
         var_id='wired_config_client_vpn_auth_type')
@@ -140,7 +139,7 @@ def mx_get_sentry_vpn_enabled(self):
         Enabled</option><option value="false" selected="selected">
         Disabled</option></select>
     """
-    self.open_route(target_route='/configure/client_vpn_settings')
+    self.open_route('/configure/client_vpn_settings', redirect_ok=True)
     dropdown_value = page_utils.get_dropdown_value(
         self.browser.get_current_page(),
         var_id='wired_config_client_vpn_pcc_access_enabled')
@@ -158,7 +157,7 @@ def mx_get_active_directory_enabled(self):
         users with Active Directory</option><option value="false" selected=
         "selected">No authentication</option></select>
     """
-    self.open_route(target_route='/configure/active_directory')
+    self.open_route('/configure/active_directory', redirect_ok=True)
     dropdown_value = page_utils.get_dropdown_value(
         self.browser.get_current_page(),
         var_id='active_directory_enabled_select')
@@ -176,7 +175,7 @@ def mx_get_primary_uplink(self):
         "primary_uplink_select"><option value="0" selected="selected">WAN 1
         </option><option value="1">WAN 2</option></select>
     """
-    self.open_route(target_route='/configure/traffic_shaping')
+    self.open_route('/configure/traffic_shaping', redirect_ok=True)
     return page_utils.get_dropdown_value(
         self.browser.get_current_page(),
         var_id='wired_config_primary_uplink')
@@ -194,7 +193,7 @@ def mx_get_amp_enabled(self):
             <option value="true" selected="selected">Enabled</option>
             <option value="false">Disabled</option></select>
     """
-    self.open_route(target_route='/configure/security_filtering')
+    self.open_route('/configure/security_filtering', redirect_ok=True)
     dropdown_value = page_utils.get_dropdown_value(
         self.browser.get_current_page(),
         var_id='scanning_enabled_select')
@@ -212,7 +211,7 @@ def mx_get_ids_mode(self):
             <option value="detection">Detection</option>
             <option value="prevention">Prevention</option></select>
     """
-    self.open_route(target_route='/configure/security_filtering')
+    self.open_route('/configure/security_filtering', redirect_ok=True)
     return page_utils.get_dropdown_value(
         self.browser.get_current_page(),
         var_id='ids_mode_select')
@@ -233,7 +232,7 @@ def mx_get_ids_ruleset(self):
     if self.mx_get_ids_mode() == 'Disabled':
         return 'Disabled'
 
-    self.open_route(target_route='/configure/security_filtering')
+    self.open_route('/configure/security_filtering', redirect_ok=True)
     return page_utils.get_dropdown_value(
         self.browser.get_current_page(),
         var_id='ids_ruleset_select')

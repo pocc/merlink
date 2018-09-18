@@ -33,7 +33,7 @@ def ms_get_management_vlan(self):
         (string): The management VLAN for this switch network.
 
     """
-    self.open_route(target_route='/configure/switch_settings')
+    self.open_route('/configure/switch_settings', redirect_ok=True)
     textarea_values = page_utils.get_textarea_list(
         self.browser.get_current_page(),
         var_id='node_group_management_vlan')
@@ -54,7 +54,7 @@ def ms_get_rstp_enabled(self):
         (bool): Whether RSTP is enabled for this switch network.
 
     """
-    self.browser.open_route(target_route='/configure/switch_settings')
+    self.browser.open_route('/configure/switch_settings', redirect_ok=True)
     dropdown_value = page_utils.get_textarea_list(
         self.browser.get_current_page,
         var_id='node_group_use_stp')

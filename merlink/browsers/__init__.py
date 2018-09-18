@@ -27,6 +27,7 @@ from .pages.json_hunters import get_node_settings_json
 from .pages.json_hunters import get_page_links
 from .pages.json_hunters import handle_redirects
 from .pages.json_hunters import open_route
+from .pages.json_hunters import combined_network_redirect
 
 
 def add_functions_as_methods(functions):
@@ -66,6 +67,7 @@ page_scrapers = [
     get_network_users,
     get_node_settings_json,
     get_page_links,
-    handle_redirects,
     open_route,
+    combined_network_redirect,
+    handle_redirects,
 ]

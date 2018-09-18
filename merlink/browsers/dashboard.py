@@ -118,8 +118,6 @@ class DashboardBrowser:
         self.browser["password"] = password
         form.choose_submit('commit')  # Click login button
         self.browser.submit_selected()  # response should be '<Response [200]>'
-        print("browser url in attempt login " + str(self.browser.get_url()))
-
         # After setup, verify whether user authenticates correctly
         result_url = self.browser.get_url()
         # URL contains /login/login if login failed
@@ -192,9 +190,10 @@ class DashboardBrowser:
                 self.active_org_id = self.orgs_dict[org_id]['id']
                 break
 
-        self.active_network_id = list(
-            self.orgs_dict[self.active_org_id]['node_groups'])[0]
-        print('org id', self.active_org_id)
+        base_url = self.browser.get_url().split('/manage')[0]
+        eid = base_url.split('/n/')[1]
+        self.active_network_id = eid
+        print('url\n', self.url())
 
     def bypass_org_choose_page(self, page):
         """Bypass page for admins with 2+ orgs that requires user input.
@@ -226,7 +225,10 @@ class DashboardBrowser:
     def logout(self):
         """Logout out of Dashboard."""
         self.browser.open('https://account.meraki.com/login/logout')
-        print('logging out...')
+        if '/login/dashboard_login' in self.url():
+            print("Logout successful!")
+        else:
+            print("Logout NOT successful.")
 
     # Fns that operate independent of which URL the browser is at
     ###########################################################################
@@ -269,16 +271,19 @@ class DashboardBrowser:
         """
         if org_id in self.orgs_dict.keys():
             self.active_org_id = org_id
-            # If networks have not been retrieved for this org
+            # If networks haven't been retrieved for this org (occurs once/org)
             if not self.orgs_dict[self.active_org_id]['node_groups']:
-                eid = self.orgs_dict[self.active_org_id]['eid']
+                org_eid = self.orgs_dict[self.active_org_id]['eid']
                 shard_id = str(self.orgs_dict[self.active_org_id]['shard_id'])
-                new_org_url = 'https://n' + shard_id + '.meraki.com/o/' \
-                              + eid + '/manage/organization/'
+                base = 'https://n' + shard_id + '.meraki.com/'
+                new_org_url = base + 'o/' + org_eid + '/manage/organization/'
                 self.browser.open(new_org_url)
                 new_org_dict = self.scrape_administered_orgs()[
                     self.active_org_id]
                 self.orgs_dict[self.active_org_id] = new_org_dict
+                # Set active network id by choosing first network.
+                self.active_network_id = \
+                    list(self.orgs_dict[org_id]['node_groups'])[0]
         else:
             print("\nERROR:", org_id, "is not one of your org ids!"
                   "\nExiting...\n")

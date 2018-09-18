@@ -38,7 +38,7 @@ def mr_get_ssids(self):
         (list(string)): A list of SSIDs.
 
     """
-    self.open_route(target_route='/configure/access_control')
+    self.open_route('/configure/access_control', redirect_ok=True)
     dropdown_values = page_utils.get_all_dropdown_values(
         self.browser.get_current_page(),
         var_id='ssid_selector_container')
@@ -61,7 +61,7 @@ def mr_get_group_policies_by_device_type_enabled(self):
     Returns:
         (list(string)): A list of SSIDs.
     """
-    self.open_route(target_route='/configure/access_control')
+    self.open_route('/configure/access_control', redirect_ok=True)
     dropdown_value = page_utils.get_dropdown_value(
         self.browser.get_current_page(),
         var_id='ssid_selector_container')

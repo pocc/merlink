@@ -44,7 +44,6 @@ def scrape_administered_orgs(self):
     base_url = self.browser.get_url().split('/manage')[0] + '/manage'
     administered_orgs_partial = '/organization/administered_orgs'
     administered_orgs_url = base_url + administered_orgs_partial
-    print('administered_orgs url', administered_orgs_url)
     self.browser.open(administered_orgs_url)
 
     cookiejar = self.browser.get_cookiejar()
@@ -61,22 +60,24 @@ def get_page_links(self):
     pagetext = self.browser.get_current_page().text
     json_text = re.findall(
         r'window\.initializeSideNavigation\([ -(*-~\r\n]*\)',
-        pagetext, )[0][48:-1]
+        pagetext)[0][69:-10]
     json_dict = json.loads(json_text)
     # Format of this dict: {tab_menu: {tab: {'url': val, 'name': val}, ...
     page_url_dict = {}
     for tab_menu in range(len(json_dict['tab_menu']['tabs'])):
+        tab_menu = json_dict['tab_menu']['tabs'][tab_menu]
+        category = tab_menu['name']
+        page_url_dict[category] = {}
         for menu in ('Monitor', 'Configure'):
-            category = json_dict['tab_menu']['tabs'][tab_menu]['name']
-            page_url_dict[category] = {}
-            qty_tabs = len(json_dict['tab_menu']['tabs'][
-                               tab_menu]['menus'][menu]['items'])
-            for tab in range(qty_tabs):
-                name = json_dict['tab_menu']['tabs'][tab_menu]['menus'][
-                    menu]['items'][tab]['name']
-                url = json_dict['tab_menu']['tabs'][tab_menu]['menus'][
-                    menu]['items'][tab]['url']
-                page_url_dict[category][name] = url
+            # Cameras do not have a configure section.
+            if not (category == 'Cameras' and menu == 'Configure'):
+                menu_items = tab_menu['menus'][menu]['items']
+                for tab_index, _ in enumerate(menu_items):
+                    # Sometimes a tab JSON is Null, in which case skip it.
+                    if menu_items[tab_index]:
+                        name = menu_items[tab_index]['name']
+                        url = menu_items[tab_index]['url']
+                        page_url_dict[category][name] = url
 
     return page_url_dict
 
@@ -120,7 +121,7 @@ def get_mkiconf_vars(pagetext):
     return mki_dict
 
 
-def open_route(self, target_route):
+def open_route(self, target_route, redirect_ok=False):
     """Redirect the browser to a page, given its route.
 
     Each page in dashboard has a route. If we're already at the page we
@@ -129,17 +130,27 @@ def open_route(self, target_route):
     Args:
         target_route (string): Text following '/manage' in the url that
             identifies (and routes to) a page.
+        redirect_ok (bool): Redirect to correct network. For example,
+            open_route('/configure/vpn_settings') is used on the switch
+            subnetwork of a combined network that has a firewall. In this
+            scenario, redirect to the firewall's page.
     """
-    current_url = self.browser.get_url()
-    network_partial, _ = current_url.split('/manage')
-    network_base = network_partial.split('.com/')[0]
-    network_name = self.orgs_dict[self.active_org_id]['node_groups'][
-        self.active_network_id]['t']
-    eid = self.orgs_dict[self.active_org_id]['node_groups'][
-        self.active_network_id]['eid']
+    if redirect_ok:
+        target_url = self.combined_network_redirect(target_route)
+        print('target_url', target_url)
+        if not target_url:
+            raise LookupError
+    else:
+        current_url = self.browser.get_url()
+        network_partial, _ = current_url.split('/manage')
+        network_base, _ = network_partial.split('.com/')
+        network_name = self.orgs_dict[self.active_org_id]['node_groups'][
+            self.active_network_id]['t']
+        eid = self.orgs_dict[self.active_org_id]['node_groups'][
+            self.active_network_id]['eid']
+        target_url = network_base + '.com/' + network_name + '/n/' + eid + \
+            '/manage' + target_route
 
-    target_url = network_base + '.com/' + network_name + '/n/' + eid + \
-        '/manage' + target_route
     # Don't go to where we already are or have been!
     has_pagetext = [i for i in self.pagetexts.keys() if target_route in i]
     if self.url() != target_url and not has_pagetext:
@@ -154,13 +165,23 @@ def open_route(self, target_route):
         except mechanicalsoup.utils.LinkNotFoundError as error:
             print('Attempting to open', self.url(), 'with route',
                   target_route, 'and failed.', error)
+    else:
+        raise LookupError
+
+
+def combined_network_redirect(self, route):
+    """Redirect to a different network type in a combined network."""
+    pagelink_dict = self.get_page_links()
+    for link in pagelink_dict:
+        if route in link:
+            return link
 
 
 def handle_redirects(target_url, opened_url):
     """On redirect, determine whether this is intended behavior."""
     print("ERROR: Redirected from intended route! You may be accessing "
           "\na route that this network does not have"
-          "\n(i.e. '/configure/vpn_settings' on a switch network\n)."
+          "\n(i.e. '/configure/vpn_settings' on a switch network).\n"
           "\nTarget url:", target_url,
           "\nOpened url:", opened_url,
           "\n")
