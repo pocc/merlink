@@ -22,7 +22,7 @@ from . import page_utils
 
 def mx_get_client_vpn_subnet(self):
     """Get the Client VPN subnet/cidr (string).
-    Location: Security Appliance > Client VPN > Client VPN
+    Location: Security appliance > Client VPN > Client VPN
 
     This value will exist regardless of whether Client VPN is enabled.
 
@@ -31,7 +31,7 @@ def mx_get_client_vpn_subnet(self):
         "wired_config_client_vpn_subnet" name="wired_config[
         client_vpn_subnet]" size="20" type="text" value="10.0.0.0/24" />
     """
-    self.open_route('/configure/client_vpn_settings', redirect_ok=True)
+    self.open_route('/configure/client_vpn_settings', "Security appliance")
     return page_utils.get_input_var_value(
         self.browser.get_current_page(),
         'wired_config_client_vpn_subnet')
@@ -40,7 +40,7 @@ def mx_get_client_vpn_subnet(self):
 def mx_get_client_vpn_dns_mode(self):
     """Get the Client VPN DNS mode (string).
 
-    Location: Security Appliance > Client VPN > Client VPN
+    Location: Security appliance > Client VPN > Client VPN
 
     Sample HTML:
         <select id="wired_config_client_vpn_dns_mode" name=
@@ -59,14 +59,14 @@ def mx_get_client_vpn_dns_mode(self):
 def mx_get_client_vpn_nameservers(self):
     r"""Return a list of custom name servers.
 
-    Location: Security Appliance > Client VPN > Client VPN
+    Location: Security appliance > Client VPN > Client VPN
 
     Sample HTML:
         <textarea class="noresize" cols="20" id=
         "wired_config_client_vpn_dns" name="wired_config[client_vpn_dns]"
         rows="2">\n10.0.0.2\n10.0.0.3</textarea>
     """
-    self.open_route('/configure/client_vpn_settings', redirect_ok=True)
+    self.open_route('/configure/client_vpn_settings', "Security appliance")
     nameservers = page_utils.get_textarea_list(
         self.browser.get_current_page(),
         var_id='wired_config_client_vpn_dns')
@@ -78,7 +78,7 @@ def mx_get_client_vpn_nameservers(self):
 def mx_get_client_vpn_wins_enabled(self):
     """Return a bool of whether Client VPN WINS is enabled.
 
-    Location: Security Appliance > Client VPN > Client VPN
+    Location: Security appliance > Client VPN > Client VPN
 
     Sample HTML:
         <select id="wired_config_client_vpn_wins_enabled" name=
@@ -86,7 +86,7 @@ def mx_get_client_vpn_wins_enabled(self):
         Specify WINS servers...</option><option value="false"
         selected="selected">No WINS servers</option></select>
     """
-    self.open_route('/configure/client_vpn_settings', redirect_ok=True)
+    self.open_route('/configure/client_vpn_settings', "Security appliance")
     dropdown_value = page_utils.get_dropdown_value(
         self.browser.get_current_page(),
         var_id='wired_config_client_vpn_wins_enabled')
@@ -96,7 +96,7 @@ def mx_get_client_vpn_wins_enabled(self):
 def mx_get_client_vpn_secret(self):
     """Get Client VPN secret.
 
-    Location: Security Appliance > Client VPN > Client VPN
+    Location: Security appliance > Client VPN > Client VPN
 
     Sample HTML for DDNS name:
         <input autocomplete="new-password" class="jsAnalyticsExclude"
@@ -104,7 +104,7 @@ def mx_get_client_vpn_secret(self):
         name="wired_config[client_vpn_secret]" size="25"
         value="my-client-vpn-psk" type="password">
     """
-    self.open_route('/configure/client_vpn_settings', redirect_ok=True)
+    self.open_route('/configure/client_vpn_settings', "Security appliance")
     return page_utils.get_input_var_value(
         self.browser.get_current_page(),
         var_id='wired_config_client_vpn_secret')
@@ -113,7 +113,7 @@ def mx_get_client_vpn_secret(self):
 def mx_get_client_auth_type(self):
     """Get the Client VPN authentication type.
 
-    Location: Security Appliance > Client VPN > Client VPN
+    Location: Security appliance > Client VPN > Client VPN
 
     Sample HTML:
         select id="wired_config_client_vpn_auth_type"
@@ -122,7 +122,7 @@ def mx_get_client_auth_type(self):
         <option value="radius">RADIUS</option>
         <option value="active_directory">Active Directory</option></select>
     """
-    self.open_route('/configure/client_vpn_settings', redirect_ok=True)
+    self.open_route('/configure/client_vpn_settings', "Security appliance")
     return page_utils.get_dropdown_value(
         self.browser.get_current_page(),
         var_id='wired_config_client_vpn_auth_type')
@@ -131,7 +131,7 @@ def mx_get_client_auth_type(self):
 def mx_get_sentry_vpn_enabled(self):
     """Return the bool of whether Sentry VPN is enabled.
 
-    Location: Security Appliance > Client VPN > Client VPN
+    Location: Security appliance > Client VPN > Client VPN
 
     Sample HTML:
         <select id="wired_config_client_vpn_pcc_access_enabled" name=
@@ -139,7 +139,7 @@ def mx_get_sentry_vpn_enabled(self):
         Enabled</option><option value="false" selected="selected">
         Disabled</option></select>
     """
-    self.open_route('/configure/client_vpn_settings', redirect_ok=True)
+    self.open_route('/configure/client_vpn_settings', "Security appliance")
     dropdown_value = page_utils.get_dropdown_value(
         self.browser.get_current_page(),
         var_id='wired_config_client_vpn_pcc_access_enabled')
@@ -149,7 +149,7 @@ def mx_get_sentry_vpn_enabled(self):
 def mx_get_active_directory_enabled(self):
     """Return the bool of whether Active Directory auth is enabled.
 
-    Location: Security Appliance > Active Directory
+    Location: Security appliance > Active Directory
 
     Sample HTML:
         <select id="active_directory_enabled_select" name=
@@ -157,7 +157,7 @@ def mx_get_active_directory_enabled(self):
         users with Active Directory</option><option value="false" selected=
         "selected">No authentication</option></select>
     """
-    self.open_route('/configure/active_directory', redirect_ok=True)
+    self.open_route('/configure/active_directory', "Security appliance")
     dropdown_value = page_utils.get_dropdown_value(
         self.browser.get_current_page(),
         var_id='active_directory_enabled_select')
@@ -167,7 +167,7 @@ def mx_get_active_directory_enabled(self):
 def mx_get_primary_uplink(self):
     """Return the MX's primary uplink of ['WAN1', 'WAN2', 'Cellular'].
 
-    Location: Security Appliance > Traffic Shaping > Uplink selection
+    Location: Security appliance > Traffic Shaping > Uplink selection
 
     Sample HTML:
         <select id="wired_config_primary_uplink" name=
@@ -175,7 +175,7 @@ def mx_get_primary_uplink(self):
         "primary_uplink_select"><option value="0" selected="selected">WAN 1
         </option><option value="1">WAN 2</option></select>
     """
-    self.open_route('/configure/traffic_shaping', redirect_ok=True)
+    self.open_route('/configure/traffic_shaping', "Security appliance")
     return page_utils.get_dropdown_value(
         self.browser.get_current_page(),
         var_id='wired_config_primary_uplink')
@@ -185,7 +185,7 @@ def mx_get_amp_enabled(self):
     """Get the bool of whether AMP is enabled.
     # Should probably also check whether
 
-    Location: Security Appliance > Threat Protection > AMP
+    Location: Security appliance > Threat Protection > AMP
 
     Sample HTML:
         <select id="scanning_enabled_select"
@@ -193,7 +193,7 @@ def mx_get_amp_enabled(self):
             <option value="true" selected="selected">Enabled</option>
             <option value="false">Disabled</option></select>
     """
-    self.open_route('/configure/security_filtering', redirect_ok=True)
+    self.open_route('/configure/security_filtering', "Security appliance")
     dropdown_value = page_utils.get_dropdown_value(
         self.browser.get_current_page(),
         var_id='scanning_enabled_select')
@@ -211,7 +211,7 @@ def mx_get_ids_mode(self):
             <option value="detection">Detection</option>
             <option value="prevention">Prevention</option></select>
     """
-    self.open_route('/configure/security_filtering', redirect_ok=True)
+    self.open_route('/configure/security_filtering', "Security appliance")
     return page_utils.get_dropdown_value(
         self.browser.get_current_page(),
         var_id='ids_mode_select')
@@ -232,7 +232,7 @@ def mx_get_ids_ruleset(self):
     if self.mx_get_ids_mode() == 'Disabled':
         return 'Disabled'
 
-    self.open_route('/configure/security_filtering', redirect_ok=True)
+    self.open_route('/configure/security_filtering', "Security appliance")
     return page_utils.get_dropdown_value(
         self.browser.get_current_page(),
         var_id='ids_ruleset_select')

@@ -121,7 +121,7 @@ def get_mkiconf_vars(pagetext):
     return mki_dict
 
 
-def open_route(self, target_route, redirect_ok=False):
+def open_route(self, target_route, category=None):
     """Redirect the browser to a page, given its route.
 
     Each page in dashboard has a route. If we're already at the page we
@@ -130,14 +130,13 @@ def open_route(self, target_route, redirect_ok=False):
     Args:
         target_route (string): Text following '/manage' in the url that
             identifies (and routes to) a page.
-        redirect_ok (bool): Redirect to correct network. For example,
+        category (bool): Redirect to correct network. For example,
             open_route('/configure/vpn_settings') is used on the switch
             subnetwork of a combined network that has a firewall. In this
             scenario, redirect to the firewall's page.
     """
-    if redirect_ok:
-        target_url = self.combined_network_redirect(target_route)
-        print('target_url', target_url)
+    if category:
+        target_url = self.combined_network_redirect(target_route, category)
         if not target_url:
             raise LookupError
     else:
@@ -155,7 +154,6 @@ def open_route(self, target_route, redirect_ok=False):
     has_pagetext = [i for i in self.pagetexts.keys() if target_route in i]
     if self.url() != target_url and not has_pagetext:
         try:
-            print('Opening route', target_route)
             self.browser.open(target_url)
             self.pagetexts[target_url] = self.browser.get_current_page()
             opened_url = self.browser.get_url()
@@ -165,16 +163,15 @@ def open_route(self, target_route, redirect_ok=False):
         except mechanicalsoup.utils.LinkNotFoundError as error:
             print('Attempting to open', self.url(), 'with route',
                   target_route, 'and failed.', error)
-    else:
-        raise LookupError
 
 
-def combined_network_redirect(self, route):
+def combined_network_redirect(self, route, category):
     """Redirect to a different network type in a combined network."""
     pagelink_dict = self.get_page_links()
-    for link in pagelink_dict:
-        if route in link:
-            return link
+    for page in pagelink_dict[category]:
+        page_url = pagelink_dict[category][page]
+        if route in page_url:
+            return page_url
 
 
 def handle_redirects(target_url, opened_url):

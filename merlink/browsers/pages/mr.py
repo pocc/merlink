@@ -38,10 +38,10 @@ def mr_get_ssids(self):
         (list(string)): A list of SSIDs.
 
     """
-    self.open_route('/configure/access_control', redirect_ok=True)
+    self.open_route('/configure/access_control', "Wireless")
     dropdown_values = page_utils.get_all_dropdown_values(
         self.browser.get_current_page(),
-        var_id='ssid_selector_container')
+        var_id='select_ssid')
     return dropdown_values
 
 
@@ -61,9 +61,9 @@ def mr_get_group_policies_by_device_type_enabled(self):
     Returns:
         (list(string)): A list of SSIDs.
     """
-    self.open_route('/configure/access_control', redirect_ok=True)
+    self.open_route('/configure/access_control', "Wireless")
     dropdown_value = page_utils.get_dropdown_value(
         self.browser.get_current_page(),
-        var_id='ssid_selector_container')
+        var_id='ssid_auto_group_policies_enabled')
     enabled_str = 'Enabled: assign group policies automatically by device type'
     return dropdown_value == enabled_str

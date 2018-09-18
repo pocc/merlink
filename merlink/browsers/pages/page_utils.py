@@ -37,7 +37,7 @@ def get_dropdown_value(soup, var_id):
 
     """
     dropdown = soup.find("select", {"id": var_id})
-    dropdown_value = dropdown.find("option", selected=True).text
+    dropdown_value = dropdown.find("option").text
     return dropdown_value
 
 
@@ -54,7 +54,9 @@ def get_all_dropdown_values(soup, var_id):
 
     """
     dropdown = soup.find("select", {"id": var_id})
-    dropdown_values = dropdown.findall("option").text
+    dropdown_values = []
+    for bs4_tag in dropdown.find_all("option"):
+        dropdown_values.append(bs4_tag.text)
     return dropdown_values
 
 
