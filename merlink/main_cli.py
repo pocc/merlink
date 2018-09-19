@@ -89,7 +89,7 @@ class MainCli:
         # Determine which routine to do based on arguments
         if self.args['--version']:
             # 48w made by hand with ASCII characters
-            with open("merlink/media/ascii-miles-48w.txt") as miles:
+            with open("media/ascii-miles-48w.txt") as miles:
                 miles = miles.read().replace('version', __version__.center(7))
                 print('\n' + miles + '\n')
             sys.exit()
