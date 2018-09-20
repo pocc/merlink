@@ -14,10 +14,10 @@
 # limitations under the License.
 """Test dashboard browser class."""
 import unittest
-from merlink.browsers.dashboard import DashboardBrowser
+from merlink.browsers.pages import mx, mr, ms
 
 
-class TestDashboardBrowser(unittest.TestCase):
+class TestPageRoutes(unittest.TestCase):
     """Test the dashboard browser class."""
 
     @staticmethod
@@ -28,30 +28,24 @@ class TestDashboardBrowser(unittest.TestCase):
     @staticmethod
     def test_a_fn():
         """Test these functions... eventually.
-        'bypass_org_choose_page', 
-        'combined_network_redirect', 
-        'get_active_network_name', 
-        'get_active_org_name',
-        'get_network_names',
-        'get_org_names',
-        'handle_redirects',
-        'login', 
-        'logout', 
-        'open_route', 
-        'org_data_setup', 
-        'scrape_json', 
-        'set_network_id', 
-        'set_network_name', 
-        'set_org_id', 
-        'set_org_name', 
-        'tfa_submit_info', 
-        'url'
+        'mr_get_group_policies_by_device_type_enabled',
+        'mr_get_ssids',
+        'ms_get_management_vlan',
+        'ms_get_rstp_enabled',
+        'mx_get_active_directory_enabled',
+        'mx_get_amp_enabled',
+        'mx_get_client_auth_type',
+        'mx_get_client_vpn_dns_mode',
+        'mx_get_client_vpn_nameservers',
+        'mx_get_client_vpn_secret',
+        'mx_get_client_vpn_subnet',
+        'mx_get_client_vpn_wins_enabled',
+        'mx_get_ids_mode',
+        'mx_get_ids_ruleset',
+        'mx_get_primary_uplink',
+        'mx_get_sentry_vpn_enabled',
         """
-
-        browser = DashboardBrowser()
-        browser.org_data_setup()
 
 
 if __name__ == '__main__':
     unittest.main()
-

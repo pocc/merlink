@@ -4,9 +4,14 @@ import re
 import json
 
 
-def get_page_links(self):
-    """Get all page links from current page's pagetext."""
-    pagetext = self.browser.get_current_page().text
+def get_pagetext_links(pagetext):
+    """Get all page links from current page's pagetext.
+
+    Args:
+        pagetext (string): HTML to be searched through
+    Returns:
+        (dict): Pagetext links like {Category: {Pagename: URL}, ...}
+    """
     json_text = re.findall(
         r'window\.initializeSideNavigation\([ -(*-~\r\n]*\)',
         pagetext)[0][69:-10]
@@ -31,7 +36,7 @@ def get_page_links(self):
     return page_url_dict
 
 
-def get_mkiconf_vars(pagetext):
+def get_pagetext_mkiconf(pagetext):
     """Return the mkiconf vars found on most dashboard pages.
 
     These variables are largely the same as administered orgs, but could
@@ -48,7 +53,6 @@ def get_mkiconf_vars(pagetext):
 
     Args:
         pagetext (string): Text of a webpage
-
     Returns:
         (dict) All available Mkiconf vars.
 
@@ -70,10 +74,11 @@ def get_mkiconf_vars(pagetext):
     return mki_dict
 
 
-def get_json_value(self, key):
+def get_pagetext_json_value(pagetext, key):
     """Return a value for a key in a JSON blob in the HTML of a page.
 
     Args:
+        pagetext (string): Text to search through.
         key (string): The key we want the value for.
             Format: '<differentiating chars>"key"'
             Note a colon would be the next char of this string
@@ -82,7 +87,6 @@ def get_json_value(self, key):
         (String): The value of the passed-in key.
 
     """
-    pagetext = self.browser.get_current_page().text
     key_location = pagetext.find(key)
     if key_location == -1:  # If key is not found
         return -1

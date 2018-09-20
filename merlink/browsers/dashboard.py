@@ -20,6 +20,9 @@ import requests
 import mechanicalsoup
 
 from . import add_functions_as_methods, page_scrapers
+from .pages.page_hunters import get_pagetext_json_value
+from .pages.page_hunters import get_pagetext_mkiconf
+from .pages.page_hunters import get_pagetext_links
 
 
 @add_functions_as_methods(page_scrapers)
@@ -195,7 +198,7 @@ class DashboardBrowser:
         base_url = self.browser.get_url().split('/manage')[0]
         eid = base_url.split('/n/')[1]
         self.active_network_id = eid
-        print('url\n', self.url())
+        print('url\n', self.get_url())
 
     def bypass_org_choose_page(self, page):
         """Bypass page for admins with 2+ orgs that requires user input.
@@ -220,20 +223,24 @@ class DashboardBrowser:
                         + org_href_lines[0]['href']
         self.browser.open(bootstrap_url)
 
-    def url(self):
-        """Get the current url."""
-        return self.browser.get_url()
-
     def logout(self):
         """Logout out of Dashboard."""
         self.browser.open('https://account.meraki.com/login/logout')
-        if '/login/dashboard_login' in self.url():
+        if '/login/dashboard_login' in self.get_url():
             print("Logout successful!")
         else:
             print("Logout NOT successful.")
 
     # Fns that get/set org info
     ###########################################################################
+    def get_url(self):
+        """Get the current url."""
+        return self.browser.get_url()
+
+    def get_pagetext(self):
+        """Return the current pagetext."""
+        return self.browser.get_current_page().text
+
     def get_org_names(self):
         """Get a list of org names."""
         orgs = [self.orgs_dict[org_id]['name'] for org_id in self.orgs_dict]
@@ -342,7 +349,7 @@ class DashboardBrowser:
             network_type = ['wired', 'switch', 'wireless',
                             'camera', 'systems_manager', 'phone']
         org_id = self.active_org_id
-        chosen_network_id = 0
+        chosen_network_id = ''
         net_dict = self.orgs_dict[org_id]['node_groups']
         for network_id in net_dict:
             ntwk_name = net_dict[network_id]['n'].lower()
@@ -362,6 +369,14 @@ class DashboardBrowser:
 
     # Fns that open dashboard pages and get content from them.
     ###########################################################################
+    def scrape_json(self, route):
+        """Return the JSON containing node-data(route:/configure/settings)."""
+        self.open_route(route)
+        current_url = self.browser.get_url()
+        cookiejar = self.browser.get_cookiejar()
+        json_text = requests.get(current_url, cookies=cookiejar).text
+        return json.loads(json_text)
+
     def open_route(self, route, category=None, network_eid=None, org_eid=None):
         """Redirect the browser to a page, given its route.
 
@@ -401,7 +416,7 @@ class DashboardBrowser:
 
         # Don't go to where we already are or have been!
         has_pagetext = [i for i in self.pagetexts.keys() if route in i]
-        if self.url() != target_url and not has_pagetext:
+        if self.get_url() != target_url and not has_pagetext:
             try:
                 self.browser.open(target_url)
                 print("Opening", target_url, "...")
@@ -411,12 +426,12 @@ class DashboardBrowser:
                 if has_been_redirected:
                     self.handle_redirects(target_url, opened_url)
             except mechanicalsoup.utils.LinkNotFoundError as error:
-                print('Attempting to open', self.url(), 'with route',
+                print('Attempting to open', self.get_url(), 'with route',
                       route, 'and failed.', error)
 
     def combined_network_redirect(self, route, category):
         """Redirect to a different network type in a combined network."""
-        pagelink_dict = self.get_page_links()
+        pagelink_dict = get_pagetext_links(self.get_pagetext())
         for page in pagelink_dict[category]:
             page_url = pagelink_dict[category][page]
             if route in page_url:
@@ -437,11 +452,3 @@ class DashboardBrowser:
             print("\nYou are attempting to access content/security filtering "
                   "\nfor a firewall that is not licensed for it.")
         raise LookupError
-
-    def scrape_json(self, route):
-        """Return the JSON containing node-data(route:/configure/settings)."""
-        self.open_route(route)
-        current_url = self.browser.get_url()
-        cookiejar = self.browser.get_cookiejar()
-        json_text = requests.get(current_url, cookies=cookiejar).text
-        return json.loads(json_text)

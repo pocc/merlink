@@ -18,6 +18,7 @@ import sys
 import os
 
 from .dashboard import DashboardBrowser
+from .pages.page_hunters import get_pagetext_json_value
 
 
 class ClientVpnBrowser(DashboardBrowser):
@@ -44,11 +45,13 @@ class ClientVpnBrowser(DashboardBrowser):
         """
         self.open_route('/nodes/new_wired_status',
                         network_eid=self.active_network_id)
-        using_ddns = (self.get_json_value('dynamic_dns_enabled') == 'true')
+        pagetext = self.get_pagetext()
+        using_ddns = (get_pagetext_json_value('dynamic_dns_enabled',
+                                              pagetext) == 'true')
         if using_ddns:
-            address = self.get_json_value('dynamic_dns_name')
+            address = get_pagetext_json_value('dynamic_dns_name', pagetext)
         else:
-            address = self.get_json_value('{"public_ip')
+            address = get_pagetext_json_value('{"public_ip', pagetext)
 
         return address
 
@@ -121,13 +124,14 @@ class ClientVpnBrowser(DashboardBrowser):
         """
         errors = ''
         self.open_route('/nodes/new_wired_status')
-        client_public_ip = self.get_json_value('request_ip')
-        firewall_public_ip = self.get_json_value('{"public_ip')
+        pagetext = self.get_pagetext()
+        client_public_ip = get_pagetext_json_value('request_ip', pagetext)
+        firewall_public_ip = get_pagetext_json_value('{"public_ip', pagetext)
         if client_public_ip == firewall_public_ip:
             errors += "\nERROR: You cannot connect to your firewall if " \
                       "you are behind it!"
         # 0 = online, 2 = temporarily offline, 3 = offline for a week+
-        firewall_status_code = self.get_json_value("status#")
+        firewall_status_code = get_pagetext_json_value("status#", pagetext)
         if firewall_status_code == -1:
             errors += "\nERROR: There is no firewall in this network!"
         elif firewall_status_code == '0':
@@ -149,7 +153,7 @@ class ClientVpnBrowser(DashboardBrowser):
         """
         errors = ''
         self.open_route('/configure/firewall')
-        pagetext = self.browser.get_current_page().text
+        pagetext = self.get_pagetext()
         port_forwarding_ipsec_ports = re.search(
             r'"udp","public_port":"[4]?500"', pagetext)
         if port_forwarding_ipsec_ports:

@@ -14,10 +14,10 @@
 # limitations under the License.
 """Test dashboard browser class."""
 import unittest
-from merlink.browsers.dashboard import DashboardBrowser
+from merlink.merlink_gui import LoginDialog, MainWindow
 
 
-class TestDashboardBrowser(unittest.TestCase):
+class TestLoginDialog(unittest.TestCase):
     """Test the dashboard browser class."""
 
     @staticmethod
@@ -28,30 +28,39 @@ class TestDashboardBrowser(unittest.TestCase):
     @staticmethod
     def test_a_fn():
         """Test these functions... eventually.
-        'bypass_org_choose_page', 
-        'combined_network_redirect', 
-        'get_active_network_name', 
-        'get_active_org_name',
-        'get_network_names',
-        'get_org_names',
-        'handle_redirects',
-        'login', 
-        'logout', 
-        'open_route', 
-        'org_data_setup', 
-        'scrape_json', 
-        'set_network_id', 
-        'set_network_name', 
-        'set_org_id', 
-        'set_org_name', 
-        'tfa_submit_info', 
-        'url'
+        show_login
+        get_login_info
+        check_login_attempt
+        tfa_dialog_setup
+        tfa_verify
         """
+        LoginDialog()
 
-        browser = DashboardBrowser()
-        browser.org_data_setup()
+
+class TestMerlinkWindow(unittest.TestCase):
+    """Test the dashboard browser class."""
+
+    @staticmethod
+    def set_up():
+        """Set up the test."""
+        pass
+
+    @staticmethod
+    def test_a_fn():
+        """Test these functions... eventually.
+        attempt_login
+        init_ui
+        change_organization
+        change_network
+        refresh_network_dropdown
+        setup_vpn
+        get_vpn_data
+        get_vpn_options
+        communicate_vpn_success
+        communicate_vpn_failure
+        """
+        MainWindow()
 
 
 if __name__ == '__main__':
     unittest.main()
-

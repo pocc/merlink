@@ -14,10 +14,12 @@
 # limitations under the License.
 """Test dashboard browser class."""
 import unittest
-from merlink.browsers.dashboard import DashboardBrowser
+import merlink.os_utils
+import merlink.browsers.pages.page_hunters
+import merlink.browsers.pages.page_utils
 
 
-class TestDashboardBrowser(unittest.TestCase):
+class TestMiscUtils(unittest.TestCase):
     """Test the dashboard browser class."""
 
     @staticmethod
@@ -28,30 +30,27 @@ class TestDashboardBrowser(unittest.TestCase):
     @staticmethod
     def test_a_fn():
         """Test these functions... eventually.
-        'bypass_org_choose_page', 
-        'combined_network_redirect', 
-        'get_active_network_name', 
-        'get_active_org_name',
-        'get_network_names',
-        'get_org_names',
-        'handle_redirects',
-        'login', 
-        'logout', 
-        'open_route', 
-        'org_data_setup', 
-        'scrape_json', 
-        'set_network_id', 
-        'set_network_name', 
-        'set_org_id', 
-        'set_org_name', 
-        'tfa_submit_info', 
-        'url'
+        os_utils
+            kill_duplicate_applications
+            is_online
+            list_vpns
+            open_vpn_settings
+            pyinstaller_path
+        page_hunters
+            get_pagetext_json_value
+            get_pagetext_mkiconf
+            get_pagetext_links
+        page_utils
+            get_textarea_list
+            get_dropdown_value
+            get_all_dropdown_values
+            get_input_var_value
+            save_page
         """
-
-        browser = DashboardBrowser()
-        browser.org_data_setup()
 
 
 if __name__ == '__main__':
     unittest.main()
+
+
 

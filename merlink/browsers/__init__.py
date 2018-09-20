@@ -19,10 +19,6 @@ from .pages.mx import mx_get_amp_enabled
 from .pages.mx import mx_get_ids_mode
 from .pages.mx import mx_get_ids_ruleset
 
-from .pages.page_hunters import get_json_value
-from .pages.page_hunters import get_mkiconf_vars
-from .pages.page_hunters import get_page_links
-
 
 def add_functions_as_methods(functions):
     """docstring."""
@@ -53,9 +49,4 @@ page_scrapers = [
     mx_get_amp_enabled,
     mx_get_ids_mode,
     mx_get_ids_ruleset,
-
-    # Page hunters
-    get_json_value,
-    get_mkiconf_vars,
-    get_page_links,
 ]

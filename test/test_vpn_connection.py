@@ -14,10 +14,10 @@
 # limitations under the License.
 """Test dashboard browser class."""
 import unittest
-from merlink.browsers.dashboard import DashboardBrowser
+from merlink.vpn.vpn_connection import VpnConnection
 
 
-class TestDashboardBrowser(unittest.TestCase):
+class TestVpnConnection(unittest.TestCase):
     """Test the dashboard browser class."""
 
     @staticmethod
@@ -28,30 +28,18 @@ class TestDashboardBrowser(unittest.TestCase):
     @staticmethod
     def test_a_fn():
         """Test these functions... eventually.
-        'bypass_org_choose_page', 
-        'combined_network_redirect', 
-        'get_active_network_name', 
-        'get_active_org_name',
-        'get_network_names',
-        'get_org_names',
-        'handle_redirects',
-        'login', 
-        'logout', 
-        'open_route', 
-        'org_data_setup', 
-        'scrape_json', 
-        'set_network_id', 
-        'set_network_name', 
-        'set_org_id', 
-        'set_org_name', 
-        'tfa_submit_info', 
-        'url'
+        attempt_vpn
+        sanitize_variables
+        attempt_windows_vpn
+        attempt_macos_vpn
+        attempt_linux_vpn
+        disconnect
+        get_all_vpn_uuids
+        is_vpn_connected
+        get_vpn_name_by_uuid
         """
-
-        browser = DashboardBrowser()
-        browser.org_data_setup()
+        browser = VpnConnection()
 
 
 if __name__ == '__main__':
     unittest.main()
-
