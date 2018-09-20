@@ -18,8 +18,8 @@ import sys
 
 from PyQt5.QtWidgets import QApplication
 
-from .main_cli import MainCli
-from .main_window import MainWindow
+from .merlink_cli import MainCli
+from .merlink_gui import MainWindow
 from . import os_utils
 
 

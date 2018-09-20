@@ -15,13 +15,12 @@
 """Main Window is the controlling class for the GUI."""
 import sys
 
-from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtWidgets import QDialog
 
 from merlink.browsers.dashboard import DashboardBrowser
 from merlink.browsers.client_vpn import ClientVpnBrowser
-from merlink import main_window_ui as guify
+from merlink import merlink_gui_qt as guify
 from merlink.vpn.vpn_connection import VpnConnection
 
 
@@ -239,6 +238,7 @@ class MainWindow(QMainWindow):
             self.status.showMessage("Status: Fetching network data for " +
                                     current_network + "...")
 
+            # Network name should be unique in an organization.
             self.browser.set_network_name(current_network, 'wired')
             print('current_network', current_network)
             self.browser.get_client_vpn_data()
