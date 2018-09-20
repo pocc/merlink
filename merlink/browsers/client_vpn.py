@@ -42,7 +42,8 @@ class ClientVpnBrowser(DashboardBrowser):
         public_contact_point is on. (route:/configure/router_settings)
         It's gone in new view, so let's put this on hold.
         """
-        self.open_route('/nodes/new_wired_status')
+        self.open_route('/nodes/new_wired_status',
+                        network_eid=self.active_network_id)
         using_ddns = (self.get_json_value('dynamic_dns_enabled') == 'true')
         if using_ddns:
             address = self.get_json_value('dynamic_dns_name')
@@ -57,7 +58,7 @@ class ClientVpnBrowser(DashboardBrowser):
         # set variables. Otherwise, we're pulling data for the same network.
         if 'client_vpn_enabled' not in self.orgs_dict[self.active_org_id][
                 'node_groups'][self.active_network_id].keys():
-            var_dict = self.get_node_settings_json()
+            var_dict = self.scrape_json('/configure/settings')
             client_vpn_vars = [
                 'client_vpn_active_directory_servers',
                 'client_vpn_auth_type',

@@ -14,6 +14,7 @@
 # limitations under the License.
 """API to interact with the Meraki Dashboard using the requests module."""
 import re
+import json
 
 import requests
 import mechanicalsoup
@@ -182,7 +183,8 @@ class DashboardBrowser:
         if self.browser.get_url().find('org_list'):  # Admin orgs = 2
             self.bypass_org_choose_page(page)
 
-        self.orgs_dict = self.scrape_administered_orgs()
+        self.orgs_dict = self.scrape_json(
+            '/organization/administered_orgs')
         # Filter for wired as we only care about firewall networks
         for org_id in self.orgs_dict:
             # Find active_org_id by finding the name of the org we're in
@@ -230,7 +232,7 @@ class DashboardBrowser:
         else:
             print("Logout NOT successful.")
 
-    # Fns that operate independent of which URL the browser is at
+    # Fns that get/set org info
     ###########################################################################
     def get_org_names(self):
         """Get a list of org names."""
@@ -278,8 +280,8 @@ class DashboardBrowser:
                 base = 'https://n' + shard_id + '.meraki.com/'
                 new_org_url = base + 'o/' + org_eid + '/manage/organization/'
                 self.browser.open(new_org_url)
-                new_org_dict = self.scrape_administered_orgs()[
-                    self.active_org_id]
+                new_org_dict = self.scrape_json(
+                    '/organization/administered_orgs')[self.active_org_id]
                 self.orgs_dict[self.active_org_id] = new_org_dict
                 # Set active network id by choosing first network.
                 self.active_network_id = \
@@ -293,7 +295,7 @@ class DashboardBrowser:
         """Set the network_id.
 
         Args:
-            network_id (int): Number that identifies a network (unique)
+            network_id (string): eid that identifies a network (unique)
 
         """
         org_id = self.active_org_id
@@ -301,7 +303,7 @@ class DashboardBrowser:
         if network_id in network_id_list:
             self.active_network_id = network_id
             # /configure/general is a route available to all network types.
-            self.open_route('/configure/general')
+            self.open_route('/configure/general', network_eid=network_id)
         else:
             print("\nERROR:", network_id, "is not a network id in this org!"
                   "\nExiting...")
@@ -357,3 +359,89 @@ class DashboardBrowser:
             raise LookupError
 
         self.set_network_id(chosen_network_id)
+
+    # Fns that open dashboard pages and get content from them.
+    ###########################################################################
+    def open_route(self, route, category=None, network_eid=None, org_eid=None):
+        """Redirect the browser to a page, given its route.
+
+        Each page in dashboard has a route. If we're already at the page we
+        need to be at to scrape, don't use the browser to open a page.
+        For part variables, full URL might be something like:
+        https://meraki.com/n/abc1234/configure/settings
+
+        Args:
+            route (string): Text following '/manage' in the url that
+                identifies (and routes to) a page.
+            category (bool): Redirect to correct network. For example,
+                open_route('/configure/vpn_settings') is used on the switch
+                subnetwork of a combined network that has a firewall. In this
+                scenario, redirect to the firewall's page.
+            network_eid (string): eid used to construct url when
+                changing from org to network URLs
+                (i.e. 'https:/n1.meraki.com/n/<network_id>/...')
+            org_eid (string): eid used to construct url when
+                changing from network to org URLs
+                (i.e. 'https://n1.meraki.com/o/<org_id>/...')
+        """
+        if category:
+            target_url = self.combined_network_redirect(route, category)
+            if not target_url:
+                raise LookupError
+        else:
+            current_url = self.browser.get_url()
+            url_base = current_url.split('.com/')[0]
+            if network_eid:
+                url_partial = url_base + '.com/-/n/' + network_eid
+            elif org_eid:
+                url_partial = url_base + '.com/o/' + org_eid
+            else:
+                url_partial, _ = current_url.split('/manage')
+            target_url = url_partial + '/manage' + route
+
+        # Don't go to where we already are or have been!
+        has_pagetext = [i for i in self.pagetexts.keys() if route in i]
+        if self.url() != target_url and not has_pagetext:
+            try:
+                self.browser.open(target_url)
+                print("Opening", target_url, "...")
+                self.pagetexts[target_url] = self.browser.get_current_page()
+                opened_url = self.browser.get_url()
+                has_been_redirected = opened_url != target_url
+                if has_been_redirected:
+                    self.handle_redirects(target_url, opened_url)
+            except mechanicalsoup.utils.LinkNotFoundError as error:
+                print('Attempting to open', self.url(), 'with route',
+                      route, 'and failed.', error)
+
+    def combined_network_redirect(self, route, category):
+        """Redirect to a different network type in a combined network."""
+        pagelink_dict = self.get_page_links()
+        for page in pagelink_dict[category]:
+            page_url = pagelink_dict[category][page]
+            if route in page_url:
+                return page_url
+
+    @staticmethod
+    def handle_redirects(target_url, opened_url):
+        """On redirect, determine whether this is intended behavior."""
+        print("ERROR: Redirected from intended route! You may be accessing "
+              "\na route that this network does not have"
+              "\n(i.e. '/configure/vpn_settings' on a switch network).\n"
+              "\nTarget url:", target_url,
+              "\nOpened url:", opened_url,
+              "\n")
+
+        # Redirected from Security/Content filtering to Addressing & VLANs
+        if 'filtering' in target_url and 'router' in opened_url:
+            print("\nYou are attempting to access content/security filtering "
+                  "\nfor a firewall that is not licensed for it.")
+        raise LookupError
+
+    def scrape_json(self, route):
+        """Return the JSON containing node-data(route:/configure/settings)."""
+        self.open_route(route)
+        current_url = self.browser.get_url()
+        cookiejar = self.browser.get_cookiejar()
+        json_text = requests.get(current_url, cookies=cookiejar).text
+        return json.loads(json_text)
