@@ -155,7 +155,7 @@ class DashboardBrowser:
         form.choose_submit('commit')  # Click 'Verify' button
         self.browser.submit_selected()
 
-        active_page = self.browser.get_current_page().text
+        active_page = self.get_page().text
         # Will return -1 if it is not found
         if active_page.find("Invalid verification code") == -1:
             print("TFA Success")
@@ -179,7 +179,7 @@ class DashboardBrowser:
         """
         # NOTE: Until you choose an organization, Dashboard will not let you
         # visit pages you should have access to
-        page = self.browser.get_current_page()
+        page = self.get_page()
         # 2+ orgs page : https://account.meraki.com/login/org_list?go=%2F
 
         if self.browser.get_url().find('org_list') != -1:  # Admin orgs = 2+
@@ -197,7 +197,6 @@ class DashboardBrowser:
         base_url = self.browser.get_url().split('/manage')[0]
         eid = base_url.split('/n/')[1]
         self.active_network_id = eid
-        print('url\n', self.get_url())
 
     def bypass_org_choose_page(self, page):
         """Bypass page for admins with 2+ orgs that requires user input.
@@ -236,9 +235,9 @@ class DashboardBrowser:
         """Get the current url."""
         return self.browser.get_url()
 
-    def get_pagetext(self):
+    def get_page(self):
         """Return the current pagetext."""
-        return self.browser.get_current_page().text
+        return self.browser.get_current_page()
 
     def get_org_names(self):
         """Get a list of org names."""
@@ -376,7 +375,8 @@ class DashboardBrowser:
         json_text = requests.get(current_url, cookies=cookiejar).text
         return json.loads(json_text)
 
-    def open_route(self, route, category=None, network_eid=None, org_eid=None):
+    def open_route(self, route, is_combined_network=None,
+                   network_eid=None, org_eid=None, redirect_ok=False):
         """Redirect the browser to a page, given its route.
 
         Each page in dashboard has a route. If we're already at the page we
@@ -387,10 +387,10 @@ class DashboardBrowser:
         Args:
             route (string): Text following '/manage' in the url that
                 identifies (and routes to) a page.
-            category (bool): Redirect to correct network. For example,
-                open_route('/configure/vpn_settings') is used on the switch
-                subnetwork of a combined network that has a firewall. In this
-                scenario, redirect to the firewall's page.
+            is_combined_network (bool): Redirect to correct network. For
+                example, open_route('/configure/vpn_settings') is used on
+                the switch subnetwork of a combined network that has a
+                firewall. In this scenario, redirect to the firewall's page.
             network_eid (string): eid used to construct url when
                 changing from org to network URLs
                 (i.e. 'https:/n1.meraki.com/n/<network_id>/...')
@@ -398,8 +398,9 @@ class DashboardBrowser:
                 changing from network to org URLs
                 (i.e. 'https://n1.meraki.com/o/<org_id>/...')
         """
-        if category:
-            target_url = self.combined_network_redirect(route, category)
+        if is_combined_network:
+            target_url = self.combined_network_redirect(route,
+                                                        is_combined_network)
             if not target_url:
                 raise LookupError
         else:
@@ -409,28 +410,38 @@ class DashboardBrowser:
                 url_partial = url_base + '.com/-/n/' + network_eid
             elif org_eid:
                 url_partial = url_base + '.com/o/' + org_eid
+            # Requires orgs_dict to have content.
+            # Force an org redirect without enough info when the route needs it
+            elif self.orgs_dict and 'administered_orgs' not in route and \
+                    ('organization' in route or 'license_info' in route
+                     or 'new_status' in route or 'app_analytics' in route):
+                active_org_eid = self.orgs_dict[self.active_org_id]['eid']
+                url_partial = url_base + '.com/o/' + active_org_eid
             else:
+                # If there is no org/network change, then use current base url
                 url_partial, _ = current_url.split('/manage')
             target_url = url_partial + '/manage' + route
 
         # Don't go to where we already are or have been!
-        has_pagetext = [i for i in self.pagetexts.keys() if route in i]
+        has_pagetext = [i for i in self.pagetexts.keys() if target_url in i]
         if self.get_url() != target_url and not has_pagetext:
             try:
                 self.browser.open(target_url)
                 print("Opening", target_url, "...")
-                self.pagetexts[target_url] = self.browser.get_current_page()
+                self.pagetexts[target_url] = self.get_page()
                 opened_url = self.browser.get_url()
                 has_been_redirected = opened_url != target_url
-                if has_been_redirected:
+                if has_been_redirected and not redirect_ok:
                     self.handle_redirects(target_url, opened_url)
             except mechanicalsoup.utils.LinkNotFoundError as error:
                 print('Attempting to open', self.get_url(), 'with route',
                       route, 'and failed.', error)
+        else:
+            print("Not opening route because we have pagetext for this page.")
 
     def combined_network_redirect(self, route, category):
         """Redirect to a different network type in a combined network."""
-        pagelink_dict = get_pagetext_links(self.get_pagetext())
+        pagelink_dict = get_pagetext_links(self.get_page().text)
         for page in pagelink_dict[category]:
             page_url = pagelink_dict[category][page]
             if route in page_url:
@@ -440,7 +451,7 @@ class DashboardBrowser:
     def handle_redirects(target_url, opened_url):
         """On redirect, determine whether this is intended behavior."""
         print("ERROR: Redirected from intended route! You may be accessing "
-              "\na route that this network does not have"
+              "\na route that this network does not have:"
               "\n(i.e. '/configure/vpn_settings' on a switch network).\n"
               "\nTarget url:", target_url,
               "\nOpened url:", opened_url,

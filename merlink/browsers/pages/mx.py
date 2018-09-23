@@ -33,7 +33,7 @@ def mx_get_client_vpn_subnet(self):
     """
     self.open_route('/configure/client_vpn_settings', "Security appliance")
     return page_utils.get_input_var_value(
-        self.browser.get_current_page(),
+        self.get_page(),
         'wired_config_client_vpn_subnet')
 
 
@@ -52,7 +52,7 @@ def mx_get_client_vpn_dns_mode(self):
     route = '/configure/client_vpn_settings'
     self.open_route(route)
     return page_utils.get_dropdown_value(
-        self.browser.get_current_page(),
+        self.get_page(),
         'wired_config_client_vpn_dns_mode')
 
 
@@ -68,7 +68,7 @@ def mx_get_client_vpn_nameservers(self):
     """
     self.open_route('/configure/client_vpn_settings', "Security appliance")
     nameservers = page_utils.get_textarea_list(
-        self.browser.get_current_page(),
+        self.get_page(),
         var_id='wired_config_client_vpn_dns')
     if nameservers == 'Specify nameservers...':
         nameservers = None
@@ -88,7 +88,7 @@ def mx_get_client_vpn_wins_enabled(self):
     """
     self.open_route('/configure/client_vpn_settings', "Security appliance")
     dropdown_value = page_utils.get_dropdown_value(
-        self.browser.get_current_page(),
+        self.get_page(),
         var_id='wired_config_client_vpn_wins_enabled')
     return dropdown_value == 'Enabled'
 
@@ -106,7 +106,7 @@ def mx_get_client_vpn_secret(self):
     """
     self.open_route('/configure/client_vpn_settings', "Security appliance")
     return page_utils.get_input_var_value(
-        self.browser.get_current_page(),
+        self.get_page(),
         var_id='wired_config_client_vpn_secret')
 
 
@@ -124,7 +124,7 @@ def mx_get_client_auth_type(self):
     """
     self.open_route('/configure/client_vpn_settings', "Security appliance")
     return page_utils.get_dropdown_value(
-        self.browser.get_current_page(),
+        self.get_page(),
         var_id='wired_config_client_vpn_auth_type')
 
 
@@ -141,7 +141,7 @@ def mx_get_sentry_vpn_enabled(self):
     """
     self.open_route('/configure/client_vpn_settings', "Security appliance")
     dropdown_value = page_utils.get_dropdown_value(
-        self.browser.get_current_page(),
+        self.get_page(),
         var_id='wired_config_client_vpn_pcc_access_enabled')
     return dropdown_value == 'Enabled'
 
@@ -159,7 +159,7 @@ def mx_get_active_directory_enabled(self):
     """
     self.open_route('/configure/active_directory', "Security appliance")
     dropdown_value = page_utils.get_dropdown_value(
-        self.browser.get_current_page(),
+        self.get_page(),
         var_id='active_directory_enabled_select')
     return dropdown_value == 'Authenticate users with Active Directory'
 
@@ -177,7 +177,7 @@ def mx_get_primary_uplink(self):
     """
     self.open_route('/configure/traffic_shaping', "Security appliance")
     return page_utils.get_dropdown_value(
-        self.browser.get_current_page(),
+        self.get_page(),
         var_id='wired_config_primary_uplink')
 
 
@@ -195,7 +195,7 @@ def mx_get_amp_enabled(self):
     """
     self.open_route('/configure/security_filtering', "Security appliance")
     dropdown_value = page_utils.get_dropdown_value(
-        self.browser.get_current_page(),
+        self.get_page(),
         var_id='scanning_enabled_select')
     return dropdown_value == 'Enabled'
 
@@ -213,7 +213,7 @@ def mx_get_ids_mode(self):
     """
     self.open_route('/configure/security_filtering', "Security appliance")
     return page_utils.get_dropdown_value(
-        self.browser.get_current_page(),
+        self.get_page(),
         var_id='ids_mode_select')
 
 
@@ -234,5 +234,5 @@ def mx_get_ids_ruleset(self):
 
     self.open_route('/configure/security_filtering', "Security appliance")
     return page_utils.get_dropdown_value(
-        self.browser.get_current_page(),
+        self.get_page(),
         var_id='ids_ruleset_select')

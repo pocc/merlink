@@ -21,6 +21,7 @@ from test.method_tests.test_merlink_gui import TestMerlinkWindow
 from test.method_tests.test_page_routes import TestPageRoutes
 from test.method_tests.test_vpn_connection import TestVpnConnection
 
+"""
 fast = unittest.TestSuite()
 fast.addTests([
     TestClientVpnBrowser,
@@ -34,3 +35,4 @@ slow = unittest.TestSuite()
 slow.addTests(TestLogins)
 
 alltests = unittest.TestSuite([fast, slow])
+"""

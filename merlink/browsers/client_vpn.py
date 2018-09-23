@@ -45,7 +45,7 @@ class ClientVpnBrowser(DashboardBrowser):
         """
         self.open_route('/nodes/new_wired_status',
                         network_eid=self.active_network_id)
-        pagetext = self.get_pagetext()
+        pagetext = self.get_page().text
         using_ddns = (get_pagetext_json_value('dynamic_dns_enabled',
                                               pagetext) == 'true')
         if using_ddns:
@@ -124,7 +124,7 @@ class ClientVpnBrowser(DashboardBrowser):
         """
         errors = ''
         self.open_route('/nodes/new_wired_status')
-        pagetext = self.get_pagetext()
+        pagetext = self.get_page().text
         client_public_ip = get_pagetext_json_value('request_ip', pagetext)
         firewall_public_ip = get_pagetext_json_value('{"public_ip', pagetext)
         if client_public_ip == firewall_public_ip:
@@ -153,7 +153,7 @@ class ClientVpnBrowser(DashboardBrowser):
         """
         errors = ''
         self.open_route('/configure/firewall')
-        pagetext = self.get_pagetext()
+        pagetext = self.get_page().text
         port_forwarding_ipsec_ports = re.search(
             r'"udp","public_port":"[4]?500"', pagetext)
         if port_forwarding_ipsec_ports:
