@@ -20,6 +20,7 @@ from PyQt5.QtWidgets import QApplication
 
 from .merlink_cli import MainCli
 from .merlink_gui import MainWindow
+from .merlink_gui_utils import SingleApplication
 from . import os_utils
 
 
@@ -28,25 +29,38 @@ def start():
 
     Build this with './venv/bin/python3 setup.py build' from project root
     """
-    os_utils.kill_duplicate_applications('merlink')
 
+    # Raise exceptions for environmental requirements.
+    if sys.version_info[0] < 3 or sys.version_info[1] < 5:
+        raise Exception("MerLink requires Python 3.5+")
+    if sys.getfilesystemencoding().lower() in ("ascii", "ansi_x3.4-1968"):
+        raise Exception("MerLink requires a UTF-8 locale.")
+
+    """Create an interface object."""
     # If there are no command line args, start GUI; otherwise CLI
     gui_application = (len(sys.argv) == 1)
     if gui_application:
-        app = QApplication(sys.argv)  # Required Qt logic.
-        interface = MainWindow()
+        # Force single application mode for GUI.
+        with SingleApplication() as single_application:
+            if not single_application:
+                raise Exception("MerLink is already running!")
+            else:
+                app = QApplication(sys.argv)  # Required Qt logic.
+                interface = MainWindow()
+                setup_browser(interface)
+                sys.exit(app.exec_())  # Required Qt logic.
     else:
         interface = MainCli()
-    # Login, set up data structures, and start the interface's UI.
-    interface.attempt_login()
+        setup_browser(interface)
 
+
+def setup_browser(interface):
+    """Set up a browser object, login with it, and create data structures."""
+    # If browser is interrupted, logout so there's no hanging session.
     try:
+        interface.attempt_login()
         interface.init_ui()
-        if gui_application:
-            app.exec_()  # Required Qt logic.
-    except (KeyboardInterrupt, KeyError) as error:
+    except (KeyboardInterrupt, KeyError):
         print("\nAttempting to gracefully exit...")
         interface.browser.logout()
         raise  # KeyboardInterrupt needs to be reraised.
-
-    sys.exit()

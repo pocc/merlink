@@ -14,9 +14,11 @@
 # limitations under the License.
 """Test dashboard browser class."""
 import unittest
-import merlink.os_utils
-import merlink.browsers.pages.page_hunters
-import merlink.browsers.pages.page_utils
+import multiprocessing
+
+import merlink.os_utils as os_utils
+from merlink.browsers.pages import mx, page_hunters
+from merlink import start
 
 
 class TestMiscUtils(unittest.TestCase):
@@ -27,11 +29,20 @@ class TestMiscUtils(unittest.TestCase):
         """Set up the test."""
         pass
 
+    def test_memory_class(self):
+        start()
+        start()
+        with os_utils.MemoryCondition() as single_application:
+            if single_application:
+                assert AssertionError
+            else:
+                return True
+
     @staticmethod
-    def test_a_fn():
+    def test_memory():
         """Test these functions... eventually.
         os_utils
-            kill_duplicate_applications
+
             is_online
             list_vpns
             open_vpn_settings

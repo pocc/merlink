@@ -15,17 +15,7 @@
 """OS utilities, most of which are VPN-related."""
 import os
 import sys
-import signal
 import subprocess
-import psutil
-
-
-def kill_duplicate_applications(program_name):
-    """Kill other instances of program with same name on startup."""
-    this_pid = os.getpid()
-    for proc in psutil.process_iter():
-        if proc.name == program_name and proc.pid == this_pid:
-            os.kill(proc.pid, signal.SIGKILL)
 
 
 def is_online():
