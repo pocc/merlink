@@ -5,6 +5,7 @@ venv/
 build/
 bin/
 dist/
+**/cred*
 
 # no vim cruft
 *.swp

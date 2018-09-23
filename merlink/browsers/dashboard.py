@@ -20,8 +20,6 @@ import requests
 import mechanicalsoup
 
 from . import add_functions_as_methods, page_scrapers
-from .pages.page_hunters import get_pagetext_json_value
-from .pages.page_hunters import get_pagetext_mkiconf
 from .pages.page_hunters import get_pagetext_links
 
 
@@ -135,7 +133,7 @@ class DashboardBrowser:
                     result_string = 'auth_success'
                     self.org_data_setup()
                 else:
-                    result_string = 'auth_failure'
+                    result_string = 'auth_error'
             else:
                 result_string = 'sms_auth'
         else:
@@ -183,7 +181,8 @@ class DashboardBrowser:
         # visit pages you should have access to
         page = self.browser.get_current_page()
         # 2+ orgs page : https://account.meraki.com/login/org_list?go=%2F
-        if self.browser.get_url().find('org_list'):  # Admin orgs = 2
+
+        if self.browser.get_url().find('org_list') != -1:  # Admin orgs = 2+
             self.bypass_org_choose_page(page)
 
         self.orgs_dict = self.scrape_json(
