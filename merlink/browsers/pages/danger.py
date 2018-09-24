@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Utilities that make permanent changes to your organization
+"""Utilities that make permanent changes to your organizations and networks.
 
 DO NOT USE THIS FILE UNLESS YOU KNOW WHAT YOU ARE DOING! YOU HAVE BEEN WARNED.
 
