@@ -124,6 +124,7 @@ class DashboardBrowser:
         result_url = self.browser.get_url()
         # URL contains /login/login if login failed
 
+        print(result_url)
         if result_url.find('/login/login') != -1:
             result_string = 'auth_error'
         # Two-Factor redirect: https://account.meraki.com/login/sms_auth?go=%2F
@@ -148,9 +149,14 @@ class DashboardBrowser:
         Args:
             tfa_code (string): The user-entered TFA string
             (should consist of 6 digits)
+
+        HTML:
+            <input class="btn btn-default" name="commit" style="margin-left:
+            .8em" tabindex="3" type="submit" value="Verify">
+
+       route commit values: remember=1 (tfa), remember_user=1 (remember login)
         """
         form = self.browser.select_form()
-        print(self.browser.get_url())
         self.browser['code'] = tfa_code
         form.choose_submit('commit')  # Click 'Verify' button
         self.browser.submit_selected()

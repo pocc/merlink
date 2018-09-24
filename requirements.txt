@@ -25,6 +25,9 @@ pylint
 flake8
 radon
 
+# Testing
+pyotp
+
 # Maintainers:
 # Grab the latest pyinstaller develop version (currently 3.4)
 https://github.com/pyinstaller/pyinstaller/tarball/develop

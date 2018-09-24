@@ -18,11 +18,14 @@ A credentials file with username + password must be supplied for this to work.
 ('credentials*' is excluded in .gitignore)
 """
 import unittest
+import requests
+import re
+import pyotp
 
 from merlink.browsers.dashboard import DashboardBrowser
 from merlink.browsers.pages.page_utils import get_input_var_value
 from merlink.browsers.pages.page_hunters import get_pagetext_mkiconf
-from test.credentials import emails, passwords
+from test.credentials import emails, passwords, totp_base32_secret
 
 
 class TestLogins(unittest.TestCase):
@@ -36,7 +39,7 @@ class TestLogins(unittest.TestCase):
             # test for read only access in one network in one org
             # test for monitor only access in one network in one org
             # test for guest ambassador access in one network in one org
-            # NOT BEING TESTED: TFA
+            # test for tfa network admin access in one network in one org
         ]
     """
 
@@ -44,10 +47,22 @@ class TestLogins(unittest.TestCase):
         """Set up the test."""
         self.browser = DashboardBrowser()
 
-    def test_login_sms(self):
-        """Test for a user known to be using tfa auth"""
+    def test_login_sms_redirect(self):
+        """Test that a tfa user is redirected to the tfa page."""
         self.assertEqual(self.browser.login(emails[6], passwords[6]),
                          'sms_auth')
+
+    def test_login_tfa_fail(self):
+        """Verify that bad TFA code returns expected ValueError exception."""
+        self.browser.login(emails[6], passwords[6], tfa_code='000000')
+        with self.assertRaises(ValueError):
+            self.check_network_access()
+
+    def test_login_tfa(self):
+        """Verify that tfa works with python authenticator `pyotp`."""
+        totp = pyotp.TOTP(totp_base32_secret)
+        self.browser.login(emails[6], passwords[6], tfa_code=totp.now())
+        self.check_network_access()
 
     def test_login_failure(self):
         """Test whether sending a bad password will result in an auth error."""
@@ -159,21 +174,18 @@ if __name__ == '__main__':
     unittest.main()
 
 """Test these functions... eventually.
-'combined_network_redirect', 
 'get_active_network_name', 
 'get_active_org_name',
 'get_network_names',
 'get_org_names',
-'handle_redirects',
-'login', 
-'logout', 
-'open_route', 
-'org_data_setup', 
-'scrape_json', 
 'set_network_id', 
 'set_network_name', 
 'set_org_id', 
 'set_org_name', 
-'tfa_submit_info', 
-'url'
+
+'handle_redirects',
+'combined_network_redirect', 
+'open_route', 
+'org_data_setup', 
+'scrape_json',  
 """

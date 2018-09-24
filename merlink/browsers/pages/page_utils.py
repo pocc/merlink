@@ -92,11 +92,3 @@ def get_input_var_value(soup, var_id):
         print('\nERROR:  <' + var_id + '>  not found!\nPagesoup:\n\n', soup)
         raise LookupError
 
-
-def save_page(browser):
-    """Click the 'Save' button after making a change.
-    Args:
-        browser (DashboardBrowser): Session to save settings with.
-
-    """
-    print("Not implemented yet!", browser.browser.get_url())
