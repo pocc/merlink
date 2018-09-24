@@ -14,5 +14,6 @@ dist/
 
 # no compiled files
 __pycache__/
+.pytest_cache/
 *.pyc
 *.egg-info/

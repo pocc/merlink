@@ -278,19 +278,20 @@ class DashboardBrowser:
         """
         if org_id in self.orgs_dict.keys():
             self.active_org_id = org_id
+            org_eid = self.orgs_dict[self.active_org_id]['eid']
+            shard_id = str(self.orgs_dict[self.active_org_id]['shard_id'])
+            base = 'https://n' + shard_id + '.meraki.com/'
+            new_org_url = base + 'o/' + org_eid + '/manage/organization/'
+            self.browser.open(new_org_url)
             # If networks haven't been retrieved for this org (occurs once/org)
             if not self.orgs_dict[self.active_org_id]['node_groups']:
-                org_eid = self.orgs_dict[self.active_org_id]['eid']
-                shard_id = str(self.orgs_dict[self.active_org_id]['shard_id'])
-                base = 'https://n' + shard_id + '.meraki.com/'
-                new_org_url = base + 'o/' + org_eid + '/manage/organization/'
-                self.browser.open(new_org_url)
                 new_org_dict = self.scrape_json(
                     '/organization/administered_orgs')[self.active_org_id]
                 self.orgs_dict[self.active_org_id] = new_org_dict
-                # Set active network id by choosing first network.
-                self.active_network_id = \
-                    list(self.orgs_dict[org_id]['node_groups'])[0]
+            # Set active network id by choosing first network.
+            self.active_network_id = \
+                list(self.orgs_dict[self.active_org_id]['node_groups'])[0]
+
         else:
             print("\nERROR:", org_id, "is not one of your org ids!"
                   "\nExiting...\n")
@@ -397,6 +398,9 @@ class DashboardBrowser:
             org_eid (string): eid used to construct url when
                 changing from network to org URLs
                 (i.e. 'https://n1.meraki.com/o/<org_id>/...')
+            redirect_ok (bool): Allow redirects without complaining.
+                NOTE: AVOID IF POSSIBLE. Redirects are usually a sign that
+                you are doing something wrong.
         """
         if is_combined_network:
             target_url = self.combined_network_redirect(route,
@@ -407,7 +411,9 @@ class DashboardBrowser:
             current_url = self.browser.get_url()
             url_base = current_url.split('.com/')[0]
             if network_eid:
-                url_partial = url_base + '.com/-/n/' + network_eid
+                name = self.orgs_dict[self.active_org_id]['node_groups'][
+                    self.active_network_id]['t']
+                url_partial = url_base + '.com/' + name + '/n/' + network_eid
             elif org_eid:
                 url_partial = url_base + '.com/o/' + org_eid
             # Requires orgs_dict to have content.
@@ -430,12 +436,14 @@ class DashboardBrowser:
                 print("Opening", target_url, "...")
                 self.pagetexts[target_url] = self.get_page()
                 opened_url = self.browser.get_url()
-                has_been_redirected = opened_url != target_url
+                # It's ok if dashboard adds URL junk at the end.
+                has_been_redirected = target_url not in opened_url
                 if has_been_redirected and not redirect_ok:
                     self.handle_redirects(target_url, opened_url)
-            except mechanicalsoup.utils.LinkNotFoundError as error:
+            except mechanicalsoup.utils.LinkNotFoundError:
                 print('Attempting to open', self.get_url(), 'with route',
-                      route, 'and failed.', error)
+                      route, 'and failed.')
+                raise mechanicalsoup.utils.LinkNotFoundError
         else:
             print("Not opening route because we have pagetext for this page.")
 

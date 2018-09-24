@@ -21,6 +21,7 @@ import unittest
 
 from merlink.browsers.dashboard import DashboardBrowser
 from merlink.browsers.pages.page_utils import get_input_var_value
+from merlink.browsers.pages.page_hunters import get_pagetext_mkiconf
 from test.credentials import emails, passwords
 
 
@@ -71,12 +72,14 @@ class TestLogins(unittest.TestCase):
     def test_login_1org_1network(self):
         """Test access for user with 1 org and 1 network in another org
 
-        * Navigate to organization settings in primary org
-        * Navigate to network settings in other org
+        * Navigate to organization settings in org with full access
+        * Navigate to network settings in other org where user does not have
+          org access
         """
         self.browser.login(emails[1], passwords[1])
         # Force first org to be one where user has org access
-        if not self.browser.orgs_dict['org_admin_type']:  # If no org access
+        this_org = self.browser.active_org_id
+        if not self.browser.orgs_dict[this_org]['org_admin_type']:
             # Set org id to the org with full access
             self.toggle_orgs()
 
@@ -86,20 +89,30 @@ class TestLogins(unittest.TestCase):
         self.check_network_access()
 
     def test_login_2networks_diff_orgs(self):
+        """Test access for admin with network access in 2 diff orgs."""
         self.browser.login(emails[2], passwords[2])
         self.check_network_access()
         self.toggle_orgs()
         self.check_network_access()
 
     def test_login_1network_read_only(self):
+        """Test access for network read-only admin."""
         self.browser.login(emails[3], passwords[3])
         self.check_network_access()
 
     def test_login_1network_monitor_only(self):
+        """Test access for network monitors in 1 network in 1 org.
+
+        Network monitors only have access to /usage/list, /new_reports
+        """
         self.browser.login(emails[4], passwords[4])
-        self.check_network_access()
+        self.check_network_access(route='/new_reports')
 
     def test_login_1network_guest_ambassador(self):
+        """Test access for network amabassadors in 1 network in 1 org.
+
+        Guest ambassadors only have access to /configure/guests
+        """
         self.browser.login(emails[5], passwords[5])
         self.check_network_access()
 
@@ -115,27 +128,26 @@ class TestLogins(unittest.TestCase):
         This function allows us to quickly toggle between the two
         """
         self.browser.set_org_id(self.get_other_org_id())
+        print('Switching to org:\t', self.browser.get_active_org_name())
 
     def check_org_access(self):
         """Verify org access by scraping the org name out of settings."""
         # Print name that should only be visible on Organization > Settings
         self.browser.open_route('/organization/edit')
-        with open('org.html', 'w') as file:
-            file.write(str(self.browser.get_page()))
-            file.close()
-        print('Org name:', get_input_var_value(self.browser.get_page(),
-                                               'organization_name'))
+        print('Testing org access...\nOpened org:\t\t\t', get_input_var_value(
+            self.browser.get_page(), 'organization_name'))
 
-    def check_network_access(self):
+    def check_network_access(self, route='/configure/guests'):
         """Verify network access by scraping its name from network settings.
 
-        In combined networks, this call redirects to /configure/general.
-        As the page content is the same, allow the redirect.
+        Using /configure/guests as it should be accessible for all user types.
+        MkiConf vars will be scrapeable even if this page lacks content.
         """
-        self.browser.open_route('/configure/system_settings', redirect_ok=True)
-        # Print name that should only be visible on Network-wide > General
-        print('Network name:', get_input_var_value(self.browser.get_page(),
-                                                   'network_name'))
+        network_eid = self.browser.active_network_id
+        self.browser.open_route(route, network_eid=network_eid)
+        mkiconf_dict = get_pagetext_mkiconf(self.browser.get_page().text)
+        print('Testing network access...\nOpened network:\t\t',
+              mkiconf_dict['network_name'])
 
     def tearDown(self):
         """Logout of browser and close it."""

@@ -57,7 +57,7 @@ def get_pagetext_mkiconf(pagetext):
         (dict) All available Mkiconf vars.
 
     """
-    mki_lines = re.findall(' Mkiconf[ -:<-~]*;', pagetext)
+    mki_lines = re.findall(' Mkiconf[!-:<-~]* =[ -:<-~]*;', pagetext)
     mki_dict = {}
     for line in mki_lines:
         mki_string = \

@@ -12,11 +12,15 @@ def get_textarea_list(soup, var_id):
         (string): The list of values from a textarea.
 
     """
-    textarea_list = soup.find("textarea", {'id': var_id}).text.split('\n')
-    # Remove all '' elements. First element of this list will be ''
-    # If there are no textarea elements, we would get ['', '', '']
-    filtered_list = list(filter(None, textarea_list))
-    return filtered_list
+    try:
+        textarea_list = soup.find("textarea", {'id': var_id}).text.split('\n')
+        # Remove all '' elements. First element of this list will be ''
+        # If there are no textarea elements, we would get ['', '', '']
+        filtered_list = list(filter(None, textarea_list))
+        return filtered_list
+    except AttributeError:
+        print('\nERROR:  <' + var_id + '>  not found!\nPagesoup:\n\n', soup)
+        raise LookupError
 
 
 def get_dropdown_value(soup, var_id):
@@ -36,9 +40,13 @@ def get_dropdown_value(soup, var_id):
         (string): The text of the dropdown value.
 
     """
-    dropdown = soup.find("select", {"id": var_id})
-    dropdown_value = dropdown.find("option").text
-    return dropdown_value
+    try:
+        dropdown = soup.find("select", {"id": var_id})
+        dropdown_value = dropdown.find("option").text
+        return dropdown_value
+    except AttributeError:
+        print('\nERROR:  <' + var_id + '>  not found!\nPagesoup:\n\n', soup)
+        raise LookupError
 
 
 def get_all_dropdown_values(soup, var_id):
@@ -53,11 +61,15 @@ def get_all_dropdown_values(soup, var_id):
         (list(string)): A list of dropdown values.
 
     """
-    dropdown = soup.find("select", {"id": var_id})
-    dropdown_values = []
-    for bs4_tag in dropdown.find_all("option"):
-        dropdown_values.append(bs4_tag.text)
-    return dropdown_values
+    try:
+        dropdown = soup.find("select", {"id": var_id})
+        dropdown_values = []
+        for bs4_tag in dropdown.find_all("option"):
+            dropdown_values.append(bs4_tag.text)
+        return dropdown_values
+    except AttributeError:
+        print('\nERROR:  <' + var_id + '>  not found!\nPagesoup:\n\n', soup)
+        raise LookupError
 
 
 def get_input_var_value(soup, var_id):
@@ -73,8 +85,12 @@ def get_input_var_value(soup, var_id):
         (string): The value of the variable
 
     """
-    var_value = soup.find('input', {'id': var_id}).get('value')
-    return var_value
+    try:
+        var_value = soup.find('input', {'id': var_id}).get('value')
+        return var_value
+    except AttributeError:
+        print('\nERROR:  <' + var_id + '>  not found!\nPagesoup:\n\n', soup)
+        raise LookupError
 
 
 def save_page(browser):
