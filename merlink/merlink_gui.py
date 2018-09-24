@@ -143,7 +143,7 @@ class MainWindow(QMainWindow):
         self.setEnabled(False)
         login_dialog = LoginDialog()
         login_dialog.exec_()
-        self.browser.browser = login_dialog.browser.browser
+        self.browser.mechsoup = login_dialog.browser.mechsoup
         self.browser.active_org_id = login_dialog.browser.active_org_id
         self.browser.active_network_id = \
             login_dialog.browser.active_network_id

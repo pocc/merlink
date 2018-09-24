@@ -66,7 +66,7 @@ def do_push_button(self, url, params, commit, req_body_params=None):
     """
     from urllib.parse import urlencode
     cookie_string = ''
-    cookie_dict = dict(self.browser.browser.get_cookiejar())
+    cookie_dict = dict(self.browser.mechsoup.get_cookiejar())
     for key in cookie_dict:
         if key != 'dash_auth':
             cookie_string += urlencode({key: cookie_dict[key]}) + '; '

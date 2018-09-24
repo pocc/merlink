@@ -31,7 +31,7 @@ class DashboardBrowser:
     https://n<shard_id>.meraki.com/o/<eid>/manage/organization/
 
     Attributes:
-        browser (MechanicalSoup): Main browser object to send data to dashboard
+        mechsoup (MechanicalSoup): Main browser object to send data to dashboard
 
         vpn_vars (dict): List of VPN variables (does the browser need access
         to this?)
@@ -68,7 +68,7 @@ class DashboardBrowser:
     def __init__(self):
         """Initialize the browser and other class-wide variables."""
         super(DashboardBrowser, self).__init__()
-        self.browser = mechanicalsoup.StatefulBrowser(
+        self.mechsoup = mechanicalsoup.StatefulBrowser(
             soup_config={'features': 'lxml'},  # Use the lxml HTML parser
             raise_on_404=True,
             # User Agent String is for the Nintendo Switch because why not
@@ -110,18 +110,18 @@ class DashboardBrowser:
         """
         # Navigate to login page
         try:
-            self.browser.open(
+            self.mechsoup.open(
                 'https://account.meraki.com/login/dashboard_login')
         except requests.exceptions.ConnectionError as error:
             return type(error).__name__
 
-        form = self.browser.select_form()
-        self.browser["email"] = username
-        self.browser["password"] = password
+        form = self.mechsoup.select_form()
+        self.mechsoup["email"] = username
+        self.mechsoup["password"] = password
         form.choose_submit('commit')  # Click login button
-        self.browser.submit_selected()  # response should be '<Response [200]>'
+        self.mechsoup.submit_selected()  # response should be '<Response [200]>'
         # After setup, verify whether user authenticates correctly
-        result_url = self.browser.get_url()
+        result_url = self.mechsoup.get_url()
         # URL contains /login/login if login failed
 
         print(result_url)
@@ -156,10 +156,10 @@ class DashboardBrowser:
 
        route commit values: remember=1 (tfa), remember_user=1 (remember login)
         """
-        form = self.browser.select_form()
-        self.browser['code'] = tfa_code
+        form = self.mechsoup.select_form()
+        self.mechsoup['code'] = tfa_code
         form.choose_submit('commit')  # Click 'Verify' button
-        self.browser.submit_selected()
+        self.mechsoup.submit_selected()
 
         active_page = self.get_page().text
         # Will return -1 if it is not found
@@ -188,7 +188,7 @@ class DashboardBrowser:
         page = self.get_page()
         # 2+ orgs page : https://account.meraki.com/login/org_list?go=%2F
 
-        if self.browser.get_url().find('org_list') != -1:  # Admin orgs = 2+
+        if self.mechsoup.get_url().find('org_list') != -1:  # Admin orgs = 2+
             self.bypass_org_choose_page(page)
 
         self.orgs_dict = self.scrape_json(
@@ -200,7 +200,7 @@ class DashboardBrowser:
                 self.active_org_id = self.orgs_dict[org_id]['id']
                 break
 
-        base_url = self.browser.get_url().split('/manage')[0]
+        base_url = self.mechsoup.get_url().split('/manage')[0]
         eid = base_url.split('/n/')[1]
         self.active_network_id = eid
 
@@ -225,11 +225,11 @@ class DashboardBrowser:
         # Choose link for first org so we have something to connect to
         bootstrap_url = 'https://account.meraki.com' \
                         + org_href_lines[0]['href']
-        self.browser.open(bootstrap_url)
+        self.mechsoup.open(bootstrap_url)
 
     def logout(self):
         """Logout out of Dashboard."""
-        self.browser.open('https://account.meraki.com/login/logout')
+        self.mechsoup.open('https://account.meraki.com/login/logout')
         if '/login/dashboard_login' in self.get_url():
             print("Logout successful!")
         else:
@@ -239,11 +239,11 @@ class DashboardBrowser:
     ###########################################################################
     def get_url(self):
         """Get the current url."""
-        return self.browser.get_url()
+        return self.mechsoup.get_url()
 
     def get_page(self):
         """Return the current pagetext."""
-        return self.browser.get_current_page()
+        return self.mechsoup.get_current_page()
 
     def get_org_names(self):
         """Get a list of org names."""
@@ -288,7 +288,7 @@ class DashboardBrowser:
             shard_id = str(self.orgs_dict[self.active_org_id]['shard_id'])
             base = 'https://n' + shard_id + '.meraki.com/'
             new_org_url = base + 'o/' + org_eid + '/manage/organization/'
-            self.browser.open(new_org_url)
+            self.mechsoup.open(new_org_url)
             # If networks haven't been retrieved for this org (occurs once/org)
             if not self.orgs_dict[self.active_org_id]['node_groups']:
                 new_org_dict = self.scrape_json(
@@ -375,10 +375,14 @@ class DashboardBrowser:
     # Fns that open dashboard pages and get content from them.
     ###########################################################################
     def scrape_json(self, route):
-        """Return the JSON containing node-data(route:/configure/settings)."""
+        """Return the JSON containing node-data(route:/configure/settings).
+        Valid targets:
+
+
+        """
         self.open_route(route)
-        current_url = self.browser.get_url()
-        cookiejar = self.browser.get_cookiejar()
+        current_url = self.mechsoup.get_url()
+        cookiejar = self.mechsoup.get_cookiejar()
         json_text = requests.get(current_url, cookies=cookiejar).text
         return json.loads(json_text)
 
@@ -414,7 +418,7 @@ class DashboardBrowser:
             if not target_url:
                 raise LookupError
         else:
-            current_url = self.browser.get_url()
+            current_url = self.mechsoup.get_url()
             url_base = current_url.split('.com/')[0]
             if network_eid:
                 name = self.orgs_dict[self.active_org_id]['node_groups'][
@@ -438,10 +442,10 @@ class DashboardBrowser:
         has_pagetext = [i for i in self.pagetexts.keys() if target_url in i]
         if self.get_url() != target_url and not has_pagetext:
             try:
-                self.browser.open(target_url)
+                self.mechsoup.open(target_url)
                 print("Opening", target_url, "...")
                 self.pagetexts[target_url] = self.get_page()
-                opened_url = self.browser.get_url()
+                opened_url = self.mechsoup.get_url()
                 # It's ok if dashboard adds URL junk at the end.
                 has_been_redirected = target_url not in opened_url
                 if has_been_redirected and not redirect_ok:

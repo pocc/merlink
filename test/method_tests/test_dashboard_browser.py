@@ -18,8 +18,6 @@ A credentials file with username + password must be supplied for this to work.
 ('credentials*' is excluded in .gitignore)
 """
 import unittest
-import requests
-import re
 import pyotp
 
 from merlink.browsers.dashboard import DashboardBrowser
@@ -29,22 +27,29 @@ from test.credentials import emails, passwords, totp_base32_secret
 
 
 class TestLogins(unittest.TestCase):
-    """Test the dashboard browser class.
+    """Test various dashboard browser logins.
 
     Cycle through access types
         Emails list has these emails: [
-            # test for all access
-            # test for full org + 1 network access in different org
-            # test for full network access in multiple orgs
-            # test for read only access in one network in one org
-            # test for monitor only access in one network in one org
-            # test for guest ambassador access in one network in one org
-            # test for tfa network admin access in one network in one org
+            # [0] test for all access
+            # [1] test for full org + 1 network access in different org
+            # [2] test for full network access in multiple orgs
+            # [3] test for read only access in one network in one org
+            # [4] test for monitor only access in one network in one org
+            # [5] test for guest ambassador access in one network in one org
+            # [6] test for tfa network admin access in one network in one org
+            # [7] test for SAML admin (PLANNED)
         ]
+
+    Coverage for these functions:
+        login
+        tfa_submit_info
+        org_data_setup
+        logout
     """
 
     def setUp(self):
-        """Set up the test."""
+        """Set up only a browser."""
         self.browser = DashboardBrowser()
 
     def test_login_sms_redirect(self):
@@ -155,8 +160,8 @@ class TestLogins(unittest.TestCase):
     def check_network_access(self, route='/configure/guests'):
         """Verify network access by scraping its name from network settings.
 
-        Using /configure/guests as it should be accessible for all user types.
-        MkiConf vars will be scrapeable even if this page lacks content.
+        Using /configure/guests as it should be accessible for all user
+        types, except monitor only. MkiConf vars will be present on all pages.
         """
         network_eid = self.browser.active_network_id
         self.browser.open_route(route, network_eid=network_eid)
@@ -164,28 +169,73 @@ class TestLogins(unittest.TestCase):
         print('Testing network access...\nOpened network:\t\t',
               mkiconf_dict['network_name'])
 
+
+class TestBrowser(unittest.TestCase):
+    """Tests browser functionality given that login has occurred."""
+    def setUp(self):
+        """Set up only a browser."""
+        self.browser = DashboardBrowser()
+        self.browser.login(emails[0], passwords[0])
+
+    """Test setters and getters.
+    
+    Coverage for these attributes:
+        get_active_network_name 
+        get_active_org_name
+        get_network_names
+        get_org_names
+        set_network_id
+        set_network_name
+        set_org_id
+        set_org_name
+    Coverage for these key browser components:
+        scrape_json
+        open_route
+        handle_redirects
+        combined_network_redirect
+    """
+
+    def test_get_active_network_name(self):
+        pass
+
+    def test_get_active_org_name(self):
+        pass
+
+    def test_get_network_names(self):
+        pass
+
+    def test_get_org_names(self):
+        pass
+
+    def test_set_network_id(self):
+        pass
+
+    def test_set_network_name(self):
+        pass
+
+    def test_set_org_id(self):
+        pass
+
+    def test_set_org_name(self):
+        pass
+
+    def test_scrape_json(self):
+        pass
+
+    def test_open_route(self):
+        pass
+
+    def test_handle_redirects(self):
+        pass
+
+    def test_combined_network_redirect(self):
+        pass
+
     def tearDown(self):
         """Logout of browser and close it."""
         self.browser.logout()
-        self.browser.browser.close()
+        self.browser.mechsoup.close()
 
 
 if __name__ == '__main__':
     unittest.main()
-
-"""Test these functions... eventually.
-'get_active_network_name', 
-'get_active_org_name',
-'get_network_names',
-'get_org_names',
-'set_network_id', 
-'set_network_name', 
-'set_org_id', 
-'set_org_name', 
-
-'handle_redirects',
-'combined_network_redirect', 
-'open_route', 
-'org_data_setup', 
-'scrape_json',  
-"""
