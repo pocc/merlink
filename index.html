@@ -1,0 +1,32 @@
+---
+layout: base
+---
+<div class="wrapper">
+    <header>
+        {% if site.merlink.logo %}
+        <div class="logo-container">
+		  <video width="320" height="240" autoplay loop>
+		    <source src="{{ page.baseurl }}/video/merlink.webm" type="video/webm">
+		    <source src="{{ page.baseurl }}/video/merlink.mp4" type="video/mp4">
+		    <img src="{{ page.baseurl }}/video/merlink.mp4" alt="Merlink Usage" style="max-width:420px;" />
+		    Your browser does not support the video tag.
+		  </video>
+        </div>
+        {% endif %}
+
+        {% if site.merlink.author %}
+        <div class="author-container"><h1>{{ site.merlink.author }}</h1></div>
+        {% endif %}
+
+        {% if site.merlink.tagline %}
+        <div class="tagline-container"><p>{{ site.merlink.tagline }}</p></div>
+        {% endif %}
+    </header>
+    <main>
+      {% if site.merlink.include_content %}
+      <div class="content">
+        {% include content.html %}
+      </div>
+      {% endif %}
+    </main>
+</div>

@@ -1,5 +1,9 @@
+# Project
 /.idea
 /examples
+
+# Generated
+/_site
 /vendor
 /venv
 /build
@@ -11,3 +15,6 @@ __pycache__/
 *.swp
 *.swo
 *~
+
+# Macos why??
+.DS_Store
