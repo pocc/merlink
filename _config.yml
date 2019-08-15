@@ -10,7 +10,7 @@ merlink:
   # Using project name as it makes more sense based on where this value is placed.
   author: "Merlink"
   # tagline will appear under the title (optional)
-  tagline: "Meraki VPN Client"
+  tagline: "L2TP VPN"
   # if include_content is true, the contents of the content.html include will be
   # added right above the generated item list, if present
   include_content: true
