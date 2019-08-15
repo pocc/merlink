@@ -63,5 +63,7 @@ def setup_browser(interface):
         interface.init_ui()
     except (KeyboardInterrupt, KeyError):
         print("\nAttempting to gracefully exit...")
-        interface.browser.logout()
-        raise  # KeyboardInterrupt needs to be reraised.
+        has_logged_in = (interface.browser.active_org_id != 0)
+        if has_logged_in:
+            interface.browser.logout()
+        exit(1)
