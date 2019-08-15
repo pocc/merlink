@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The underlying structure is maintained here from preferences.plist -->
+<!-- The value set components inside it are marked as such -->
+<dict>
+	<key>2018-3-6 15:10:4 : NetworkServices</key>
+	<dict>
+		<!-- VALUE SET 1 START -->
+		<key>$GUID</key>
+		<dict>
+			<key>DNS</key>
+			<dict/>
+			<key>IPSec</key>
+			<dict>
+				<key>AuthenticationMethod</key>
+				<string>SharedSecret</string>
+				<key>SharedSecret</key>
+				<string>$GUID.SS</string>
+				<key>SharedSecretEncryption</key>
+				<string>Keychain</string>
+			</dict>
+			<key>IPv4</key>
+			<dict>
+				<key>ConfigMethod</key>
+				<string>PPP</string>
+			</dict>
+			<key>IPv6</key>
+			<dict>
+				<key>ConfigMethod</key>
+				<string>Automatic</string>
+			</dict>
+			<key>Interface</key>
+			<dict>
+				<key>SubType</key>
+				<string>L2TP</string>
+				<key>Type</key>
+				<string>PPP</string>
+			</dict>
+			<key>PPP</key>
+			<dict>
+				<key>ACSPEnabled</key>
+				<integer>1</integer>
+				<key>AuthName</key>
+				<string>$Username</string>
+				<key>AuthPassword</key>
+				<string>$GUID</string>
+				<key>AuthPasswordEncryption</key>
+				<string>Keychain</string>
+				<key>CommDisplayTerminalWindow</key>
+				<integer>0</integer>
+				<key>CommRedialCount</key>
+				<integer>1</integer>
+				<key>CommRedialEnabled</key>
+				<integer>0</integer>
+				<key>CommRedialInterval</key>
+				<integer>5</integer>
+				<key>CommRemoteAddress</key>
+				<string>$FirewallIp</string>
+				<key>CommUseTerminalScript</key>
+				<integer>0</integer>
+				<key>DialOnDemand</key>
+				<integer>0</integer>
+				<key>DisconnectOnFastUserSwitch</key>
+				<integer>1</integer>
+				<key>DisconnectOnIdle</key>
+				<integer>0</integer>
+				<key>DisconnectOnIdleTimer</key>
+				<integer>600</integer>
+				<key>DisconnectOnLogout</key>
+				<integer>1</integer>
+				<key>DisconnectOnSleep</key>
+				<integer>0</integer>
+				<key>IPCPCompressionVJ</key>
+				<integer>0</integer>
+				<key>IdleReminder</key>
+				<integer>0</integer>
+				<key>IdleReminderTimer</key>
+				<integer>1800</integer>
+				<key>LCPEchoEnabled</key>
+				<integer>1</integer>
+				<key>LCPEchoFailure</key>
+				<integer>15</integer>
+				<key>LCPEchoInterval</key>
+				<integer>20</integer>
+				<key>Logfile</key>
+				<string>/var/log/ppp.log</string>
+				<key>VerboseLogging</key>
+				<integer>0</integer>
+			</dict>
+			<key>Proxies</key>
+			<dict>
+				<key>FTPPassive</key>
+				<integer>1</integer>
+			</dict>
+			<key>SMB</key>
+			<dict/>
+			<key>UserDefinedName</key>
+			<string>$VpnName</string>
+		</dict>
+		<!-- VALUE SET 1 END -->
+	</dict>
+	<key>Sets</key>
+	<dict>
+		<key>$SETID</key>
+		<dict>
+			<key>Network</key>
+			<dict>
+				<key>Global</key>
+				<dict>
+					<key>IPv4</key>
+					<dict>
+						<key>ServiceOrder</key>
+						<array>
+							<!-- VALUE SET 2 START -->
+							<string>$GUID</string>
+							<!-- VALUE SET 2 END -->
+						</array>
+					</dict>
+				</dict>
+				<key>Service</key>
+				<dict>
+					<!-- VALUE SET 3 START -->
+					<key>$GUID</key>
+					<dict>
+						<key>__LINK__</key>
+						<string>/NetworkServices/$GUID</string>
+					</dict>
+					<!-- VALUE SET 3 END -->
+				</dict>
+			</dict>
+			<key>UserDefinedName</key>
+			<string>Automatic</string>
+		</dict>
+	</dict>
+</dict>

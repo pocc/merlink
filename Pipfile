@@ -1,0 +1,31 @@
+[[source]]
+url = "https://pypi.org/simple"
+name = "pypi"
+verify_ssl = true
+
+[packages]
+certifi = ">=2018.1.18"
+chardet = ">=3.0.4"
+idna = ">=2.6"
+lxml = ">=4.2.1"
+requests = ">=2.18.4"
+six = ">=1.11.0"
+"urllib3" = ">=1.22"
+psutil = ">=3.4.2"
+docopt = "*"
+"beautifulsoup4" = ">=4.6.0"
+"bs4" = ">=0.0.1"
+"d8a7d6a" = {file = "https://github.com/pyinstaller/pyinstaller/tarball/develop"}
+MechanicalSoup = ">=0.10.0"
+"PyQt5" = "<5.11"
+SIP = ">=4.19.8"
+biplist = "*"
+pylint = "*"
+"flake8" = "*"
+radon = "*"
+dodgy = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.5"

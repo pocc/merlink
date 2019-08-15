@@ -59,8 +59,8 @@ Download the executables [here](https://github.com/pocc/merlink/releases).
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](https://github.com/pocc/merlink/blob/master/docs/CONTRIBUTING.md) 
-for the process for submitting pull requests.
+Please read [contributing.md](https://github.com/pocc/merlink/blob/master/docs/contributing.md) for the process for 
+submitting pull requests.
 
 ### Setting up your environment
 To set up your Windows environment, please read 
@@ -77,27 +77,20 @@ To set up your Windows environment, please read
 For the versions available, see the [tags on this repository](https://github.com/pocc/merlink/tags). 
 
 ### Branching
-Adapting [Git Branching](http://nvie.com/posts/a-successful-git-branching-model/) 
-for this projcet
+Adapting [Git Branching](http://nvie.com/posts/a-successful-git-branching-model/) for this projcet
 
-* **iss#-desc**: Branch from dev and reintegrate to dev. Should be tied  to 
-an issue tagged with 'bug', 'feature', or 'enchancement' on repo. 
-* **dev**: Development branch. When it's ready for a release,  branch into a 
-release.
+* **iss#-X.Y**: Branch from dev-X.Y and reintegrate to dev-X.Y. Should be tied to an issue tagged with 'bug', 'feature', or 'enchancement' on repo. 
+* **dev-X.Y**: Development branch. When it's ready for a release, branch into a release.
+* **rel-X.Y**: Release candidate targeting version X.Y. When it is ready, it should be merged into master tagged with version X.Y.
 * **master**: Master branch.
 
 ## Addenda
 ### Reference Material
 #### Language and Libraries
 * [Python 3](https://www.python.org/) - Base language
-* [Qt5](https://doc.qt.io/qt-5/index.html) - Comprehensive Qt reference made
-  by the Qt company. It is made for C++, but will supply the information you
-    need about classes and functions.
-* [PyQt5](http://pyqt.sourceforge.net/Docs/PyQt5/) - Documentation for PyQt5.
-  This is a copypaste of the Qt docs applied to Python, and generally 
-  contains less useful information  
-* [Mechanical Soup](https://github.com/MechanicalSoup/MechanicalSoup) - Web 
- scraper for Python 3
+* [Qt5](https://doc.qt.io/qt-5/index.html) - Comprehensive Qt reference made by the Qt company. It is made for C++, but will supply the information you need about classes and functions.
+* [PyQt5](http://pyqt.sourceforge.net/Docs/PyQt5/) - Documentation for PyQt5. This is a copypaste of the Qt docs applied to Python, and generally contains less useful information  
+* [Mechanical Soup](https://github.com/MechanicalSoup/MechanicalSoup) - Web scraper for Python 3
 
 #### Environment
 * [PyCharm](https://www.jetbrains.com/pycharm/) - IDE used
@@ -109,22 +102,25 @@ Collection of manpages for VPN Client-specific powershell functions.
 #### Style Guide
 * [Google Python Style Guide (2018)](https://github.com/google/styleguide/blob/gh-pages/pyguide.md)
 
+#### Style Guide
+* [Google Python Style Guide (2018)](https://github.com/google/styleguide/blob/gh-pages/pyguide.md)
+
 #### Building
-* [PyInstaller](https://pyinstaller.readthedocs.io/en/v3.3.1/) - Python 
- bundler used as part of this project 
-    * [PyInstaller Recipes](https://github.com/pyinstaller/pyinstaller/wiki/Recipes) - 
-    Useful example code
+* [PyInstaller](https://pyinstaller.readthedocs.io/en/v3.3.1/) - Python bundler used as part of this project 
     * Make sure you install the latest PyIntstaller directly:
     
     `pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip
 `
 * [NSIS](http://nsis.sourceforge.net/Docs/) - Windows program installer system
-    * [NSIS Wizard + IDE](http://hmne.sourceforge.net/) - Will build and 
-     debug NSIS scripts
-    * [NSIS Sample Installers](http://nsis.sourceforge.net/Category:Real_World_Installers) - 
-     To learn how to build your own installer by example
-* [FPM](https://github.com/jordansissel/fpm) - A way to package to targets 
- deb, rpm, pacman, and osxpkg
+    * [NSIS Wizard + IDE](http://hmne.sourceforge.net/) - Will build and debug NSIS scripts
+    * [NSIS Sample Installers](http://nsis.sourceforge.net/Category:Real_World_Installers) - To learn how to build your own installer by example
+* [FPM](https://github.com/jordansissel/fpm) - A way to package to targets deb, rpm, pacman, and osxpkg
+libxml2-utils
+### Linting
+* coala:
+    * On ubuntu, be sure to install these libraries as well:
+    
+    `sudo apt install libxml2-utils libxml2-dev libxslt-dev libxml2`
 
 ### License
 

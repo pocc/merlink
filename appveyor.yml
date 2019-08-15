@@ -2,28 +2,28 @@
 # For appveyor.yml validation: https://ci.appveyor.com/tools/validate-yaml
 # Build environment: https://www.appveyor.com/docs/build-environment/
 
-clone_depth: 50                      # clone entire repository history if not defined
+# clone entire repository history if not defined
+clone_depth: 50
 # Start builds on tags only (GitHub and BitBucket)
-#skip_non_tags: true
+skip_non_tags: true
 # Skipping commits with particular message or from specific user
 skip_commits:
-  message: /noci/      # Regex for matching commit message
+  message: /no-ci/      # Regex for matching commit message
 # This is the default. Making it explicit here.
 clone_folder: c:\projects
 # scripts that are called at very beginning, before repo cloning
 init:
   - git config --global core.autocrlf input
-# Check build environment for details. Should have most recent python and ruby versions
+# Check build environment for details. Should have most recent python/ruby vers
 image: Visual Studio 2017
 # This is not an MSBuild, so turn it off
 build: off
 
 # branches to build
-#branches:
-#  only:
+branches:
+  only:
     # Only match tagged versions that look like v0.12.34
-    #- /v\d+\.\d+\.\d+/
-    #- master
+    - /^v\d+\.\d+\.\d+$/
 
 # this is how to allow failing jobs in the matrix
 matrix:
@@ -32,26 +32,19 @@ matrix:
 
 # scripts to run before build
 install:
-  #- cmd: echo This is batch
-  #- ps: Write-Host 'This is PowerShell'
-  #- ps: C:\Ruby25-x64\bin\ruby.exe  # for any ruby tasks (see build 1.0.5 for more info)
   - C:\Python36\python.exe -m pip install -r requirements.txt
-  # Get git version and get rid of prefaced 'v'
-  - ps: $GIT_VERSION=$(git describe --abbrev=0 --tags).substring(1)
-  - C:\Python36\Scripts\pyinstaller.exe -y pyinstaller.spec
-  - ps: ECHO $GIT_VERSION
+  - C:\Python36\Scripts\pyinstaller.exe -y merlink.spec
 
 build_script:
-  # /D specifies additional variables to be used in the script
-  - ps: makensis /DPRODUCT_VERSION=$GIT_VERSION .\pkg\windows_nsis_installer.nsh
+  - ps: C:\Python36\python.exe .\pkg\make_packages.py
 
 # TESTS (add these at some point)
-#before_test:
-#test:
-#after_test:
+# before_test:
+# test:
+# after_test:
 
 artifacts:
-  # pushing a single file with environment variable in path and "Deployment name" specified
+  # pushing a single file with "Deployment name" specified
   - path: pkg\merlink*.exe
     name: MerLink
     type: exe

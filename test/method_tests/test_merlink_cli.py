@@ -12,16 +12,31 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""MerLink setup.py"""
-from setuptools import setup
+"""Test dashboard browser class."""
+import unittest
+from merlink.merlink_cli import MainCli
 
-setup(
-    name='merlink',
-    version='0.8.6',
-    packages=['merlink'],
-    url='pocc.github.io/merlink',
-    license='Apache 2.0',
-    author='Ross Jacobs',
-    author_email='merlinkproject@gmail.com',
-    description='Cross-platform VPN client to connect to Meraki firewalls',
-    python_requires='>=3.5',)
+
+class TestMerlinkCli(unittest.TestCase):
+    """Test the dashboard browser class."""
+
+    @staticmethod
+    def set_up():
+        """Set up the test."""
+        pass
+
+    @staticmethod
+    def test_a_fn():
+        """Test these functions... eventually.
+        'attempt_connection', 
+        'attempt_login',
+        'get_user_input_from_list',
+        'init_ui',
+        'tshoot_vpn_failure',
+        'tui'
+        """
+        MainCli()
+
+
+if __name__ == '__main__':
+    unittest.main()

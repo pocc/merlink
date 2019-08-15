@@ -1,0 +1,5 @@
+[flake8]
+ignore = D400  # For docopt docstring in src/cli/main_cli.py
+exclude = __pycache__,.git,.idea,.virtualenv,venv,vendor,build,dist
+builtins = defines  # For pkg/dmgsettings.py
+max-complexity = 5

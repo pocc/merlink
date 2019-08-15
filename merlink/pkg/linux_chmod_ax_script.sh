@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/env bash
 # Copyright 2018 Ross Jacobs All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,16 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""MerLink setup.py"""
-from setuptools import setup
 
-setup(
-    name='merlink',
-    version='0.8.6',
-    packages=['merlink'],
-    url='pocc.github.io/merlink',
-    license='Apache 2.0',
-    author='Ross Jacobs',
-    author_email='merlinkproject@gmail.com',
-    description='Cross-platform VPN client to connect to Meraki firewalls',
-    python_requires='>=3.5',)
+# After install, any linux scripts need to have their execution bit turned on.
+chmod a+x /opt/merlink/src/l2tp_vpn/connect_linux.sh

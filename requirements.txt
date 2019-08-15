@@ -11,12 +11,24 @@ urllib3>=1.22
 psutil>=3.4.2
 
 # always required: project-specific
+biplist
+docopt
 beautifulsoup4>=4.6.0
 bs4>=0.0.1
 MechanicalSoup>=0.10.0
-PyQt5>=5.10.1
+# PyQt5 5.11 has issues with Python v3.5 for builds in readthedocs.io
+PyQt5<5.11
 sip>=4.19.8
 
+# Linting
+pylint
+flake8
+radon
+
+# Testing
+pyotp
+
 # Maintainers:
-pyinstaller>=3.3.1
+# Grab the latest pyinstaller develop version (currently 3.4)
+https://github.com/pyinstaller/pyinstaller/tarball/develop
 #dmgbuild>=1.3.2 (only required on macos, installed by macos preinstall script)

@@ -1,32 +1,154 @@
-# maybe add targets to build wheel
-VENDORPATH := $(shell pwd)/vendor
-PYTHONPATH := ".:$(VENDORPATH)"
+# Copyright 2018 Ross Jacobs All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-PYTHON := PYTHONPATH=$(PYTHONPATH) "$(shell which python3)"
-VENDOR := $(PYTHON) -m pip install --target "$(VENDORPATH)"
+# Philosophy on Makefile: Syntax is annoying, so get it to work and then
+# proxy to scripts in other languages if possible.
 
-default: vendor
-	$(PYTHON) ./src/merlink.py
+.PHONY: help run lint test configure build clean clean_all all
+.PHONY: package install docs publish
+
+VENV_NAME = venv/bin/activate
+PYTHONFILES := merlink.py merlink/
+ROOTDIR := "$(shell pwd)"
+UNAME_S := "$(shell uname -s)"
+ifeq (UNAME_S, "Linux")
+	WHICH = shell which
+else ifeq (UNAME_S, "Darwin")
+	WHICH = shell which
+else
+	WHICH = shell get-command 2> $null
+endif
+PYTHON := $(WHICH) python3
+WHICH_PIP := $(WHICH) pip
+
+
+    #############
+    ### USING ###
+    #############
+
+
+help:
+	@echo "USING"
+	@echo "  help:       Execute this message"
+	@echo "  run:         Run the program for this project"
+	@echo "  lint:        Run pylint, flake8, radon, & dodgy for clean code"
+	@echo "  test:        Run the tests to generate coverage (in development)"
+	@echo "CONFIGURING"
+	@echo "  configure:   Download and install all dependencies with pip"
+	@echo "  venv:        Create a virtualenv for this project"
+	@echo "  clean:       Remove the build artifacts"
+	@echo "  clean_all:   Remove the virtualenv and build artifacts"
+	@echo "PACKAGING"
+	@echo "  install:     Install locally to dist/merlink/"
+	@echo "  package:     Create an exe/dmg/deb+rpm for this OS in build/"
+	@echo "  archive      Compress merlink into tar (POSIX systems) or zip"
+	@echo "  docs:        Compile documentation using sphinx with `make html`"
+	@echo "  publish:     Upload to PyPy"
+
+
+.DEFAULT: help
+
+run: venv
+	$(PYTHON) merlink.py
+
+# Linting with pylint, flake8, radon.
+lint: $(PYTHONFILES) venv
+	$(PYTHON) -m pylint $(PYTHONFILES)
+	$(PYTHON) -m flake8 $(ROOTDIR)
+	radon cc -nc $(PYTHONFILES)
+	radon mi -nc $(PYTHONFILES)
+
+# https://wiki.python.org/moin/PyQt/GUI_Testing
+#	$(PYTHON) -m nose ./test
+test:
+	@echo "Feature in progress..."
+
+
+    ################
+    ### BUILDING ###
+    ################
+
+
+configure:
+# If python3 isn't installed, quit.
+ifeq ("$(PYTHON)","")
+	@echo "python3 is not installed and is required. Exiting..."
+	exit 1
+endif
+# If pip is missing, install it.
+ifeq ("$(WHICH_PIP)","")
+	curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py;
+	python get-pip.py
+endif
+	$(PYTHON) -m pip install -U pip
+	$(PYTHON) -m pip install virtualenv
+
+
+
+venv: venv/bin/activate configure
+PYTHON = venv/bin/python3
+ifeq ("$(UNAME_S)", "Linux")
+	VENV_ACTIVATE = $(shell source $(VENV_NAME))
+else ifeq ("$(UNAME_S)", "Darwin")
+	VENV_ACTIVATE = $(shell source $(VENV_NAME))
+else
+	VENV_ACTIVATE = $(shell $(VENV_NAME))
+endif
+
+
+venv/bin/activate: setup.py
+	virtualenv -p python3 venv
+ifeq ("$(UNAME_S)", "Darwin")
+	$(PYTHON) -m pip install dmgbuild
+endif
+	$(PYTHON) -m pip install -e .
+	$(PYTHON) -m pip install -Ur requirements.txt
+	$(VENV_ACTIVATE)
+
 
 clean:
-	$(RM) -r "$(VENDORPATH)"
+	$(RM) -r ./build ./dist
 
-lint: vendor
-	# https://github.com/vintasoftware/python-linters-and-code-analysis
-	#$(PYTHON) -m pylint ./src # or whatever you use
 
-test: lint vendor
-	# https://wiki.python.org/moin/PyQt/GUI_Testing
-	#$(PYTHON) -m nose ./test # or whatever you use
+clean_all: clean
+	$(RM) -r ./venv
+	exit
 
-.PHONY: clean default lint test
 
-merlink.exe: merlink.spec vendor
-	$(PYTHON) -m PyInstaller $<
 
-merlink.zip: src vendor
-	$(PYTHON) zip.py $@ $^
+    #################
+    ### PACKAGING ###
+    #################
 
-vendor: requirements.txt
-	$(VENDOR) --upgrade pip # latest pip
-	$(VENDOR) --upgrade -r requirements.txt
+
+all: install
+install: venv
+	$(PYTHON) -m PyInstaller -y merlink.spec
+
+
+package: install
+	$(PYTHON) pkg/make_packages.py
+
+
+archive: setup.py
+	$(PYTHON) setup.py sdist
+
+
+# Trigger Sphinx's makefile `make html`
+docs:
+	cd docs; make html;
+
+
+# When this gets on PyPy
+publish:

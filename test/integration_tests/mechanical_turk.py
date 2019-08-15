@@ -12,16 +12,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""MerLink setup.py"""
-from setuptools import setup
+"""For any tests that require some form of manual intervention.
 
-setup(
-    name='merlink',
-    version='0.8.6',
-    packages=['merlink'],
-    url='pocc.github.io/merlink',
-    license='Apache 2.0',
-    author='Ross Jacobs',
-    author_email='merlinkproject@gmail.com',
-    description='Cross-platform VPN client to connect to Meraki firewalls',
-    python_requires='>=3.5',)
+Examples include GUI testing, TFA, etc. where automating it would take too
+much time (right now) or are not feasible.
+"""
+
+from merlink.browsers.dashboard import DashboardBrowser
+from test.credentials import email, password
+
+
+def test_login(self):
+    browser = DashboardBrowser()
+    browser.login(self, email, password, tfa_code=None)
