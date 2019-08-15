@@ -43,7 +43,8 @@ def start():
         # Force single application mode for GUI.
         with SingleApplication() as single_application:
             if not single_application:
-                raise Exception("MerLink is already running!")
+                print("Already running; reusing existing instance.")
+                exit(1)
             else:
                 app = QApplication(sys.argv)  # Required Qt logic.
                 interface = MainWindow()
