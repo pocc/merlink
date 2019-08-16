@@ -209,7 +209,8 @@ class MainWindowUi:
     def __init__(self, app):
         self.app = app
         self.main_window_widget_setup()
-        self.main_window_user_auth_setup()
+        self.left_pane_setup()
+        self.right_pane_setup()
         self.main_window_vpn_vars_setup()
         # Create left and right panes separately and join them in finalize
         left_pane = self.create_vpn_setlayout()
@@ -233,7 +234,7 @@ class MainWindowUi:
         self.app.network_dropdown = QComboBox()
         self.app.network_dropdown.setEnabled(False)
 
-    def main_window_user_auth_setup(self):
+    def left_pane_setup(self):
         """Set initial vars for user/pass fields for dasboard/guest user."""
         self.app.radio_username_label = QLabel("Email")
         self.app.radio_username_label.setStyleSheet("color: #606060")  # Gray
@@ -273,7 +274,7 @@ class MainWindowUi:
         self.app.user_auth_section.addWidget(self.app.radio_password_textfield)
         self.app.user_auth_section.addWidget(self.app.radio_setup_method)
         self.app.user_auth_section.addWidget(self.app.radio_user_types)
-    
+
     def main_window_vpn_vars_setup(self):
         """Set up the vpn vars UI region."""
         # Allow the user to change the VPN name
@@ -311,6 +312,10 @@ class MainWindowUi:
         self.app.hline = QFrame()
         self.app.hline.setFrameShape(QFrame.HLine)
         self.app.hline.setFrameShadow(QFrame.Sunken)
+
+        self.app.vline = QFrame()
+        self.app.vline.setFrameShape(QFrame.VLine)
+        self.app.vline.setFrameShadow(QFrame.Sunken)
         # Status bar be at bottom and inform user of what the program is doing.
         self.app.status = QStatusBar()
         self.app.status.showMessage("Status: -")
@@ -335,38 +340,48 @@ class MainWindowUi:
     
         # Add stuff at bottom
         vert_layout.addWidget(self.app.connect_btn)
-        vert_layout.addWidget(self.app.hline)
-        vert_layout.addWidget(self.app.status)
-    
+
         # Tie main layout to central window object (REQUIRED)
         return vert_layout
+
+    def right_pane_setup(self):
+        """Setup the GUI componentst of the right pane."""
+        self.app.vpn_list = QListWidget()
+        ipsum_vpn_interfaces = ['eth', 'wifi']
+        self.app.vpn_list.addItems(ipsum_vpn_interfaces)
+
+        self.app.check_for_probs_cb = QCheckBox(
+            "Check for issues before connecting (recommended)")
+        self.app.check_for_probs_cb.setChecked(True)
+        self.app.probs_list = QListWidget()
+        problems = ["Forget the milk", "My hovercraft is full of eels"]
+        self.app.probs_list.addItems(problems)
+        self.app.connect_vpn_btn = QPushButton("Connect")
 
     def connect_vpn_setlayout(self):
         """Make the VPN connection set layout."""
         vert_layout = QVBoxLayout()
-        vpn_list = QListWidget()
-        ipsum_vpn_interfaces = ['eth', 'wifi']
-        vpn_list.addItems(ipsum_vpn_interfaces)
 
-        check_for_probs_cb = QCheckBox("Check for issues before connecting "
-                                       "(recommended)")
-        check_for_probs_cb.setChecked(True)
-        probs_list = QListWidget()
-        problems = ["Forget the milk", "My hovercraft is full of eels"]
-        probs_list.addItems(problems)
-
-        vert_layout.addWidget(vpn_list)
-        vert_layout.addWidget(check_for_probs_cb)
-        vert_layout.addWidget(probs_list)
+        vert_layout.addWidget(self.app.vpn_list)
+        vert_layout.addWidget(self.app.check_for_probs_cb)
+        vert_layout.addWidget(self.app.probs_list)
+        vert_layout.addWidget(self.app.connect_vpn_btn)
 
         return vert_layout
 
     def finalize_layout(self, left_pane, right_pane):
         """Combine left and right panes into a final layout."""
+        main_layout = QVBoxLayout()
         two_pane_layout = QHBoxLayout()
         two_pane_layout.addLayout(left_pane)
+        two_pane_layout.addWidget(self.app.vline)
         two_pane_layout.addLayout(right_pane)
-        self.app.cw.setLayout(two_pane_layout)
+
+        main_layout.addLayout(two_pane_layout)
+        main_layout.addWidget(self.app.hline)
+        main_layout.addWidget(self.app.status)
+
+        self.app.cw.setLayout(main_layout)
 
     def main_window_set_admin_layout(self):
         """Set the dashboard user layout.
