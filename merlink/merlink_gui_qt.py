@@ -30,6 +30,7 @@ from PyQt5.QtWidgets import QFrame
 from PyQt5.QtWidgets import QStatusBar
 from PyQt5.QtWidgets import QComboBox
 from PyQt5.QtWidgets import QHBoxLayout
+from PyQt5.QtWidgets import QGroupBox
 from PyQt5.QtWidgets import QRadioButton
 from PyQt5.QtWidgets import QCheckBox
 from PyQt5.QtWidgets import QSpinBox
@@ -41,6 +42,7 @@ from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QTextEdit
 from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QListWidget
 from PyQt5.QtWidgets import QAction, QMenu, QSystemTrayIcon
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.Qt import QPixmap
@@ -209,7 +211,10 @@ class MainWindowUi:
         self.main_window_widget_setup()
         self.main_window_user_auth_setup()
         self.main_window_vpn_vars_setup()
-        self.main_window_set_layout()
+        # Create left and right panes separately and join them in finalize
+        left_pane = self.create_vpn_setlayout()
+        right_pane = self.connect_vpn_setlayout()
+        self.finalize_layout(left_pane, right_pane)
         self.main_window_set_admin_layout()
 
     def main_window_widget_setup(self):
@@ -239,18 +244,35 @@ class MainWindowUi:
         self.app.radio_password_textfield.setEchoMode(QLineEdit.Password)
     
         self.app.user_auth_section = QVBoxLayout()
+
+        # Set GroupBox CSS manually because otherwise margins are huge
+        self.app.setStyleSheet("QGroupBox {  border: 1px solid #ccc;}")
+
         self.app.radio_user_layout = QHBoxLayout()
-        self.app.user_auth_section.addLayout(self.app.radio_user_layout)
+        self.app.radio_user_types = QGroupBox()
         self.app.radio_admin_user = QRadioButton("Dashboard Admin")
-        # Default is to have dashboard user
-        self.app.radio_admin_user.setChecked(True)
         self.app.radio_guest_user = QRadioButton("Guest User")
         self.app.radio_user_layout.addWidget(self.app.radio_admin_user)
         self.app.radio_user_layout.addWidget(self.app.radio_guest_user)
+        # Default is to have dashboard user
+        self.app.radio_admin_user.setChecked(True)
+        self.app.radio_user_types.setLayout(self.app.radio_user_layout)
+
+        self.app.radio_setup_layout = QHBoxLayout()
+        self.app.radio_dashboard_method = QRadioButton("Dashboard")
+        self.app.radio_manual_method = QRadioButton("Manual")
+        self.app.radio_setup_layout.addWidget(self.app.radio_dashboard_method)
+        self.app.radio_setup_layout.addWidget(self.app.radio_manual_method)
+        self.app.radio_setup_method = QGroupBox()
+        self.app.radio_manual_method.setChecked(True)
+        self.app.radio_setup_method.setLayout(self.app.radio_setup_layout)
+
         self.app.user_auth_section.addWidget(self.app.radio_username_label)
         self.app.user_auth_section.addWidget(self.app.radio_username_textfield)
         self.app.user_auth_section.addWidget(self.app.radio_password_label)
         self.app.user_auth_section.addWidget(self.app.radio_password_textfield)
+        self.app.user_auth_section.addWidget(self.app.radio_setup_method)
+        self.app.user_auth_section.addWidget(self.app.radio_user_types)
     
     def main_window_vpn_vars_setup(self):
         """Set up the vpn vars UI region."""
@@ -282,7 +304,7 @@ class MainWindowUi:
         self.app.remember_credential_chkbox = QCheckBox("Remember Credentials?")
         self.app.use_winlogon_chkbox = QCheckBox("Use Windows Logon Credentials?")
     
-        self.app.connect_btn = QPushButton("Connect")
+        self.app.connect_btn = QPushButton("Create VPN Interface")
     
         # Status bar setup
         # Create a horizontal line above the status bar to highlight it
@@ -291,15 +313,15 @@ class MainWindowUi:
         self.app.hline.setFrameShadow(QFrame.Sunken)
         # Status bar be at bottom and inform user of what the program is doing.
         self.app.status = QStatusBar()
-        self.app.status.showMessage("Status: Select organization")
-        self.app.status.setStyleSheet("Background: white")
+        self.app.status.showMessage("Status: -")
+        self.app.status.setStyleSheet("Background:#fff")
 
-    def main_window_set_layout(self):
+    def create_vpn_setlayout(self):
         """Create a main vertical layout that may contain other layouts."""
         vert_layout = QVBoxLayout()
+        vert_layout.addLayout(self.app.user_auth_section)
         vert_layout.addWidget(self.app.org_dropdown)
         vert_layout.addWidget(self.app.network_dropdown)
-        vert_layout.addLayout(self.app.user_auth_section)
         vert_layout.addLayout(self.app.vpn_name_layout)
     
         # Add layouts for specialized params
@@ -317,8 +339,35 @@ class MainWindowUi:
         vert_layout.addWidget(self.app.status)
     
         # Tie main layout to central window object (REQUIRED)
-        self.app.cw.setLayout(vert_layout)
-    
+        return vert_layout
+
+    def connect_vpn_setlayout(self):
+        """Make the VPN connection set layout."""
+        vert_layout = QVBoxLayout()
+        vpn_list = QListWidget()
+        ipsum_vpn_interfaces = ['eth', 'wifi']
+        vpn_list.addItems(ipsum_vpn_interfaces)
+
+        check_for_probs_cb = QCheckBox("Check for issues before connecting "
+                                       "(recommended)")
+        check_for_probs_cb.setChecked(True)
+        probs_list = QListWidget()
+        problems = ["Forget the milk", "My hovercraft is full of eels"]
+        probs_list.addItems(problems)
+
+        vert_layout.addWidget(vpn_list)
+        vert_layout.addWidget(check_for_probs_cb)
+        vert_layout.addWidget(probs_list)
+
+        return vert_layout
+
+    def finalize_layout(self, left_pane, right_pane):
+        """Combine left and right panes into a final layout."""
+        two_pane_layout = QHBoxLayout()
+        two_pane_layout.addLayout(left_pane)
+        two_pane_layout.addLayout(right_pane)
+        self.app.cw.setLayout(two_pane_layout)
+
     def main_window_set_admin_layout(self):
         """Set the dashboard user layout.
     

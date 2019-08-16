@@ -21,7 +21,7 @@ from PyQt5.QtWidgets import QApplication
 
 from .merlink_cli import MainCli
 from .merlink_gui import MainWindow
-from .merlink_gui_utils import SingleApplication
+from .merlink_gui_utils import check_for_duplicate_instance
 from . import os_utils
 
 
@@ -41,16 +41,11 @@ def start():
     # If there are no command line args, start GUI; otherwise CLI
     gui_application = (len(sys.argv) == 1)
     if gui_application:
-        # Force single application mode for GUI.
-        with SingleApplication() as single_application:
-            if not single_application:
-                print("Already running; reusing existing instance.")
-                exit(1)
-            else:
-                app = QApplication(sys.argv)  # Required Qt logic.
-                interface = MainWindow()
-                setup_browser(interface)
-                sys.exit(app.exec_())  # Required Qt logic.
+        check_for_duplicate_instance()
+        app = QApplication(sys.argv)  # Required Qt logic.
+        interface = MainWindow()
+        setup_browser(interface)
+        sys.exit(app.exec_())  # Required Qt logic.
     else:
         interface = MainCli()
         setup_browser(interface)
