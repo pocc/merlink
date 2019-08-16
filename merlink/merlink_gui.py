@@ -13,84 +13,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Main Window is the controlling class for the GUI."""
-import sys
+import time
 
 from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtWidgets import QDialog
 
-from merlink.browsers.dashboard import DashboardBrowser
 from merlink.browsers.client_vpn import ClientVpnBrowser
-from merlink import merlink_gui_qt as guify
+from merlink import merlink_gui_qt as MerlinkGui
 from merlink.vpn.vpn_connection import VpnConnection
 
 
-class LoginDialog(QDialog):
+class TfaDialog(QDialog):
     """This class provides dialog GUI elements.
-
-    Attributes:
-        browser (MechanicalSoup): A browser in which to store user credentials.
-
     """
-
     def __init__(self):
-        """Create UI vars necessary for login window to be shown."""
-        super(LoginDialog, self).__init__()
-        self.browser = DashboardBrowser()
+        super(QDialog, self).__init__()
         self.tfa_success = False
-        self.login_dict = {'username': '', 'password': ''}
-        self.show_login()
-
-    def show_login(self):
-        """Show the login window and records if the login button is pressed.
-
-        Uses methods stored in gui_setup to decorate the dialog object.
-        If the login button is pressed, check whether the credentials are
-        valid by sending them to the virtual browser.
-        """
-        # Decorate login window with gui functions
-        guify.LoginWindowUi(self)
-
-        self.show()
-        self.login_btn.clicked.connect(self.check_login_attempt)
-
-    def get_login_info(self):
-        """Return the values currently in the user/pass text fields."""
-        return self.username_field.text(), self.password_field.text()
-
-    def check_login_attempt(self):
-        """Verify whether entered username/password combination is correct.
-
-        NOTE: Keeping this code in here even though it's interface-independent.
-        If we don't keep this here, then the login button will need to connect
-        to self.close. It may look weird if the login window closes due to
-        the user incorrectly entering user/pass and then reopens
-        """
-        username = self.username_field.text()
-        password = self.password_field.text()
-        result = self.browser.login(username, password)
-
-        if result == 'auth_error':
-            guify.show_error_dialog('ERROR: Invalid username or password.')
-            self.password_field.setText('')
-        elif result == 'sms_auth':
-            self.tfa_dialog_setup()
-        elif result == 'auth_success':
-            self.login_dict['username'] = username
-            self.login_dict['password'] = password
-            self.close()
-        elif result == 'ConnectionError':
-            guify.show_error_dialog("""ERROR: No internet
-            connection!\n\nAccess to
-                the internet is required for MerLink to work. Please check
-                your network settings and try again. Now exiting...""")
-            sys.exit()
-        else:
-            guify.show_error_dialog("ERROR: Invalid authentication type!")
 
     def tfa_dialog_setup(self):
         """Create and execute the UI for the TFA dialog."""
         # Create dialog window with login window object
-        guify.TfaDialogUi(self)
+        MerlinkGui.TfaDialogUi(self)
 
         self.yesbutton.clicked.connect(self.tfa_verify)
         self.nobutton.clicked.connect(self.twofactor_dialog.close)
@@ -108,7 +51,7 @@ class LoginDialog(QDialog):
         if self.tfa_success:
             self.twofactor_dialog.accept()
         else:
-            guify.show_error_dialog('ERROR: Invalid verification code!')
+            MerlinkGui.show_error_dialog('ERROR: Invalid verification code!')
 
 
 class MainWindow(QMainWindow):
@@ -129,29 +72,24 @@ class MainWindow(QMainWindow):
         self.browser = ClientVpnBrowser()
 
         # Tie the menu bars, tray_icon, and main window UI to this object.
-        self.menu_widget = guify.MenuBarsUi(self.menuBar())
+        self.menu_widget = MerlinkGui.MenuBarsUi(self.menuBar())
         self.menu_widget.generate_menu_bars()
-        self.tray_icon = guify.SystrayIconUi(self)
+        self.tray_icon = MerlinkGui.SystrayIconUi(self)
         self.login_dict = {'username': '', 'password': ''}
-        self.main_window = guify.MainWindowUi(self)
+        self.main_window = MerlinkGui.MainWindowUi(self)
 
         self.show()
+
+    def init_ui(self):
+        """Set up radio button for dashboard/admin user."""
+        self.main_window.main_window_set_admin_layout()
 
     def attempt_login(self):
         """Create a LoginDialog object and steal its cookies."""
         # Make main window grayed out while user logs in
-        self.setEnabled(False)
-        login_dialog = LoginDialog()
-        login_dialog.exec_()
-        self.browser.mechsoup = login_dialog.browser.mechsoup
-        self.browser.active_org_id = login_dialog.browser.active_org_id
-        self.browser.active_network_id = \
-            login_dialog.browser.active_network_id
-        self.browser.orgs_dict = login_dialog.browser.orgs_dict
-        self.login_dict = login_dialog.login_dict
-        self.setEnabled(True)
+        pass
 
-    def init_ui(self):
+    def init_vpn_ui(self):
         """Show the main menu GUI.
 
         Is called on main_window instantiation. Creates the
@@ -168,8 +106,6 @@ class MainWindow(QMainWindow):
             * "Connect" button clicked -> Initiate VPN connection
 
         """
-        # Set up radio button for dashboard/admin user
-        self.main_window.main_window_set_admin_layout()
         self.radio_admin_user.toggled.connect(
             self.main_window.main_window_set_admin_layout)
         self.radio_guest_user.toggled.connect(
@@ -248,7 +184,7 @@ class MainWindow(QMainWindow):
                 error_message = "ERROR: Client VPN is not enabled on " + \
                                 current_network + ".\n\nPlease enable it and"\
                                 + " try again."
-                guify.show_error_dialog(error_message)
+                MerlinkGui.show_error_dialog(error_message)
                 self.status.showMessage("Status: Client VPN is not enabled on "
                                         "'" + current_network + "'. Please "
                                         "enable it and try again.")
@@ -328,7 +264,7 @@ class MainWindow(QMainWindow):
     def communicate_vpn_success(self):
         """Let the user know that they are connected."""
         self.status.showMessage('Status: Connected')
-        guify.vpn_status_dialog("Connection Success",
+        MerlinkGui.vpn_status_dialog("Connection Success",
                                 "Successfully Connected!")
 
         # Show this when connected
@@ -340,10 +276,10 @@ class MainWindow(QMainWindow):
     def communicate_vpn_failure(self):
         """Let the user know that the VPN connection failed."""
         self.status.showMessage('Status: Connection Failed')
-        guify.show_error_dialog("Connection Failure")
+        MerlinkGui.show_error_dialog("Connection Failure")
         self.tray_icon.set_vpn_failure()
 
         self.status.showMessage("Status: Connection failed to " +
                                 self.network_dropdown.currentText() + ".")
         # Show user error text if available
-        guify.show_error_dialog(self.browser.troubleshoot_client_vpn())
+        MerlinkGui.show_error_dialog(self.browser.troubleshoot_client_vpn())

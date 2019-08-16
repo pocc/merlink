@@ -15,6 +15,7 @@
 """Project files."""
 __version__ = '0.8.6'
 import sys
+import traceback
 
 from PyQt5.QtWidgets import QApplication
 
@@ -62,7 +63,7 @@ def setup_browser(interface):
         interface.attempt_login()
         interface.init_ui()
     except (KeyboardInterrupt, KeyError):
-        print("\nAttempting to gracefully exit...")
+        print("\nAttempting to gracefully exit...", traceback.format_exc())
         has_logged_in = (interface.browser.active_org_id != 0)
         if has_logged_in:
             interface.browser.logout()
