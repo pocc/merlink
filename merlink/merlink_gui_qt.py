@@ -218,7 +218,14 @@ class WindowDivUi:
         self.layout = layout
         self.element_list = element_list
         for elem in self.element_list:
-            layout.addWidget(elem)
+            if isinstance(elem, QWidget):
+                layout.addWidget(elem)
+            elif isinstance(elem, QVBoxLayout) or \
+                    isinstance(elem, QHBoxLayout):
+                layout.addLayout(elem)
+            else:
+                print("ERROR: Trying to add illegal element to UI!")
+                exit(1)
 
     def disable_windiv(self):
         """Disable every element in the window division."""
@@ -237,23 +244,25 @@ class MainWindowUi:
         app (QMainWindow): Set to MainWindow object (required binding for Qt)
     """
 
+    login_section = QVBoxLayout()
+    vpn_opts_section = QVBoxLayout()
+    vpn_connect_section = QVBoxLayout()
+
     def __init__(self, app):
         self.app = app
         self.setup_dashboard_layout()
-        self.login_wd = []
-        self.left_pane_elems = []
-        self.right_pane_elems = []
+        self.login_wd = None
+        self.vpn_opts_wd = None
+        self.vpn_connect_wd = None
 
     def setup_dashboard_layout(self):
         """Setup the entire window for use with dashboard login."""
         self.main_window_widget_setup()
+
         self.login_setup()
-        self.right_pane_setup()
         self.vpn_setup()
-        # Create left and right panes separately and join them in finalize
-        left_pane = self.create_vpn_setlayout()
-        right_pane = self.connect_vpn_setlayout()
-        self.finalize_layout(left_pane, right_pane)
+        self.vpn_connect_setup()
+        self.combine_sections()
         self.main_window_set_admin_layout()
 
     def setup_manual_layout(self):
@@ -279,8 +288,6 @@ class MainWindowUi:
 
     def login_setup(self):
         """Set initial vars for user/pass fields for dasboard/guest user."""
-        self.app.user_auth_section = QVBoxLayout()
-
         self.app.username_label = QLabel("Email")
         self.app.username_label.setStyleSheet("color: #606060")  # Gray
         self.app.username_textfield = QLineEdit()
@@ -307,7 +314,7 @@ class MainWindowUi:
 
         # Create window division object for login component
         self.login_wd = WindowDivUi(
-            self.app.user_auth_section,
+            self.login_section,
             [
                 self.app.radio_setup_method,
                 self.app.username_label,
@@ -346,8 +353,10 @@ class MainWindowUi:
         self.app.idle_disconnect_spinbox.setValue(0)
         # Negative seconds aren't useful here
         self.app.idle_disconnect_spinbox.setMinimum(0)
-        self.app.idle_disconnect_layout.addWidget(self.app.idle_disconnect_chkbox)
-        self.app.idle_disconnect_layout.addWidget(self.app.idle_disconnect_spinbox)
+        self.app.idle_disconnect_layout.addWidget(
+            self.app.idle_disconnect_chkbox)
+        self.app.idle_disconnect_layout.addWidget(
+            self.app.idle_disconnect_spinbox)
     
         self.app.dns_suffix_layout = QHBoxLayout()
         self.app.dns_suffix_chkbox = QCheckBox("DNS Suffix?")
@@ -362,9 +371,6 @@ class MainWindowUi:
     
         self.app.connect_btn = QPushButton("Create VPN Interface")
 
-
-
-        # Status bar setup
         # Create a horizontal line above the status bar to highlight it
         self.app.hline = QFrame()
         self.app.hline.setFrameShape(QFrame.HLine)
@@ -378,31 +384,25 @@ class MainWindowUi:
         self.app.status.showMessage("Status: -")
         self.app.status.setStyleSheet("Background:#fff")
 
-    def create_vpn_setlayout(self):
-        """Create a main vertical layout that may contain other layouts."""
-        vert_layout = QVBoxLayout()
-        vert_layout.addLayout(self.app.user_auth_section)
-        vert_layout.addWidget(self.app.radio_user_types)
-        vert_layout.addWidget(self.app.org_dropdown)
-        vert_layout.addWidget(self.app.network_dropdown)
-        vert_layout.addLayout(self.app.vpn_name_layout)
-    
-        # Add layouts for specialized params
-        vert_layout.addLayout(self.app.idle_disconnect_layout)
-        vert_layout.addLayout(self.app.dns_suffix_layout)
-    
-        # Add checkboxes
-        vert_layout.addWidget(self.app.split_tunneled_chkbox)
-        vert_layout.addWidget(self.app.remember_credential_chkbox)
-        vert_layout.addWidget(self.app.use_winlogon_chkbox)
-    
-        # Add stuff at bottom
-        vert_layout.addWidget(self.app.connect_btn)
+        self.vpn_opts_wd = WindowDivUi(
+            self.vpn_opts_section,
+            [
+                self.app.radio_user_types,
+                self.app.org_dropdown,
+                self.app.network_dropdown,
+                self.app.vpn_name_layout,
+                # Add layouts for specialized params
+                self.app.idle_disconnect_layout,
+                self.app.dns_suffix_layout,
+                # Add checkboxes
+                self.app.split_tunneled_chkbox,
+                self.app.remember_credential_chkbox,
+                self.app.use_winlogon_chkbox,
+                self.app.connect_btn
+            ]
+        )
 
-        # Tie main layout to central window object (REQUIRED)
-        return vert_layout
-
-    def right_pane_setup(self):
+    def vpn_connect_setup(self):
         """Setup the GUI componentst of the right pane."""
         self.app.vpn_list = QListWidget()
         ipsum_vpn_interfaces = ['eth', 'wifi']
@@ -416,24 +416,27 @@ class MainWindowUi:
         self.app.probs_list.addItems(problems)
         self.app.connect_vpn_btn = QPushButton("Connect")
 
-    def connect_vpn_setlayout(self):
-        """Make the VPN connection set layout."""
-        vert_layout = QVBoxLayout()
+        self.vpn_connect_wd = WindowDivUi(
+            self.vpn_connect_section,
+            [
+                self.app.vpn_list,
+                self.app.check_for_probs_cb,
+                self.app.probs_list,
+                self.app.connect_vpn_btn
+            ]
+        )
 
-        vert_layout.addWidget(self.app.vpn_list)
-        vert_layout.addWidget(self.app.check_for_probs_cb)
-        vert_layout.addWidget(self.app.probs_list)
-        vert_layout.addWidget(self.app.connect_vpn_btn)
-
-        return vert_layout
-
-    def finalize_layout(self, left_pane, right_pane):
+    def combine_sections(self):
         """Combine left and right panes into a final layout."""
         main_layout = QVBoxLayout()
+        left_pane = QVBoxLayout()
+        left_pane.addLayout(self.login_section)
+        left_pane.addLayout(self.vpn_opts_section)
+
         two_pane_layout = QHBoxLayout()
         two_pane_layout.addLayout(left_pane)
         two_pane_layout.addWidget(self.app.vline)
-        two_pane_layout.addLayout(right_pane)
+        two_pane_layout.addLayout(self.vpn_connect_section)
 
         main_layout.addLayout(two_pane_layout)
         main_layout.addWidget(self.app.hline)
