@@ -78,10 +78,12 @@ class MainWindow(QMainWindow):
         self.login_dict = {'username': '', 'password': ''}
         self.main_window = MerlinkGui.MainWindowUi(self)
 
+        # Triggers
         self.show()
 
     def init_ui(self):
         """Set up radio button for dashboard/admin user."""
+        self.org_dropdown.currentIndexChanged.connect(self.change_organization)
         self.main_window.main_window_set_admin_layout()
 
     def attempt_login(self):
