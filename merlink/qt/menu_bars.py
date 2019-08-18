@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QTextEdit
 from PyQt5.QtWidgets import QAction
 
 from merlink.os_utils import open_vpnsettings
-from merlink.merlink_gui_utils import show_error_dialog
+from merlink.qt.gui_utils import show_error_dialog
 
 
 class MenuBarsUi:

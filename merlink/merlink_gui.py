@@ -17,11 +17,11 @@ from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtWidgets import QDialog
 
 from merlink.browsers.client_vpn import ClientVpnBrowser
-from merlink import merlink_gui_qt as main_window
+from merlink.qt import main_window
 from merlink.qt.pane_login_fullscreen import TfaDialogUi
 from merlink.qt.menu_bars import MenuBarsUi
 from merlink.qt.system_tray import SystrayIconUi
-from merlink.merlink_gui_utils import show_error_dialog, vpn_status_dialog
+from merlink.qt.gui_utils import show_error_dialog, vpn_status_dialog
 from merlink.vpn.vpn_connection import VpnConnection
 
 

@@ -21,7 +21,7 @@ from PyQt5.QtWidgets import QApplication
 
 from .merlink_cli import MainCli
 from .merlink_gui import MainWindow
-from merlink.merlink_gui_utils import check_for_duplicate_instance
+from merlink.qt.gui_utils import check_for_duplicate_instance
 from . import os_utils
 
 
