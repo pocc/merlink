@@ -13,13 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Main Window is the controlling class for the GUI."""
-import time
-
 from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtWidgets import QDialog
 
 from merlink.browsers.client_vpn import ClientVpnBrowser
-from merlink import merlink_gui_qt as MerlinkGui
+from merlink import merlink_gui_qt as main_window
+from merlink.qt.pane_login_fullscreen import TfaDialogUi
+from merlink.qt.menu_bars import MenuBarsUi
+from merlink.qt.system_tray import SystrayIconUi
+from merlink.merlink_gui_utils import show_error_dialog, vpn_status_dialog
 from merlink.vpn.vpn_connection import VpnConnection
 
 
@@ -33,7 +35,7 @@ class TfaDialog(QDialog):
     def tfa_dialog_setup(self):
         """Create and execute the UI for the TFA dialog."""
         # Create dialog window with login window object
-        MerlinkGui.TfaDialogUi(self)
+        TfaDialogUi(self)
 
         self.yesbutton.clicked.connect(self.tfa_verify)
         self.nobutton.clicked.connect(self.twofactor_dialog.close)
@@ -51,7 +53,7 @@ class TfaDialog(QDialog):
         if self.tfa_success:
             self.twofactor_dialog.accept()
         else:
-            MerlinkGui.show_error_dialog('ERROR: Invalid verification code!')
+            show_error_dialog('ERROR: Invalid verification code!')
 
 
 class MainWindow(QMainWindow):
@@ -72,11 +74,11 @@ class MainWindow(QMainWindow):
         self.browser = ClientVpnBrowser()
 
         # Tie the menu bars, tray_icon, and main window UI to this object.
-        self.menu_widget = MerlinkGui.MenuBarsUi(self.menuBar())
+        self.menu_widget = MenuBarsUi(self.menuBar())
         self.menu_widget.generate_menu_bars()
-        self.tray_icon = MerlinkGui.SystrayIconUi(self)
+        self.tray_icon = SystrayIconUi(self)
         self.login_dict = {'username': '', 'password': ''}
-        self.main_window = MerlinkGui.MainWindowUi(self)
+        self.main_window = main_window.MainWindowUi(self)
 
         # Triggers
         self.show()
@@ -186,7 +188,7 @@ class MainWindow(QMainWindow):
                 error_message = "ERROR: Client VPN is not enabled on " + \
                                 current_network + ".\n\nPlease enable it and"\
                                 + " try again."
-                MerlinkGui.show_error_dialog(error_message)
+                show_error_dialog(error_message)
                 self.status.showMessage("Status: Client VPN is not enabled on "
                                         "'" + current_network + "'. Please "
                                         "enable it and try again.")
@@ -266,8 +268,7 @@ class MainWindow(QMainWindow):
     def communicate_vpn_success(self):
         """Let the user know that they are connected."""
         self.status.showMessage('Status: Connected')
-        MerlinkGui.vpn_status_dialog("Connection Success",
-                                "Successfully Connected!")
+        vpn_status_dialog("Connection Success", "Successfully Connected!")
 
         # Show this when connected
         self.tray_icon.set_vpn_success()
@@ -278,10 +279,10 @@ class MainWindow(QMainWindow):
     def communicate_vpn_failure(self):
         """Let the user know that the VPN connection failed."""
         self.status.showMessage('Status: Connection Failed')
-        MerlinkGui.show_error_dialog("Connection Failure")
+        show_error_dialog("Connection Failure")
         self.tray_icon.set_vpn_failure()
 
         self.status.showMessage("Status: Connection failed to " +
                                 self.network_dropdown.currentText() + ".")
         # Show user error text if available
-        MerlinkGui.show_error_dialog(self.browser.troubleshoot_client_vpn())
+        show_error_dialog(self.browser.troubleshoot_client_vpn())
