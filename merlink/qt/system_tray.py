@@ -17,7 +17,7 @@ class SystrayIconUi:
           functionality that this class requires.
     """
 
-    def __init__(self, app):
+    def __init__(self, app, merlink_gui):
         """Init QSystemTrayIcon and set the Window and Tray Icons."""
         self.app = app
         self.app.setWindowIcon(QIcon(pyinstaller_path('media/miles.ico')))
@@ -37,7 +37,7 @@ class SystrayIconUi:
         quit_action = QAction("Exit", app)
         hide_action = QAction("Hide", app)
         # Allow this if we're not connected
-        connect_action.triggered.connect(app.setup_vpn)
+        connect_action.triggered.connect(merlink_gui.setup_vpn)
         disconnect_action.triggered.connect(app.disconnect)
         show_action.triggered.connect(app.show)
         hide_action.triggered.connect(app.hide)
