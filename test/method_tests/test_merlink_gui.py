@@ -28,7 +28,7 @@ class TestLoginDialog(unittest.TestCase):
     @staticmethod
     def test_a_fn():
         """Test these functions... eventually.
-        show_login
+        setup_login_window
         get_login_info
         check_login_attempt
         tfa_dialog_setup

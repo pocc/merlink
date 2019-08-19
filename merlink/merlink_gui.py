@@ -12,33 +12,92 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Controlling class for the GUI. Does NOT call Qt classes (see /qt)."""
-from merlink.browsers.client_vpn import ClientVpnBrowser
+"""Controlling class for the GUI. DO NOT CALL QT CLASSES HERE (use /qt)."""
+import sys
+from PyQt5.QtWidgets import QDialog  # FIX THIS
+
+
+from merlink.browsers.client_vpn import DashboardBrowser, ClientVpnBrowser
 from merlink.qt import main_window
-from merlink.qt.pane_login_fullscreen import TfaDialogUi
+from merlink.qt.pane_login_fullscreen import LoginWindowUi, TfaDialogUi
 from merlink.qt.menu_bars import MenuBarsUi
 from merlink.qt.system_tray import SystrayIconUi
 from merlink.qt.gui_utils import show_error_dialog, vpn_status_dialog
 from merlink.vpn.vpn_connection import VpnConnection
 
 
-class TfaDialog(TfaDialogUi):
+class LoginDialog(QDialog):
     """This class provides dialog GUI elements.
+
+    Attributes:
+        browser (MechanicalSoup): A browser in which to store user credentials.
+
     """
-    def __init__(self, app):
-        super(TfaDialogUi, self).__init__()
-        self.app = app
+
+    def __init__(self):
+        """Create UI vars necessary for login window to be shown."""
+        super(LoginDialog, self).__init__()
+        self.browser = DashboardBrowser()
         self.tfa_success = False
+        self.login_dict = {'username': '', 'password': ''}
+        self.show_login()
+
+    def show_login(self):
+        """Show the login window and records if the login button is pressed.
+
+        Uses methods stored in gui_setup to decorate the dialog object.
+        If the login button is pressed, check whether the credentials are
+        valid by sending them to the virtual browser.
+        """
+        # Decorate login window with gui functions
+        LoginWindowUi(self)
+
+        self.show()
+        self.login_btn.clicked.connect(self.check_login_attempt)
+
+    def get_login_info(self):
+        """Return the values currently in the user/pass text fields."""
+        return self.username_field.text(), self.password_field.text()
+
+    def check_login_attempt(self):
+        """Verify whether entered username/password combination is correct.
+
+        NOTE: Keeping this code in here even though it's interface-independent.
+        If we don't keep this here, then the login button will need to connect
+        to self.close. It may look weird if the login window closes due to
+        the user incorrectly entering user/pass and then reopens
+        """
+        username = self.username_field.text()
+        password = self.password_field.text()
+        result = self.browser.login(username, password)
+
+        if result == 'auth_error':
+            show_error_dialog('ERROR: Invalid username or password.')
+            self.password_field.setText('')
+        elif result == 'sms_auth':
+            self.tfa_dialog_setup()
+        elif result == 'auth_success':
+            self.login_dict['username'] = username
+            self.login_dict['password'] = password
+            self.close()
+        elif result == 'ConnectionError':
+            show_error_dialog("""ERROR: No internet
+            connection!\n\nAccess to
+                the internet is required for MerLink to work. Please check
+                your network settings and try again. Now exiting...""")
+            sys.exit()
+        else:
+            show_error_dialog("ERROR: Invalid authentication type!")
 
     def tfa_dialog_setup(self):
         """Create and execute the UI for the TFA dialog."""
         # Create dialog window with login window object
         TfaDialogUi(self)
 
-        self.app.yesbutton.clicked.connect(self.tfa_verify)
-        self.app.nobutton.clicked.connect(self.app.twofactor_dialog.close)
+        self.yesbutton.clicked.connect(self.tfa_verify)
+        self.nobutton.clicked.connect(self.twofactor_dialog.close)
         while not self.tfa_success:
-            self.app.twofactor_dialog.exec_()
+            self.twofactor_dialog.exec_()
 
     def tfa_verify(self):
         """Submit the tfa code and communicate success/failure to user.
@@ -46,10 +105,10 @@ class TfaDialog(TfaDialogUi):
         This fn is partially required because we need a function to connect
         to the button click signal.
         """
-        self.tfa_success = self.app.browser.tfa_submit_info(
-            self.app.get_twofactor_code.text())
+        self.tfa_success = self.browser.tfa_submit_info(
+            self.get_twofactor_code.text())
         if self.tfa_success:
-            self.app.twofactor_dialog.accept()
+            self.twofactor_dialog.accept()
         else:
             show_error_dialog('ERROR: Invalid verification code!')
 
@@ -71,6 +130,23 @@ class MainWindow:
         self.app = main_window.MainWindowUi()
         self.browser = ClientVpnBrowser()
 
+    def attempt_login(self):
+        """Create a LoginDialog object and steal its cookies."""
+        login_dialog = LoginDialog()
+        login_dialog.exec_()
+        self.browser.mechsoup = login_dialog.browser.mechsoup
+        self.browser.active_org_id = login_dialog.browser.active_org_id
+        self.browser.active_network_id = \
+            login_dialog.browser.active_network_id
+        self.browser.orgs_dict = login_dialog.browser.orgs_dict
+        self.login_dict = login_dialog.login_dict
+
+    def load_main_window(self):
+        """Set up pyqt slots for later use by objects.
+        All of these objects should have already been created.
+        """
+        self.init_vpn_ui()
+
         # Tie the menu bars, tray_icon, and main window UI to this object.
         self.app.menu_widget = MenuBarsUi(self.app.menuBar())
         self.app.menu_widget.generate_menu_bars()
@@ -78,24 +154,19 @@ class MainWindow:
         self.app.login_dict = {'username': '', 'password': ''}
 
         # Triggers
-        self.app.setup_window()
-        self.setup_qt_slots()
-        self.app.show()
+        self.app.setup_main_window()
+        self.load_main_window()
 
-    def setup_qt_slots(self):
-        """Set up pyqt slots for later use by objects.
-        All of these objects should have already been created.
-        """
         self.app.org_dropdown.currentIndexChanged.connect(
             self.change_organization)
         self.app.main_window_set_admin_layout()
         self.app.guest_user_chkbox.stateChanged.connect(
             lambda state: self.app.disable_email_pass(not state))
 
-    def attempt_login(self):
-        """Create a LoginDialog object and steal its cookies."""
-        # Make main window grayed out while user logs in
-        pass
+        self.app.cw.setCurrentIndex(1)
+        self.app.show()
+
+
 
     def init_vpn_ui(self):
         """Show the main menu GUI.
@@ -114,23 +185,23 @@ class MainWindow:
             * "Connect" button clicked -> Initiate VPN connection
 
         """
-        org_list = self.app.browser.get_org_names()
+        org_list = self.browser.get_org_names()
         self.app.org_dropdown.addItems(org_list)
         # Get the data we need and remove the cruft we don't
-        current_org = self.app.browser.get_active_org_name()
+        current_org = self.browser.get_active_org_name()
         print('main window orgs', org_list)
-        self.app.status.showMessage("Status: Fetching networks in " + current_org +
-                                "...")
-        self.app.connect_btn.setEnabled(False)
+        self.app.status.showMessage("Status: Fetching networks in "
+                                    + current_org + "...")
         self.app.vpn_name_textfield.setEnabled(False)
         # Remove all elements from the network UI dropdown
         self.app.network_dropdown.clear()
-        self.app.refresh_network_dropdown()
+        self.refresh_network_dropdown()
 
         # All of the major MainWindow slots that signals target
-        self.app.org_dropdown.currentIndexChanged.connect(self.app.change_organization)
-        self.app.network_dropdown.activated.connect(self.app.change_network)
-        self.app.connect_btn.clicked.connect(self.app.setup_vpn)
+        self.app.org_dropdown.currentIndexChanged.connect(
+            self.change_organization)
+        self.app.network_dropdown.activated.connect(self.change_network)
+        self.app.connect_vpn_btn.clicked.connect(self.setup_vpn)
 
     def change_organization(self):
         """Change the org by getting required data and showing it to user.
@@ -141,7 +212,7 @@ class MainWindow:
         # -1 due to having a 'select' option.
         selected_org_index = self.app.org_dropdown.currentIndex() - 1
         selected_org_name = self.app.org_dropdown.currentText()
-        self.app.connect_btn.setEnabled(False)
+        self.app.connect_vpn_btn.setEnabled(False)
         self.app.vpn_name_textfield.setEnabled(False)
         if selected_org_index == -1:
             self.app.status.showMessage("Status: Select an Organization")
@@ -150,13 +221,13 @@ class MainWindow:
             self.app.network_dropdown.setEnabled(True)
             self.app.status.showMessage("Status: Fetching organizations...")
             # Change primary organization
-            self.app.browser.set_org_name(selected_org_name)
+            self.browser.set_org_name(selected_org_name)
             print("In change_organization and this is the network list " +
-                  str(self.app.browser.get_network_names(['wired'])))
+                  str(self.browser.get_network_names(['wired'])))
 
             self.app.refresh_network_dropdown()
             self.app.status.showMessage("Status: In org " +
-                                    self.app.browser.get_active_org_name())
+                                    self.browser.get_active_org_name())
 
     def change_network(self):
         """Change the network to new value for both model and view.
@@ -168,21 +239,21 @@ class MainWindow:
         current_network_index = self.app.network_dropdown.currentIndex() - 1
         if current_network_index == -1:
             self.app.status.showMessage("Status: Select a Network")
-            self.app.connect_btn.setEnabled(False)
+            self.app.connect_vpn_btn.setEnabled(False)
             self.app.vpn_name_textfield.setEnabled(False)
         else:
-            network_list = self.app.browser.get_network_names(['wired'])
+            network_list = self.browser.get_network_names(['wired'])
             print('main window network list', network_list)
             current_network = network_list[current_network_index]
             self.app.status.showMessage("Status: Fetching network data for " +
                                     current_network + "...")
 
             # Network name should be unique in an organization.
-            self.app.browser.set_network_name(current_network, 'wired')
+            self.browser.set_network_name(current_network, 'wired')
             print('current_network', current_network)
-            self.app.browser.get_client_vpn_data()
-            if not self.app.browser.is_client_vpn_enabled():
-                self.app.connect_btn.setEnabled(False)
+            self.browser.get_client_vpn_data()
+            if not self.browser.is_client_vpn_enabled():
+                self.app.connect_vpn_btn.setEnabled(False)
                 self.app.vpn_name_textfield.setEnabled(False)
                 error_message = "ERROR: Client VPN is not enabled on " + \
                                 current_network + ".\n\nPlease enable it and"\
@@ -192,7 +263,7 @@ class MainWindow:
                                         "'" + current_network + "'. Please "
                                         "enable it and try again.")
             else:
-                self.app.connect_btn.setEnabled(True)
+                self.app.connect_vpn_btn.setEnabled(True)
                 self.app.status.showMessage("Status: Ready to connect to " +
                                         current_network + ".")
                 vpn_name = current_network.replace('- appliance', '') + '- VPN'
@@ -208,7 +279,7 @@ class MainWindow:
         self.app.network_dropdown.clear()
         self.app.network_dropdown.addItem('-- Select a Network --')
 
-        current_org_network_list = self.app.browser.get_network_names(['wired'])
+        current_org_network_list = self.browser.get_network_names(['wired'])
         print('current_org_network_list', current_org_network_list)
         self.app.network_dropdown.addItems(current_org_network_list)
 
@@ -248,8 +319,8 @@ class MainWindow:
             password = self.app.login_dict['password']
 
         vpn_name = self.app.vpn_name_textfield.text()
-        address = self.app.browser.get_client_vpn_address()
-        psk = self.app.browser.get_client_vpn_psk()
+        address = self.browser.get_client_vpn_address()
+        psk = self.browser.get_client_vpn_psk()
         return [vpn_name, address, psk, username, password]
 
     def get_vpn_options(self):
@@ -284,4 +355,4 @@ class MainWindow:
         self.app.status.showMessage("Status: Connection failed to " +
                                 self.app.network_dropdown.currentText() + ".")
         # Show user error text if available
-        show_error_dialog(self.app.browser.troubleshoot_client_vpn())
+        show_error_dialog(self.browser.troubleshoot_client_vpn())

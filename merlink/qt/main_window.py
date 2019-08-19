@@ -36,7 +36,6 @@ from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWidgets import QLabel
-from PyQt5.QtWidgets import QStackedWidget
 from PyQt5.QtWidgets import QFrame
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QListWidget
@@ -61,7 +60,7 @@ class MainWindowUi(QMainWindow):
         super(QMainWindow, self).__init__()
         # Using a StackedWidget to be able to replace login window
         # https://stackoverflow.com/questions/13550076
-        self.cw = QStackedWidget()
+        self.cw = QWidget()
         self.setCentralWidget(self.cw)
         # Set minimum width of Main Window to 500 pixels
         self.cw.setMinimumWidth(500)
@@ -77,16 +76,23 @@ class MainWindowUi(QMainWindow):
         self.password_textfield.setEchoMode(QLineEdit.Password)
         self.org_dropdown = QComboBox()
         self.create_vpn_btn = QPushButton("Create VPN Interface")
+        self.org_dropdown = QComboBox()
+        self.network_dropdown = QComboBox()
+        self.idle_disconnect_chkbox = QCheckBox("Idle disconnect seconds?")
+        self.idle_disconnect_spinbox = QSpinBox()
+        self.connect_vpn_btn = QPushButton("Connect")
+
+        self.hline = QFrame()
+        self.vline = QFrame()
+        self.status = QStatusBar()
+        self.vpn_name_textfield = QLineEdit()
 
         self.create_vpn_tabs = QTabWidget()
         self.tab_dashboard = QWidget()
         self.tab_manual = QWidget()
         self.vpn_opts_layout = QVBoxLayout()
 
-    def setup_pyqt_slots(self):
-        """Initiate all of the triggers and connects."""
-
-    def setup_window(self):
+    def setup_main_window(self):
         """Setup various sections that will be combined."""
         self.create_vpn_tabs.addTab(self.tab_dashboard, "Dashboard Setup")
         self.create_vpn_tabs.addTab(self.tab_manual, "Manual Setup")
@@ -101,10 +107,11 @@ class MainWindowUi(QMainWindow):
 
         # Set the layout once we are done adding elements
         self.main_window_set_admin_layout()
+        self.show()
 
     def setup_dashboard_tab(self):
         """Provide input fields for dashboard-gathered data."""
-        self.tab_dashboard.layout = QVBoxLayout(self)
+        self.tab_dashboard.layout = QVBoxLayout()
 
         # Guest users should manually enter their information
         # Only difference between Guest and Dashboard for UI should be that
@@ -136,29 +143,24 @@ class MainWindowUi(QMainWindow):
         """Set up the vpn vars UI region."""
         # Create org and network dropdowns so the user can select the firewall
         # they would like to connect to.
-        org_dropdown = QComboBox()
-        org_dropdown.addItem('-- Select an Organization --')
-        network_dropdown = QComboBox()
-        network_dropdown.setEnabled(False)
+        self.org_dropdown.addItem('-- Select an Organization --')
+        self.network_dropdown.setEnabled(False)
 
         # Allow the user to change the VPN name
         vpn_name_layout = QHBoxLayout()
         vpn_name_label = QLabel("VPN Name:")
-        vpn_name_textfield = QLineEdit()
         vpn_name_layout.addWidget(vpn_name_label)
-        vpn_name_layout.addWidget(vpn_name_textfield)
+        vpn_name_layout.addWidget(self.vpn_name_textfield)
 
         # Ask the user for int/str values if they want to enter them
         idle_disconnect_layout = QHBoxLayout()
-        idle_disconnect_chkbox = QCheckBox("Idle disconnect seconds?")
-        idle_disconnect_spinbox = QSpinBox()
-        idle_disconnect_spinbox.setValue(0)
+        self.idle_disconnect_spinbox.setValue(0)
         # Negative seconds aren't useful here
-        idle_disconnect_spinbox.setMinimum(0)
+        self.idle_disconnect_spinbox.setMinimum(0)
         idle_disconnect_layout.addWidget(
-            idle_disconnect_chkbox)
+            self.idle_disconnect_chkbox)
         idle_disconnect_layout.addWidget(
-            idle_disconnect_spinbox)
+            self.idle_disconnect_spinbox)
 
         dns_suffix_layout = QHBoxLayout()
         dns_suffix_chkbox = QCheckBox("DNS Suffix?")
@@ -174,8 +176,8 @@ class MainWindowUi(QMainWindow):
         self.add_all_to_layout(
             self.vpn_opts_layout,
             [
-                org_dropdown,
-                network_dropdown,
+                self.org_dropdown,
+                self.network_dropdown,
                 vpn_name_layout,
                 # Add layouts for specialized params
                 idle_disconnect_layout,
@@ -191,7 +193,7 @@ class MainWindowUi(QMainWindow):
 
     def setup_manual_tab(self):
         """Gray out options and provide input fields to manually enter data."""
-        self.tab_manual.layout = QVBoxLayout(self)
+        self.tab_manual.layout = QVBoxLayout()
         # User should be able to change email/pass as it's required
         self.disable_email_pass(False)
         username_textfield = QLineEdit()
@@ -200,7 +202,6 @@ class MainWindowUi(QMainWindow):
         username_label = QLabel("Email")
         password_label = QLabel("Password")
         vpn_name_label = QLabel("VPN Name")
-        vpn_name_textfield = QLineEdit()
         server_name_label = QLabel("Server name/IP")
         server_name_textfield = QLineEdit()
         shared_secret_label = QLabel("Shared Secret")
@@ -214,7 +215,7 @@ class MainWindowUi(QMainWindow):
                 password_label,
                 password_textfield,
                 vpn_name_label,
-                vpn_name_textfield,
+                self.vpn_name_textfield,
                 server_name_label,
                 server_name_textfield,
                 shared_secret_label,
@@ -236,7 +237,6 @@ class MainWindowUi(QMainWindow):
         probs_list = QListWidget()
         problems = ["Forget the milk", "My hovercraft is full of eels"]
         probs_list.addItems(problems)
-        connect_vpn_btn = QPushButton("Connect")
 
         self.add_all_to_layout(
             self.vpn_connect_section,
@@ -244,7 +244,7 @@ class MainWindowUi(QMainWindow):
                 vpn_list,
                 check_for_probs_cb,
                 probs_list,
-                connect_vpn_btn
+                self.connect_vpn_btn
             ]
         )
 
@@ -256,15 +256,11 @@ class MainWindowUi(QMainWindow):
     def combine_sections_dashboard(self):
         """Combine left and right panes into a final layout."""
          # Create a horizontal line above the status bar to highlight it
-        self.hline = QFrame()
         self.hline.setFrameShape(QFrame.HLine)
         self.hline.setFrameShadow(QFrame.Sunken)
-
-        self.vline = QFrame()
         self.vline.setFrameShape(QFrame.VLine)
         self.vline.setFrameShadow(QFrame.Sunken)
         # Status bar be at bottom and inform user of what the program is doing.
-        self.status = QStatusBar()
         self.status.showMessage("Status: -")
         self.status.setStyleSheet("Background:#fff")
 
@@ -284,7 +280,7 @@ class MainWindowUi(QMainWindow):
         main_layout.addWidget(self.hline)
         main_layout.addWidget(self.status)
 
-        self.cw.addWidget(main_widget)
+        self.setCentralWidget(main_widget)
 
     def main_window_set_admin_layout(self):
         """Set the dashboard user layout.
