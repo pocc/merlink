@@ -6,6 +6,7 @@ import psutil
 import tempfile
 
 from PyQt5.QtWidgets import QMessageBox
+from PyQt5.Qt import QColor, QPalette
 
 
 def check_for_duplicate_instance():
@@ -86,3 +87,16 @@ def vpn_status_dialog(title, message):
     success_message.setWindowTitle(title)
     success_message.setText(message)
     success_message.exec_()
+
+
+def disable_lineedit(lineedit_obj, change_to_disabled):
+    """Change the background of a textfield"""
+    if change_to_disabled:
+        new_color = "#ccc"
+    else:  # Not disabled should be white
+        new_color = "#fff"
+    palette = QPalette()
+    lineedit_obj.setReadOnly(change_to_disabled)
+    palette.setColor(lineedit_obj.backgroundRole(), QColor(new_color))
+    lineedit_obj.setPalette(palette)
+    lineedit_obj.setPalette(palette)

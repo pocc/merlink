@@ -49,7 +49,7 @@ class TestMerlinkWindow(unittest.TestCase):
     def test_a_fn():
         """Test these functions... eventually.
         attempt_login
-        init_ui
+        setup_connects
         change_organization
         change_network
         refresh_network_dropdown

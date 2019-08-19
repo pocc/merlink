@@ -26,11 +26,10 @@ Args (for any function):
     app (Qt Object): The window/dialog object that this function decorates.
 """
 from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtWidgets import QTabWidget
 from PyQt5.QtWidgets import QStatusBar
 from PyQt5.QtWidgets import QComboBox
 from PyQt5.QtWidgets import QHBoxLayout
-from PyQt5.QtWidgets import QGroupBox
-from PyQt5.QtWidgets import QRadioButton
 from PyQt5.QtWidgets import QCheckBox
 from PyQt5.QtWidgets import QSpinBox
 from PyQt5.QtWidgets import QLineEdit
@@ -43,110 +42,163 @@ from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QListWidget
 from PyQt5.QtWidgets import QSpacerItem
 from PyQt5.Qt import QSizePolicy
-from PyQt5.QtCore import Qt
 
+from merlink.qt.gui_utils import disable_lineedit
 
-from merlink.qt.pane_manual_vpn import ManualVpnSetupWidget
 
 def is_layout(obj):
     """Check whether the object is a layout of one type."""
     return isinstance(obj, QHBoxLayout) or isinstance(obj, QVBoxLayout)
 
 
-class WindowDivUi(QWidget):
-    """Window divisions. For example given this window:
-
-    +-----+-----+
-    |  1  |  2  |
-    +-----+-----+
-    |  3  |  4  |
-    +-----+-----+
-
-    1, 2, 3, and 4 are "window divs". div ~ HTML div.
-    """
-    def __init__(self, layout, element_list):
-        super(QWidget, self).__init__()
-        self.layout = layout
-        self.element_list = element_list
-        for elem in self.element_list:
-            if isinstance(elem, QWidget):
-                layout.addWidget(elem)
-            elif is_layout(elem):
-                layout.addLayout(elem)
-            elif isinstance(elem, QSpacerItem):
-                layout.addItem(elem)
-            else:
-                print("ERROR: Trying to add illegal element to UI!")
-                exit(1)
-
-    def disable_windiv(self):
-        """Disable every element in the window division."""
-        self.disable_all_elems(True)
-
-    def enable_windiv(self):
-        """Enable every element in the window division."""
-        self.disable_all_elems(False)
-
-    def disable_all_elems(self, disable_toggle):
-        """Set all elements enabled or disabled."""
-        for elem in self.element_list:
-            if is_layout(elem):
-                for layout_widget in self.layout_widgets(elem):
-                    layout_widget.setDisabled(disable_toggle)
-            elif not isinstance(elem, QSpacerItem):
-                elem.setDisabled(disable_toggle)
-
-    @staticmethod
-    def layout_widgets(layout):
-        """Return all of the widgets in a layout."""
-        count = layout.count()
-        widgets = [layout.itemAt(i).widget() for i in range(count)]
-        return widgets
-
-
 class MainWindowUi(QMainWindow):
     """This class manages the system tray icon of the main program, post-login.
-    Attributes:
-        app (QMainWindow): Set to MainWindow object (required binding for Qt)
     """
 
-    login_section = QVBoxLayout()
-    manual_setup_section = QVBoxLayout()
-    vpn_opts_section = QVBoxLayout()
     vpn_connect_section = QVBoxLayout()
-
-    login_wd = None
-    manual_setup_wd = None
-    vpn_opts_wd = None
-    vpn_connect_wd = None
 
     def __init__(self):
         super(QMainWindow, self).__init__()
-        self.main_window_widget_setup()
+        # Using a StackedWidget to be able to replace login window
+        # https://stackoverflow.com/questions/13550076
+        self.cw = QStackedWidget()
+        self.setCentralWidget(self.cw)
+        # Set minimum width of Main Window to 500 pixels
+        self.cw.setMinimumWidth(500)
+        self.setWindowTitle('MerLink - VPN Client for Meraki firewalls')
+        self.link_style = "font-family: verdana, sans-serif; font-style:" \
+                          " normal; font-size: 13px; color: #1795E6;"
+
+        # Required for Login. Elements should be object variables if they
+        # Could be called by other modules
+        self.username_textfield = QLineEdit()
+        self.password_textfield = QLineEdit()
+        self.guest_user_chkbox = QCheckBox("Use guest account instead")
+        self.password_textfield.setEchoMode(QLineEdit.Password)
+        self.org_dropdown = QComboBox()
+        self.create_vpn_btn = QPushButton("Create VPN Interface")
+
+        self.create_vpn_tabs = QTabWidget()
+        self.tab_dashboard = QWidget()
+        self.tab_manual = QWidget()
+        self.vpn_opts_layout = QVBoxLayout()
+
+    def setup_pyqt_slots(self):
+        """Initiate all of the triggers and connects."""
 
     def setup_window(self):
-        # Setup various sections that will be combined
-        self.login_setup()
-        self.setup_manual_layout()
+        """Setup various sections that will be combined."""
+        self.create_vpn_tabs.addTab(self.tab_dashboard, "Dashboard Setup")
+        self.create_vpn_tabs.addTab(self.tab_manual, "Manual Setup")
+
         self.vpn_opts_setup()
+        self.setup_manual_tab()
+        self.setup_dashboard_tab()
         self.vpn_connect_setup()
 
         self.decorate_sections()
         self.combine_sections_dashboard()
+
         # Set the layout once we are done adding elements
         self.main_window_set_admin_layout()
 
-    def setup_dashboard_layout(self):
+    def setup_dashboard_tab(self):
         """Provide input fields for dashboard-gathered data."""
-        self.vpn_opts_wd.enable_windiv()
+        self.tab_dashboard.layout = QVBoxLayout(self)
 
-    def setup_manual_layout(self):
-        """Gray out options and provide input fields to manually enter data."""
+        # Guest users should manually enter their information
+        # Only difference between Guest and Dashboard for UI should be that
+        # Email/pass is prepopulated for dashboard admins (inactivated)
+        email_pass_layout = QVBoxLayout()
         username_label = QLabel("Email")
-        username_textfield = QLineEdit()
         password_label = QLabel("Password")
+        self.disable_email_pass(True)
+        self.add_all_to_layout(
+            email_pass_layout,
+            [
+                username_label,
+                self.username_textfield,
+                password_label,
+                self.password_textfield
+            ]
+        )
+        self.tab_dashboard.layout.addWidget(self.guest_user_chkbox)
+        self.tab_dashboard.layout.addLayout(email_pass_layout)
+        self.tab_dashboard.layout.addLayout(self.vpn_opts_layout)
+        self.tab_dashboard.setLayout(self.tab_dashboard.layout)
+
+    def disable_email_pass(self, change_to_disabled):
+        """Disable username/password if user should not edit them."""
+        disable_lineedit(self.username_textfield, change_to_disabled)
+        disable_lineedit(self.password_textfield, change_to_disabled)
+
+    def vpn_opts_setup(self):
+        """Set up the vpn vars UI region."""
+        # Create org and network dropdowns so the user can select the firewall
+        # they would like to connect to.
+        org_dropdown = QComboBox()
+        org_dropdown.addItem('-- Select an Organization --')
+        network_dropdown = QComboBox()
+        network_dropdown.setEnabled(False)
+
+        # Allow the user to change the VPN name
+        vpn_name_layout = QHBoxLayout()
+        vpn_name_label = QLabel("VPN Name:")
+        vpn_name_textfield = QLineEdit()
+        vpn_name_layout.addWidget(vpn_name_label)
+        vpn_name_layout.addWidget(vpn_name_textfield)
+
+        # Ask the user for int/str values if they want to enter them
+        idle_disconnect_layout = QHBoxLayout()
+        idle_disconnect_chkbox = QCheckBox("Idle disconnect seconds?")
+        idle_disconnect_spinbox = QSpinBox()
+        idle_disconnect_spinbox.setValue(0)
+        # Negative seconds aren't useful here
+        idle_disconnect_spinbox.setMinimum(0)
+        idle_disconnect_layout.addWidget(
+            idle_disconnect_chkbox)
+        idle_disconnect_layout.addWidget(
+            idle_disconnect_spinbox)
+
+        dns_suffix_layout = QHBoxLayout()
+        dns_suffix_chkbox = QCheckBox("DNS Suffix?")
+        dns_suffix_txtbox = QLineEdit('-')
+        dns_suffix_layout.addWidget(dns_suffix_chkbox)
+        dns_suffix_layout.addWidget(dns_suffix_txtbox)
+
+        # Boolean asks of the user
+        split_tunneled_chkbox = QCheckBox("Split-Tunnel?")
+        remember_credential_chkbox = QCheckBox("Remember Credentials?")
+        use_winlogon_chkbox = QCheckBox("Use Windows Logon Credentials?")
+
+        self.add_all_to_layout(
+            self.vpn_opts_layout,
+            [
+                org_dropdown,
+                network_dropdown,
+                vpn_name_layout,
+                # Add layouts for specialized params
+                idle_disconnect_layout,
+                dns_suffix_layout,
+                # Add checkboxes
+                split_tunneled_chkbox,
+                remember_credential_chkbox,
+                use_winlogon_chkbox,
+                # Ensure that button is at bottom of pane by adding space
+                QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
+            ]
+        )
+
+    def setup_manual_tab(self):
+        """Gray out options and provide input fields to manually enter data."""
+        self.tab_manual.layout = QVBoxLayout(self)
+        # User should be able to change email/pass as it's required
+        self.disable_email_pass(False)
+        username_textfield = QLineEdit()
         password_textfield = QLineEdit()
         password_textfield.setEchoMode(QLineEdit.Password)
+        username_label = QLabel("Email")
+        password_label = QLabel("Password")
         vpn_name_label = QLabel("VPN Name")
         vpn_name_textfield = QLineEdit()
         server_name_label = QLabel("Server name/IP")
@@ -154,8 +206,8 @@ class MainWindowUi(QMainWindow):
         shared_secret_label = QLabel("Shared Secret")
         shared_secret_textfield = QLineEdit()
         shared_secret_textfield.setEchoMode(QLineEdit.Password)
-        self.manual_setup_wd = WindowDivUi(
-            self.manual_setup_section,
+        self.add_all_to_layout(
+            self.tab_manual.layout,
             [
                 username_label,
                 username_textfield,
@@ -167,112 +219,43 @@ class MainWindowUi(QMainWindow):
                 server_name_textfield,
                 shared_secret_label,
                 shared_secret_textfield,
-            ])
+                QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
+            ]
+        )
+        self.tab_manual.setLayout(self.tab_manual.layout)
 
-    def main_window_widget_setup(self):
-        """Set up the main window object and org/net dropdowns."""
-        # QMainWindow requires that a central app be set
-        self.cw = QStackedWidget()
-        self.setCentralWidget(self.cw)
-        # Set minimum width of Main Window to 500 pixels
-        self.cw.setMinimumWidth(500)
-        self.setWindowTitle('MerLink - VPN Client for Meraki firewalls')
+    def vpn_connect_setup(self):
+        """Setup the GUI componentst of the right pane."""
+        vpn_list = QListWidget()
+        ipsum_vpn_interfaces = ['eth', 'wifi']
+        vpn_list.addItems(ipsum_vpn_interfaces)
 
-    def login_setup(self):
-        """Set initial vars for user/pass fields for dasboard/guest user."""
-        self.username_label = QLabel("Email")
-        self.username_textfield = QLineEdit()
-        self.password_label = QLabel("Password")
-        self.password_textfield = QLineEdit()
-        self.password_textfield.setEchoMode(QLineEdit.Password)
-        self.login_btn = QPushButton("Dashboard Log in")
+        check_for_probs_cb = QCheckBox(
+            "Check for issues before connecting (recommended)")
+        check_for_probs_cb.setChecked(True)
+        probs_list = QListWidget()
+        problems = ["Forget the milk", "My hovercraft is full of eels"]
+        probs_list.addItems(problems)
+        connect_vpn_btn = QPushButton("Connect")
 
-        self.setup_method_layout = QVBoxLayout()
-        self.radio_buttons_layout = QHBoxLayout()
-        self.radio_setup_label = QLabel("Setup Method")
-        self.radio_setup_label.setAlignment(Qt.AlignCenter)
-        self.radio_dashboard_method = QRadioButton("Dashboard")
-        self.radio_manual_method = QRadioButton("Manually")
-        self.radio_buttons_layout.addWidget(self.radio_dashboard_method)
-        self.radio_buttons_layout.addWidget(self.radio_manual_method)
-        self.setup_method_layout.addWidget(self.radio_setup_label)
-        self.setup_method_layout.addLayout(self.radio_buttons_layout)
-        self.radio_setup_method = QGroupBox()
-        self.radio_dashboard_method.setChecked(True)
-        self.radio_setup_method.setLayout(self.setup_method_layout)
-        self.radio_dashboard_method.toggled.connect(
-            self.setup_dashboard_layout)
-        self.radio_manual_method.toggled.connect(self.combine_sections_manual)
-
-        # Create window division object for login component
-        self.login_wd = WindowDivUi(
-            self.login_section,
+        self.add_all_to_layout(
+            self.vpn_connect_section,
             [
-                self.radio_setup_method,
-                self.username_label,
-                self.username_textfield,
-                self.password_label,
-                self.password_textfield,
-                self.login_btn
-            ])
+                vpn_list,
+                check_for_probs_cb,
+                probs_list,
+                connect_vpn_btn
+            ]
+        )
 
-    def manual_setup(self):
-        """Setup options for connecting manually if user wants to."""
-        self.vpn_opts_wd.setVisible(False)
-        #self.manual_setup_wd.
+    def decorate_sections(self):
+        """Add a box around each section for readability."""
+        # Set GroupBox CSS manually because otherwise margins are huge
+        self.setStyleSheet(".QGroupBox {  border: 1px solid #ccc;}")
 
-    def vpn_opts_setup(self):
-        """Set up the vpn vars UI region."""
-        # Create org and network dropdowns so the user can select the firewall
-        # they would like to connect to.
-        self.org_dropdown = QComboBox()
-        self.org_dropdown.addItem('-- Select an Organization --')
-        self.network_dropdown = QComboBox()
-        self.network_dropdown.setEnabled(False)
-
-        self.radio_user_layout = QHBoxLayout()
-        self.radio_user_types = QGroupBox()
-        self.radio_admin_user = QRadioButton("Dashboard Admin")
-        self.radio_guest_user = QRadioButton("Guest User")
-        self.radio_user_layout.addWidget(self.radio_admin_user)
-        self.radio_user_layout.addWidget(self.radio_guest_user)
-        # Default is to have dashboard user
-        self.radio_admin_user.setChecked(True)
-        self.radio_user_types.setLayout(self.radio_user_layout)
-
-        # Allow the user to change the VPN name
-        self.vpn_name_layout = QHBoxLayout()
-        self.vpn_name_label = QLabel("VPN Name:")
-        self.vpn_name_textfield = QLineEdit()
-        self.vpn_name_layout.addWidget(self.vpn_name_label)
-        self.vpn_name_layout.addWidget(self.vpn_name_textfield)
-    
-        # Ask the user for int/str values if they want to enter them
-        self.idle_disconnect_layout = QHBoxLayout()
-        self.idle_disconnect_chkbox = QCheckBox("Idle disconnect seconds?")
-        self.idle_disconnect_spinbox = QSpinBox()
-        self.idle_disconnect_spinbox.setValue(0)
-        # Negative seconds aren't useful here
-        self.idle_disconnect_spinbox.setMinimum(0)
-        self.idle_disconnect_layout.addWidget(
-            self.idle_disconnect_chkbox)
-        self.idle_disconnect_layout.addWidget(
-            self.idle_disconnect_spinbox)
-    
-        self.dns_suffix_layout = QHBoxLayout()
-        self.dns_suffix_chkbox = QCheckBox("DNS Suffix?")
-        self.dns_suffix_txtbox = QLineEdit('-')
-        self.dns_suffix_layout.addWidget(self.dns_suffix_chkbox)
-        self.dns_suffix_layout.addWidget(self.dns_suffix_txtbox)
-    
-        # Boolean asks of the user
-        self.split_tunneled_chkbox = QCheckBox("Split-Tunnel?")
-        self.remember_credential_chkbox = QCheckBox("Remember Credentials?")
-        self.use_winlogon_chkbox = QCheckBox("Use Windows Logon Credentials?")
-
-        self.create_vpn_btn = QPushButton("Create VPN Interface")
-
-        # Create a horizontal line above the status bar to highlight it
+    def combine_sections_dashboard(self):
+        """Combine left and right panes into a final layout."""
+         # Create a horizontal line above the status bar to highlight it
         self.hline = QFrame()
         self.hline.setFrameShape(QFrame.HLine)
         self.hline.setFrameShadow(QFrame.Sunken)
@@ -285,64 +268,12 @@ class MainWindowUi(QMainWindow):
         self.status.showMessage("Status: -")
         self.status.setStyleSheet("Background:#fff")
 
-        self.vpn_opts_wd = WindowDivUi(
-            self.vpn_opts_section,
-            [
-                self.radio_user_types,
-                self.org_dropdown,
-                self.network_dropdown,
-                self.vpn_name_layout,
-                # Add layouts for specialized params
-                self.idle_disconnect_layout,
-                self.dns_suffix_layout,
-                # Add checkboxes
-                self.split_tunneled_chkbox,
-                self.remember_credential_chkbox,
-                self.use_winlogon_chkbox,
-                # Ensure that button is at bottom of pane by adding space
-                QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding),
-                self.create_vpn_btn
-            ]
-        )
-
-    def vpn_connect_setup(self):
-        """Setup the GUI componentst of the right pane."""
-        self.vpn_list = QListWidget()
-        ipsum_vpn_interfaces = ['eth', 'wifi']
-        self.vpn_list.addItems(ipsum_vpn_interfaces)
-
-        self.check_for_probs_cb = QCheckBox(
-            "Check for issues before connecting (recommended)")
-        self.check_for_probs_cb.setChecked(True)
-        self.probs_list = QListWidget()
-        problems = ["Forget the milk", "My hovercraft is full of eels"]
-        self.probs_list.addItems(problems)
-        self.connect_vpn_btn = QPushButton("Connect")
-
-        self.vpn_connect_wd = WindowDivUi(
-            self.vpn_connect_section,
-            [
-                self.vpn_list,
-                self.check_for_probs_cb,
-                self.probs_list,
-                self.connect_vpn_btn
-            ]
-        )
-
-    def decorate_sections(self):
-        """Add a box around each section for readability."""
-        # Set GroupBox CSS manually because otherwise margins are huge
-        self.setStyleSheet(".QGroupBox {  border: 1px solid #ccc;}")
-
-    def combine_sections_dashboard(self):
-        """Combine left and right panes into a final layout."""
         main_widget = QWidget()
         main_layout = QVBoxLayout(main_widget)
 
         left_pane = QVBoxLayout()
-        #self.vpn_opts_wd.setVisible(False)
-        left_pane.addLayout(self.login_wd.layout)
-        left_pane.addLayout(self.vpn_opts_wd.layout)
+        left_pane.addWidget(self.create_vpn_tabs)
+        left_pane.addWidget(self.create_vpn_btn)
 
         two_pane_layout = QHBoxLayout()
         two_pane_layout.addLayout(left_pane)
@@ -354,27 +285,6 @@ class MainWindowUi(QMainWindow):
         main_layout.addWidget(self.status)
 
         self.cw.addWidget(main_widget)
-
-    def combine_sections_manual(self):
-        """Combine left and right panes into a final layout for manual method."""
-        second_widget = ManualVpnSetupWidget(self)
-        manual_layout = QVBoxLayout(second_widget)
-
-        left_pane = QVBoxLayout()
-        #self.vpn_opts_wd.setVisible(False)
-        left_pane.addLayout(self.login_wd.layout)
-
-        two_pane_layout = QHBoxLayout()
-        two_pane_layout.addLayout(left_pane)
-        two_pane_layout.addWidget(self.vline)
-        two_pane_layout.addLayout(self.vpn_connect_section)
-
-        manual_layout.addLayout(two_pane_layout)
-        manual_layout.addWidget(self.hline)
-        manual_layout.addWidget(self.status)
-
-        self.cw.addWidget(second_widget)
-        self.cw.setCurrentWidget(second_widget)
 
     def main_window_set_admin_layout(self):
         """Set the dashboard user layout.
@@ -400,3 +310,17 @@ class MainWindowUi(QMainWindow):
         self.radio_username_textfield.setReadOnly(False)
         self.radio_password_textfield.clear()
         self.radio_password_textfield.setReadOnly(False)
+
+    @staticmethod
+    def add_all_to_layout(layout, element_list):
+        """Add all of the elements to the layout."""
+        for elem in element_list:
+            if isinstance(elem, QWidget):
+                layout.addWidget(elem)
+            elif is_layout(elem):
+                layout.addLayout(elem)
+            elif isinstance(elem, QSpacerItem):
+                layout.addItem(elem)
+            else:
+                print("ERROR: Trying to add illegal element to UI!")
+                exit(1)

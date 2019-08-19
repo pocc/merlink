@@ -69,7 +69,7 @@ class MainWindow:
     def __init__(self):
         """Initialize GUI objects, decorate main window object, and show it."""
         self.app = main_window.MainWindowUi()
-        self.app.browser = ClientVpnBrowser()
+        self.browser = ClientVpnBrowser()
 
         # Tie the menu bars, tray_icon, and main window UI to this object.
         self.app.menu_widget = MenuBarsUi(self.app.menuBar())
@@ -79,12 +79,18 @@ class MainWindow:
 
         # Triggers
         self.app.setup_window()
+        self.setup_qt_slots()
         self.app.show()
 
-    def init_ui(self):
-        """Set up radio button for dashboard/admin user."""
-        self.app.org_dropdown.currentIndexChanged.connect(self.change_organization)
+    def setup_qt_slots(self):
+        """Set up pyqt slots for later use by objects.
+        All of these objects should have already been created.
+        """
+        self.app.org_dropdown.currentIndexChanged.connect(
+            self.change_organization)
         self.app.main_window_set_admin_layout()
+        self.app.guest_user_chkbox.stateChanged.connect(
+            lambda state: self.app.disable_email_pass(not state))
 
     def attempt_login(self):
         """Create a LoginDialog object and steal its cookies."""
@@ -108,11 +114,6 @@ class MainWindow:
             * "Connect" button clicked -> Initiate VPN connection
 
         """
-        self.app.radio_admin_user.toggled.connect(
-            self.app.main_window.main_window_set_admin_layout)
-        self.app.radio_guest_user.toggled.connect(
-            self.app.main_window.main_window_set_guest_layout)
-
         org_list = self.app.browser.get_org_names()
         self.app.org_dropdown.addItems(org_list)
         # Get the data we need and remove the cruft we don't

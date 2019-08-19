@@ -31,7 +31,7 @@ class TestMerlinkCli(unittest.TestCase):
         'attempt_connection', 
         'attempt_login',
         'get_user_input_from_list',
-        'init_ui',
+        'setup_connects',
         'tshoot_vpn_failure',
         'tui'
         """

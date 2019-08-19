@@ -56,7 +56,7 @@ def setup_browser(interface):
     # If browser is interrupted, logout so there's no hanging session.
     try:
         interface.attempt_login()
-        interface.init_ui()
+        interface.setup_qt_slots()
     except (KeyboardInterrupt, KeyError):
         print("\nAttempting to gracefully exit...", traceback.format_exc())
         has_logged_in = (interface.browser.active_org_id != 0)
