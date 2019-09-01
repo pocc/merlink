@@ -18,7 +18,7 @@ from PyQt5.QtWidgets import QDialog  # FIX THIS
 
 
 from merlink.browsers.client_vpn import DashboardBrowser, ClientVpnBrowser
-from merlink.qt import main_window
+from merlink.qt.main_window import MainWindowUi
 from merlink.qt.pane_login_fullscreen import LoginWindowUi, TfaDialogUi
 from merlink.qt.menu_bars import MenuBarsUi
 from merlink.qt.system_tray import SystrayIconUi
@@ -113,7 +113,7 @@ class LoginDialog(QDialog):
             show_error_dialog('ERROR: Invalid verification code!')
 
 
-class MainWindow:
+class MainWindow(MainWindowUi):
     """Main Window is the controlling class for the GUI.
 
     Attributes:
@@ -127,8 +127,10 @@ class MainWindow:
     # noinspection PyArgumentList
     def __init__(self):
         """Initialize GUI objects, decorate main window object, and show it."""
-        self.app = main_window.MainWindowUi()
+        super().__init__()
+        # self = main_window.MainWindowUi()
         self.browser = ClientVpnBrowser()
+        self.login_dict = {}
 
     def attempt_login(self):
         """Create a LoginDialog object and steal its cookies."""
@@ -145,28 +147,24 @@ class MainWindow:
         """Set up pyqt slots for later use by objects.
         All of these objects should have already been created.
         """
-        self.init_vpn_ui()
-
         # Tie the menu bars, tray_icon, and main window UI to this object.
-        self.app.menu_widget = MenuBarsUi(self.app.menuBar())
-        self.app.menu_widget.generate_menu_bars()
-        self.app.tray_icon = SystrayIconUi(self.app, self)
-        self.app.login_dict = {'username': '', 'password': ''}
+        self.menu_widget = MenuBarsUi(self.menuBar())
+        self.menu_widget.generate_menu_bars()
+        self.tray_icon = SystrayIconUi(self, self)
+        self.login_dict = {'username': '', 'password': ''}
 
         # Triggers
-        self.app.setup_main_window()
-        self.load_main_window()
+        self.setup_main_window()
 
-        self.app.org_dropdown.currentIndexChanged.connect(
+        self.org_dropdown.currentIndexChanged.connect(
             self.change_organization)
-        self.app.main_window_set_admin_layout()
-        self.app.guest_user_chkbox.stateChanged.connect(
-            lambda state: self.app.disable_email_pass(not state))
+        self.main_window_set_admin_layout()
+        self.guest_user_chkbox.stateChanged.connect(
+            lambda state: self.disable_email_pass(not state))
 
-        self.app.cw.setCurrentIndex(1)
-        self.app.show()
+        self.init_vpn_ui()
 
-
+        self.show()
 
     def init_vpn_ui(self):
         """Show the main menu GUI.
@@ -186,22 +184,22 @@ class MainWindow:
 
         """
         org_list = self.browser.get_org_names()
-        self.app.org_dropdown.addItems(org_list)
+        self.org_dropdown.addItems(org_list)
         # Get the data we need and remove the cruft we don't
         current_org = self.browser.get_active_org_name()
         print('main window orgs', org_list)
-        self.app.status.showMessage("Status: Fetching networks in "
+        self.status.showMessage("Status: Fetching networks in "
                                     + current_org + "...")
-        self.app.vpn_name_textfield.setEnabled(False)
+        self.vpn_name_textfield.setEnabled(False)
         # Remove all elements from the network UI dropdown
-        self.app.network_dropdown.clear()
+        self.network_dropdown.clear()
         self.refresh_network_dropdown()
 
         # All of the major MainWindow slots that signals target
-        self.app.org_dropdown.currentIndexChanged.connect(
+        self.org_dropdown.currentIndexChanged.connect(
             self.change_organization)
-        self.app.network_dropdown.activated.connect(self.change_network)
-        self.app.connect_vpn_btn.clicked.connect(self.setup_vpn)
+        self.network_dropdown.activated.connect(self.change_network)
+        self.connect_vpn_btn.clicked.connect(self.setup_vpn)
 
     def change_organization(self):
         """Change the org by getting required data and showing it to user.
@@ -210,23 +208,23 @@ class MainWindow:
         * If the user has not selected an organization, this fn will do naught.
         """
         # -1 due to having a 'select' option.
-        selected_org_index = self.app.org_dropdown.currentIndex() - 1
-        selected_org_name = self.app.org_dropdown.currentText()
-        self.app.connect_vpn_btn.setEnabled(False)
-        self.app.vpn_name_textfield.setEnabled(False)
+        selected_org_index = self.org_dropdown.currentIndex() - 1
+        selected_org_name = self.org_dropdown.currentText()
+        self.connect_vpn_btn.setEnabled(False)
+        self.vpn_name_textfield.setEnabled(False)
         if selected_org_index == -1:
-            self.app.status.showMessage("Status: Select an Organization")
-            self.app.network_dropdown.setEnabled(False)
+            self.status.showMessage("Status: Select an Organization")
+            self.network_dropdown.setEnabled(False)
         else:
-            self.app.network_dropdown.setEnabled(True)
-            self.app.status.showMessage("Status: Fetching organizations...")
+            self.network_dropdown.setEnabled(True)
+            self.status.showMessage("Status: Fetching organizations...")
             # Change primary organization
             self.browser.set_org_name(selected_org_name)
             print("In change_organization and this is the network list " +
                   str(self.browser.get_network_names(['wired'])))
 
-            self.app.refresh_network_dropdown()
-            self.app.status.showMessage("Status: In org " +
+            self.refresh_network_dropdown()
+            self.status.showMessage("Status: In org " +
                                     self.browser.get_active_org_name())
 
     def change_network(self):
@@ -236,16 +234,16 @@ class MainWindow:
         network info for this network and let user know.
         """
         # Off by 1 due to Select option
-        current_network_index = self.app.network_dropdown.currentIndex() - 1
+        current_network_index = self.network_dropdown.currentIndex() - 1
         if current_network_index == -1:
-            self.app.status.showMessage("Status: Select a Network")
-            self.app.connect_vpn_btn.setEnabled(False)
-            self.app.vpn_name_textfield.setEnabled(False)
+            self.status.showMessage("Status: Select a Network")
+            self.connect_vpn_btn.setEnabled(False)
+            self.vpn_name_textfield.setEnabled(False)
         else:
             network_list = self.browser.get_network_names(['wired'])
             print('main window network list', network_list)
             current_network = network_list[current_network_index]
-            self.app.status.showMessage("Status: Fetching network data for " +
+            self.status.showMessage("Status: Fetching network data for " +
                                     current_network + "...")
 
             # Network name should be unique in an organization.
@@ -253,22 +251,22 @@ class MainWindow:
             print('current_network', current_network)
             self.browser.get_client_vpn_data()
             if not self.browser.is_client_vpn_enabled():
-                self.app.connect_vpn_btn.setEnabled(False)
-                self.app.vpn_name_textfield.setEnabled(False)
+                self.connect_vpn_btn.setEnabled(False)
+                self.vpn_name_textfield.setEnabled(False)
                 error_message = "ERROR: Client VPN is not enabled on " + \
                                 current_network + ".\n\nPlease enable it and"\
                                 + " try again."
                 show_error_dialog(error_message)
-                self.app.status.showMessage("Status: Client VPN is not enabled on "
+                self.status.showMessage("Status: Client VPN is not enabled on "
                                         "'" + current_network + "'. Please "
                                         "enable it and try again.")
             else:
-                self.app.connect_vpn_btn.setEnabled(True)
-                self.app.status.showMessage("Status: Ready to connect to " +
+                self.connect_vpn_btn.setEnabled(True)
+                self.status.showMessage("Status: Ready to connect to " +
                                         current_network + ".")
                 vpn_name = current_network.replace('- appliance', '') + '- VPN'
-                self.app.vpn_name_textfield.setText(vpn_name)
-                self.app.vpn_name_textfield.setEnabled(True)
+                self.vpn_name_textfield.setText(vpn_name)
+                self.vpn_name_textfield.setEnabled(True)
 
     def refresh_network_dropdown(self):
         """Remove old values of the network dropdown and add new ones.
@@ -276,12 +274,12 @@ class MainWindow:
         Remove previous contents of Networks QComboBox and
         add new ones according to chosen organization
         """
-        self.app.network_dropdown.clear()
-        self.app.network_dropdown.addItem('-- Select a Network --')
+        self.network_dropdown.clear()
+        self.network_dropdown.addItem('-- Select a Network --')
 
         current_org_network_list = self.browser.get_network_names(['wired'])
         print('current_org_network_list', current_org_network_list)
-        self.app.network_dropdown.addItems(current_org_network_list)
+        self.network_dropdown.addItems(current_org_network_list)
 
     def setup_vpn(self):
         """Set up VPN vars and start OS-dependent connection scripts.
@@ -290,35 +288,35 @@ class MainWindow:
         list vpn_data. Pass OS-specific parameters as list <OS>_options.
         """
         # If they have not selected organization or network
-        if 'Select' in self.app.org_dropdown.currentText() or \
-                'Select' in self.app.network_dropdown.currentText():
+        if 'Select' in self.org_dropdown.currentText() or \
+                'Select' in self.network_dropdown.currentText():
             # They haven't selected an item in one of the message boxes
-            self.app.show_error_dialog('You must select BOTH an organization '
+            self.show_error_dialog('You must select BOTH an organization '
                                    'AND network before connecting!')
 
         else:
-            self.app.status.showMessage('Status: Connecting...')
-            connection = VpnConnection(vpn_data=self.app.get_vpn_data(),
-                                       vpn_options=self.app.get_vpn_options())
+            self.status.showMessage('Status: Connecting...')
+            connection = VpnConnection(vpn_data=self.get_vpn_data(),
+                                       vpn_options=self.get_vpn_options())
 
             return_code = connection.attempt_vpn()
             successful_connection = (return_code == 0)
             if successful_connection:
-                self.app.communicate_vpn_success()
+                self.communicate_vpn_success()
             else:
-                self.app.communicate_vpn_failure()
+                self.communicate_vpn_failure()
 
     def get_vpn_data(self):
         """Gather the VPN data from various sources."""
         # If the user is logging in as a guest user
-        if self.app.radio_admin_user.isChecked() == 0:
-            username = self.app.radio_username_textfield.text()
-            password = self.app.radio_password_textfield.text()
+        if self.radio_admin_user.isChecked() == 0:
+            username = self.radio_username_textfield.text()
+            password = self.radio_password_textfield.text()
         else:
-            username = self.app.login_dict['username']
-            password = self.app.login_dict['password']
+            username = self.login_dict['username']
+            password = self.login_dict['password']
 
-        vpn_name = self.app.vpn_name_textfield.text()
+        vpn_name = self.vpn_name_textfield.text()
         address = self.browser.get_client_vpn_address()
         psk = self.browser.get_client_vpn_psk()
         return [vpn_name, address, psk, username, password]
@@ -326,33 +324,33 @@ class MainWindow:
     def get_vpn_options(self):
         """Return with vpn options."""
         vpn_options = [
-            self.app.dns_suffix_txtbox.text(),
-            self.app.idle_disconnect_spinbox.value(),
-            self.app.split_tunneled_chkbox.checkState(),
-            self.app.remember_credential_chkbox.checkState(),
-            self.app.use_winlogon_chkbox.checkState(),
+            self.dns_suffix_txtbox.text(),
+            self.idle_disconnect_spinbox.value(),
+            self.split_tunneled_chkbox.checkState(),
+            self.remember_credential_chkbox.checkState(),
+            self.use_winlogon_chkbox.checkState(),
             1,
         ]
         return vpn_options
 
     def communicate_vpn_success(self):
         """Let the user know that they are connected."""
-        self.app.status.showMessage('Status: Connected')
+        self.status.showMessage('Status: Connected')
         vpn_status_dialog("Connection Success", "Successfully Connected!")
 
         # Show this when connected
-        self.app.tray_icon.set_vpn_success()
-        self.app.status.showMessage("Status: Connected to " +
-                                self.app.network_dropdown.currentText() + ".")
-        self.app.hide()
+        self.tray_icon.set_vpn_success()
+        self.status.showMessage("Status: Connected to " +
+                                self.network_dropdown.currentText() + ".")
+        self.hide()
 
     def communicate_vpn_failure(self):
         """Let the user know that the VPN connection failed."""
-        self.app.status.showMessage('Status: Connection Failed')
+        self.status.showMessage('Status: Connection Failed')
         show_error_dialog("Connection Failure")
-        self.app.tray_icon.set_vpn_failure()
+        self.tray_icon.set_vpn_failure()
 
-        self.app.status.showMessage("Status: Connection failed to " +
-                                self.app.network_dropdown.currentText() + ".")
+        self.status.showMessage("Status: Connection failed to " +
+                                self.network_dropdown.currentText() + ".")
         # Show user error text if available
         show_error_dialog(self.browser.troubleshoot_client_vpn())

@@ -33,6 +33,7 @@ from PyQt5.QtWidgets import QHBoxLayout
 from PyQt5.QtWidgets import QCheckBox
 from PyQt5.QtWidgets import QSpinBox
 from PyQt5.QtWidgets import QLineEdit
+from PyQt5.QtWidgets import QStackedWidget
 from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWidgets import QLabel
@@ -61,10 +62,9 @@ class MainWindowUi(QMainWindow):
         # Using a StackedWidget to be able to replace login window
         # https://stackoverflow.com/questions/13550076
         self.cw = QWidget()
-        self.setCentralWidget(self.cw)
         # Set minimum width of Main Window to 500 pixels
         self.cw.setMinimumWidth(500)
-        self.setWindowTitle('MerLink - VPN Client for Meraki firewalls')
+        self.setWindowTitle('Merlink - VPN Client for Meraki firewalls')
         self.link_style = "font-family: verdana, sans-serif; font-style:" \
                           " normal; font-size: 13px; color: #1795E6;"
 
@@ -72,7 +72,7 @@ class MainWindowUi(QMainWindow):
         # Could be called by other modules
         self.username_textfield = QLineEdit()
         self.password_textfield = QLineEdit()
-        self.guest_user_chkbox = QCheckBox("Use guest account instead")
+        self.guest_user_chkbox = QCheckBox("Use different account.")
         self.password_textfield.setEchoMode(QLineEdit.Password)
         self.org_dropdown = QComboBox()
         self.create_vpn_btn = QPushButton("Create VPN Interface")
@@ -111,7 +111,17 @@ class MainWindowUi(QMainWindow):
 
     def setup_dashboard_tab(self):
         """Provide input fields for dashboard-gathered data."""
+        # Allows us to replace dashboard login (if successful) with elements
+        # that depend upon it (org names, network names, etc.)
         self.tab_dashboard.layout = QVBoxLayout()
+        """
+        login_ui = QVBoxLayout()
+        login_checkbox = QCheckBox("sample label")
+        login_ui.addWidget(self.login_checkbox)
+        self.tab_dashboard.setLayout(self.login_ui)
+        dashboard_tab_stack = QStackedLayout()
+        dashboard_tab_stack.addWidget
+        """
 
         # Guest users should manually enter their information
         # Only difference between Guest and Dashboard for UI should be that
@@ -126,12 +136,13 @@ class MainWindowUi(QMainWindow):
                 username_label,
                 self.username_textfield,
                 password_label,
-                self.password_textfield
+                self.password_textfield,
+                self.org_dropdown,
+                self.network_dropdown
             ]
         )
         self.tab_dashboard.layout.addWidget(self.guest_user_chkbox)
         self.tab_dashboard.layout.addLayout(email_pass_layout)
-        self.tab_dashboard.layout.addLayout(self.vpn_opts_layout)
         self.tab_dashboard.setLayout(self.tab_dashboard.layout)
 
     def disable_email_pass(self, change_to_disabled):
@@ -176,9 +187,8 @@ class MainWindowUi(QMainWindow):
         self.add_all_to_layout(
             self.vpn_opts_layout,
             [
-                self.org_dropdown,
-                self.network_dropdown,
                 vpn_name_layout,
+                QLabel("<h4>VPN Options (Windows only)</h4>"),
                 # Add layouts for specialized params
                 idle_disconnect_layout,
                 dns_suffix_layout,
@@ -201,7 +211,6 @@ class MainWindowUi(QMainWindow):
         password_textfield.setEchoMode(QLineEdit.Password)
         username_label = QLabel("Email")
         password_label = QLabel("Password")
-        vpn_name_label = QLabel("VPN Name")
         server_name_label = QLabel("Server name/IP")
         server_name_textfield = QLineEdit()
         shared_secret_label = QLabel("Shared Secret")
@@ -214,8 +223,6 @@ class MainWindowUi(QMainWindow):
                 username_textfield,
                 password_label,
                 password_textfield,
-                vpn_name_label,
-                self.vpn_name_textfield,
                 server_name_label,
                 server_name_textfield,
                 shared_secret_label,
@@ -227,6 +234,9 @@ class MainWindowUi(QMainWindow):
 
     def vpn_connect_setup(self):
         """Setup the GUI componentst of the right pane."""
+        hline = QFrame()
+        hline.setFrameShape(QFrame.HLine)
+        hline.setFrameShadow(QFrame.Sunken)
         vpn_list = QListWidget()
         ipsum_vpn_interfaces = ['eth', 'wifi']
         vpn_list.addItems(ipsum_vpn_interfaces)
@@ -241,7 +251,11 @@ class MainWindowUi(QMainWindow):
         self.add_all_to_layout(
             self.vpn_connect_section,
             [
+                QLabel("<h3>VPN Connections</h3>"),
+                hline,
+                QLabel("<h4>VPN List</h4>"),
                 vpn_list,
+                QLabel("<h4>Preflight Checklist</h4>"),
                 check_for_probs_cb,
                 probs_list,
                 self.connect_vpn_btn
@@ -260,6 +274,9 @@ class MainWindowUi(QMainWindow):
         self.hline.setFrameShadow(QFrame.Sunken)
         self.vline.setFrameShape(QFrame.VLine)
         self.vline.setFrameShadow(QFrame.Sunken)
+        hline = QFrame()
+        hline.setFrameShape(QFrame.HLine)
+        hline.setFrameShadow(QFrame.Sunken)
         # Status bar be at bottom and inform user of what the program is doing.
         self.status.showMessage("Status: -")
         self.status.setStyleSheet("Background:#fff")
@@ -268,7 +285,10 @@ class MainWindowUi(QMainWindow):
         main_layout = QVBoxLayout(main_widget)
 
         left_pane = QVBoxLayout()
+        left_pane.addWidget(QLabel("<h3>Create VPN Connection</h3>"))
+        left_pane.addWidget(hline)
         left_pane.addWidget(self.create_vpn_tabs)
+        left_pane.addLayout(self.vpn_opts_layout)
         left_pane.addWidget(self.create_vpn_btn)
 
         two_pane_layout = QHBoxLayout()
