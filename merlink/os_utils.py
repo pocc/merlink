@@ -108,6 +108,7 @@ def get_macos_vpn_log_data(vpn_name, user_name) -> dict:
         "bytes_sent": "-",
         "bytes_recv": "-",
     }
+    flooring_offset = 60
     with open("/var/log/ppp.log") as f:
         text = f.read()
     vpn_inits = re.findall(r"(.+) : L2TP connecting to server '" + vpn_name + "'", text)
@@ -146,23 +147,23 @@ def get_macos_vpn_log_data(vpn_name, user_name) -> dict:
 
     if success_time:
         result_dict["last_connected"] = success_time.isoformat().replace('T', ' ')
-        # Find bytes received/sent whose minutes log is +/- 2 minute to this connection
+        # Find bytes received/sent whose minutes log is +60s (flooring_offset) to this connection
         minutes = re.findall(r"(.+) : Connect time ([\d.]+) minutes.", text)
         expected_connection_max = None
         for timestamp_str, connection_uptime_str in minutes:
-            connection_uptime = int(float(connection_uptime_str)) + 2
+            connection_uptime_ceil = int(float(connection_uptime_str))*60 + flooring_offset
             timestamp = dt.datetime.strptime(timestamp_str, "%a %b  %d %H:%M:%S %Y")
-            expected_connection_max = server_start_dt + dt.timedelta(0, connection_uptime)
-            if expected_connection_max > timestamp > server_start_dt:
-                result_dict["vpn_uptime"] = connection_uptime
+            expected_connection_max = success_time + dt.timedelta(0, connection_uptime_ceil)
+            if expected_connection_max > timestamp > success_time:
+                result_dict["vpn_uptime"] = str(float(connection_uptime_str)) + ' min'
 
-        if result_dict["vpn_uptime"] and expected_connection_max:
+        if result_dict["vpn_uptime"] != '-' and expected_connection_max:
             txrx = re.findall(r"(.+) : Sent (\d+) bytes, received (\d+) bytes.", text)
             for timestamp, bytes_sent, bytes_recv in txrx:
                 timestamp = dt.datetime.strptime(timestamp, "%a %b  %d %H:%M:%S %Y")
-                if expected_connection_max > timestamp > server_start_dt:
-                    result_dict["bytes_sent"] = int(bytes_sent)
-                    result_dict["bytes_recv"] = int(bytes_recv)
+                if expected_connection_max > timestamp > success_time:
+                    result_dict["bytes_sent"] = bytes_sent + 'B'
+                    result_dict["bytes_recv"] = bytes_recv + 'B'
 
     return result_dict
 

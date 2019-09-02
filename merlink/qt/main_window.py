@@ -46,7 +46,7 @@ from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QListWidget
 from PyQt5.QtWidgets import QSpacerItem
 from PyQt5.QtWidgets import QHeaderView
-from PyQt5.Qt import QSizePolicy
+from PyQt5.Qt import QSizePolicy, QModelIndex
 from PyQt5.QtCore import Qt
 
 from merlink.qt.gui_utils import disable_lineedit
@@ -251,42 +251,68 @@ class MainWindowUi(QMainWindow):
         local_tz = time.localtime().tm_zone
         headers = [
             "VPN Name　",
+            "State　",
             "Server　",
-            "Last Attempted (" + local_tz + ")　",
-            "Last Connected (" + local_tz + ")　",
-            "Uptime　",
-            "Sent,B　",
-            "Recv,B　"
+            "Username　"
         ]
         vpn_list.setHeaderLabels(headers)
+        vpn_list.setUniformRowHeights(True)
+        vpn_list.setAlternatingRowColors(True)
         # Resize all headers
-        for i in range(7):
+        for i in range(4):
             vpn_list.header().setSectionResizeMode(i, QHeaderView.ResizeToContents)
         for connection in vpn_data:
             if vpn_data[connection]["is_connected"]:
-                name = "🌐　" + vpn_data[connection]["name"]
+                state = "Is Connected"
+            elif vpn_data[connection]["last_connected"] == "Never":
+                state = "Never"
+            elif vpn_data[connection]["last_attempted"] != "Never" and \
+                    vpn_data[connection]["last_connected"] == vpn_data[connection]["last_attempted"]:
+                state = "Succeeded"
             else:
-                name = vpn_data[connection]["name"]
+                state = "Failed"
+
+            name = vpn_data[connection]["name"]
             print(name + ' data:', vpn_data[connection])
             this_widget = QTreeWidgetItem(vpn_list, [
                 name,
+                state,
                 vpn_data[connection]["CommRemoteAddress"],
-                vpn_data[connection]["last_attempted"],
-                vpn_data[connection]["last_connected"],
-                vpn_data[connection]["vpn_uptime"],
-                vpn_data[connection]["bytes_sent"],
-                vpn_data[connection]["bytes_recv"],
+                vpn_data[connection]["AuthName"]
             ])
             # Make it so table entries are selectable (and can be copied)
-            this_widget.setFlags(this_widget.flags() | Qt.ItemIsSelectable)
+            # Editable is a side effect (doesn't actually change anything)
             this_widget.setFlags(this_widget.flags() | Qt.ItemIsEditable)
+
+            verbose_data = QTreeWidgetItem(this_widget, ["Verbose OS Data"])
+            last_connected_node = QTreeWidgetItem(
+                this_widget,
+                ["Last Connected",
+                 vpn_data[connection]["last_connected"] + " (" + local_tz + ")"]
+            )
+            last_attempted_node = QTreeWidgetItem(
+                this_widget,
+                ["Last Attempted",
+                 vpn_data[connection]["last_attempted"] + " (" + local_tz + ")"]
+            )
+            last_connected_node.setFlags(last_connected_node.flags() | Qt.ItemIsEditable)
+            last_attempted_node.setFlags(last_attempted_node.flags() | Qt.ItemIsEditable)
+            for key in vpn_data[connection]:
+                value = str(vpn_data[connection][key])
+                # If the first letter is uppercase, it's data from the OS.
+                if key[0].isupper():
+                    _child_widget = QTreeWidgetItem(verbose_data, [key, value])
+                elif key[0] == 'b' or key[0] == 'v':
+                    key = ' '.join([word.capitalize() for word in key.split('_')])
+                    _child_widget = QTreeWidgetItem(last_connected_node, [key, value])
+                elif not key.startswith('last'):  # last_connected/last_attempted taken care of above
+                    key = key.replace('_', ' ').capitalize()
+                    _child_widget = QTreeWidgetItem(this_widget, [key, value])
+                _child_widget.setFlags(_child_widget.flags() | Qt.ItemIsEditable)
 
         interface_details = QPlainTextEdit()
         interface_details.setReadOnly(True)
-
-        check_for_probs_cb = QCheckBox(
-            "Check for issues before connecting (recommended)")
-        check_for_probs_cb.setChecked(True)
+        # Check for problems if attempted time > connection time or connection time DNE
         probs_list = QListWidget()
         problems = ["Forget the milk", "My hovercraft is full of eels"]
         probs_list.addItems(problems)
@@ -299,7 +325,7 @@ class MainWindowUi(QMainWindow):
                 QLabel("<h4>VPN List</h4>"),
                 vpn_list,
                 QLabel("<h4>Preflight Checklist</h4>"),
-                check_for_probs_cb,
+                QLabel("<p><i>Runs when the last attempt for this connection was unsuccessful.</i></p>"),
                 probs_list,
                 self.connect_vpn_btn
             ]
