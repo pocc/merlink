@@ -81,7 +81,7 @@ authorized_files="-T /usr/libexec/nehelper -T /System/Library/Frameworks/Network
 /usr/libexec/PlistBuddy -c "Add :NetworkServices:$vpnUuid:PPP:LCPEchoFailure integer 15" /Library/Preferences/SystemConfiguration/preferences.plist
 /usr/libexec/PlistBuddy -c "Add :NetworkServices:$vpnUuid:PPP:LCPEchoInterval integer 20" /Library/Preferences/SystemConfiguration/preferences.plist
 /usr/libexec/PlistBuddy -c "Add :NetworkServices:$vpnUuid:PPP:logfile string /var/log/ppp.log" /Library/Preferences/SystemConfiguration/preferences.plist
-/usr/libexec/PlistBuddy -c "Add :NetworkServices:$vpnUuid:PPP:VerboseLogging integer 0" /Library/Preferences/SystemConfiguration/preferences.plist
+/usr/libexec/PlistBuddy -c "Add :NetworkServices:$vpnUuid:PPP:VerboseLogging integer 1" /Library/Preferences/SystemConfiguration/preferences.plist
 
 /usr/libexec/PlistBuddy -c "Add :NetworkServices:$vpnUuid:Proxies:FTPPassive integer 1" /Library/Preferences/SystemConfiguration/preferences.plist
 /usr/libexec/PlistBuddy -c "Add :NetworkServices:$vpnUuid:SMB dict" /Library/Preferences/SystemConfiguration/preferences.plist

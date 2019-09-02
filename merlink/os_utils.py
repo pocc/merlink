@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """OS utilities, most of which are VPN-related."""
+import datetime as dt
 import os
 import re
 import sys
@@ -54,21 +55,30 @@ def list_vpns():
         vpn_regex = re.compile(r"\* \(([^)]+)\)\s+([0-9a-fA-F-]+)"
                                r".+?\"([^\"]*)\"\s+\[([^\]]*)\]")
         results = re.findall(vpn_regex, scutil_output)
-        vpn_list = []
         vpninfo_cmds = ['scutil', '--nc', 'show']
+
         for entry in results:
-            vpn_list[entry[1]] = {
-                "is_connected": entry[0],
-                "guid": entry[1],
-                "name": entry[2],
-                "type": entry[3],
-            }
-            vpn_infos = sp.check_output(vpninfo_cmds + [entry[2]], text=True)
+            vpn_name = entry[2]
+            vpn_infos = sp.check_output(vpninfo_cmds + [vpn_name], text=True)
+
             # Remove first line
             vpn_infos = vpn_infos.strip().split('\n', 1)[1]
             vpn_infos = vpn_infos.replace('PPP <dictionary> {', '')
+            vpn_infos = vpn_infos.replace('\n  ', '\n')
             vpn_infos = vpn_infos.replace("}", "")
-            vpn_list = {**vpn_list, **parse_machine_readable(vpn_infos)}
+            connection_vpn_dict = parse_machine_readable(vpn_infos)
+            server_name = connection_vpn_dict['CommRemoteAddress']
+            user_name = connection_vpn_dict['AuthName']
+            # Data derived from ppp.log
+            ppp_data = get_macos_vpn_log_data(server_name, user_name)
+            vpn_list[entry[1]] = {
+                "is_connected": entry[0] == "Connected",
+                "guid": entry[1],
+                "name": entry[2],
+                "type": entry[3],
+                **connection_vpn_dict,
+                **ppp_data
+            }
         # At some point add 'scutil --nc status <vpn connection>'
         return vpn_list
     else:
@@ -81,13 +91,89 @@ def list_vpns():
     return vpn_list
 
 
+def get_macos_vpn_log_data(vpn_name, user_name) -> dict:
+    """Return the last time a VPN connected using info from /var/log/ppp.log
+
+    Searching on the basis of server name and username doesn't gaurantee that
+    we get info for correct VPN connection (i.e. they do not constitute
+    primary keys), but we most likely will uniquely identify VPN connection.
+
+    Essentially: Search for server/username in 30 second chunk. If success
+    within 30s, continue and get bytes in/bytes out.
+    """
+    result_dict = {
+        "last_attempted": "Never",
+        "last_connected": "Never",
+        "vpn_uptime": "-",
+        "bytes_sent": "-",
+        "bytes_recv": "-",
+    }
+    with open("/var/log/ppp.log") as f:
+        text = f.read()
+    vpn_inits = re.findall(r"(.+) : L2TP connecting to server '" + vpn_name + "'", text)
+    if vpn_inits:
+        server_times = re.findall(r"(.+) : L2TP connecting to server '" + vpn_name + "'", text)
+        server_start_dt = dt.datetime.strptime(server_times[-1], "%a %b  %d %H:%M:%S %Y")
+        result_dict["last_attempted"] = server_start_dt.isoformat().replace('T', ' ')
+    else:
+        return result_dict
+
+    # Strategy for finding last connected is to find last success and work backwards 30s
+    success_times = re.findall(r"(.+) : Committed PPP store on install command", text)
+    # Process should take less than 30 seconds. This is an identity check.
+    success_time = None
+    success_server_time = None
+    success_auth_time = None
+
+    auth_times = re.findall(r"(.+) : sent \[PAP AuthReq.*? user=\"" + user_name + "\"", text)
+    if not auth_times:
+        return result_dict
+
+    for timestamp in success_times:
+        success_time_candidate = dt.datetime.strptime(timestamp, "%a %b  %d %H:%M:%S %Y")
+        min_success_init_time = success_time_candidate - dt.timedelta(0, 30)
+        for server_timestamp in server_times:
+            server_time_dt = dt.datetime.strptime(server_timestamp, "%a %b  %d %H:%M:%S %Y")
+            if success_time_candidate > server_time_dt > min_success_init_time:
+                success_server_time = server_time_dt
+        for auth_timestamp in auth_times:
+            auth_time_dt = dt.datetime.strptime(auth_timestamp, "%a %b  %d %H:%M:%S %Y")
+            if success_time_candidate > auth_time_dt > min_success_init_time:
+                success_auth_time = auth_time_dt
+        # If there's a matching preceding server/username in the last 30s, treat as same connection
+        if success_server_time and success_auth_time:
+            success_time = success_time_candidate
+
+    if success_time:
+        result_dict["last_connected"] = success_time.isoformat().replace('T', ' ')
+        # Find bytes received/sent whose minutes log is +/- 2 minute to this connection
+        minutes = re.findall(r"(.+) : Connect time ([\d.]+) minutes.", text)
+        expected_connection_max = None
+        for timestamp_str, connection_uptime_str in minutes:
+            connection_uptime = int(float(connection_uptime_str)) + 2
+            timestamp = dt.datetime.strptime(timestamp_str, "%a %b  %d %H:%M:%S %Y")
+            expected_connection_max = server_start_dt + dt.timedelta(0, connection_uptime)
+            if expected_connection_max > timestamp > server_start_dt:
+                result_dict["vpn_uptime"] = connection_uptime
+
+        if result_dict["vpn_uptime"] and expected_connection_max:
+            txrx = re.findall(r"(.+) : Sent (\d+) bytes, received (\d+) bytes.", text)
+            for timestamp, bytes_sent, bytes_recv in txrx:
+                timestamp = dt.datetime.strptime(timestamp, "%a %b  %d %H:%M:%S %Y")
+                if expected_connection_max > timestamp > server_start_dt:
+                    result_dict["bytes_sent"] = int(bytes_sent)
+                    result_dict["bytes_recv"] = int(bytes_recv)
+
+    return result_dict
+
+
 def parse_machine_readable(text):
     """Many programs produce "machine readable" output which consists of
     key:value pairs separated by : and delimited by \n.
     Return a dict of that text
     """
     result_dict = {}
-    for line in text.split('\n'):
+    for line in text.strip().split('\n'):
         key, value = re.sub(r"\s+:\s+", ":", line).split(':')
         if value.isdigit():
             value = int(value)

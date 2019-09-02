@@ -25,6 +25,8 @@ All classes that are Ui related should end with 'Ui'.
 Args (for any function):
     app (Qt Object): The window/dialog object that this function decorates.
 """
+import time
+
 from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtWidgets import QTabWidget
 from PyQt5.QtWidgets import QStatusBar
@@ -33,7 +35,9 @@ from PyQt5.QtWidgets import QHBoxLayout
 from PyQt5.QtWidgets import QCheckBox
 from PyQt5.QtWidgets import QSpinBox
 from PyQt5.QtWidgets import QLineEdit
-from PyQt5.QtWidgets import QStackedWidget
+from PyQt5.QtWidgets import QTreeWidget
+from PyQt5.QtWidgets import QTreeWidgetItem
+from PyQt5.QtWidgets import QPlainTextEdit
 from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWidgets import QLabel
@@ -41,9 +45,12 @@ from PyQt5.QtWidgets import QFrame
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QListWidget
 from PyQt5.QtWidgets import QSpacerItem
+from PyQt5.QtWidgets import QHeaderView
 from PyQt5.Qt import QSizePolicy
+from PyQt5.QtCore import Qt
 
 from merlink.qt.gui_utils import disable_lineedit
+from merlink.os_utils import list_vpns
 
 
 def is_layout(obj):
@@ -55,15 +62,13 @@ class MainWindowUi(QMainWindow):
     """This class manages the system tray icon of the main program, post-login.
     """
 
-    vpn_connect_section = QVBoxLayout()
-
     def __init__(self):
         super(QMainWindow, self).__init__()
         # Using a StackedWidget to be able to replace login window
         # https://stackoverflow.com/questions/13550076
         self.cw = QWidget()
-        # Set minimum width of Main Window to 500 pixels
-        self.cw.setMinimumWidth(500)
+        # Set minimum width of Main Window to 800 pixels
+        self.cw.setMinimumWidth(800)
         self.setWindowTitle('Merlink - VPN Client for Meraki firewalls')
         self.link_style = "font-family: verdana, sans-serif; font-style:" \
                           " normal; font-size: 13px; color: #1795E6;"
@@ -86,6 +91,7 @@ class MainWindowUi(QMainWindow):
         self.vline = QFrame()
         self.status = QStatusBar()
         self.vpn_name_textfield = QLineEdit()
+        self.vpn_connect_widget = QWidget()
 
         self.create_vpn_tabs = QTabWidget()
         self.tab_dashboard = QWidget()
@@ -234,12 +240,49 @@ class MainWindowUi(QMainWindow):
 
     def vpn_connect_setup(self):
         """Setup the GUI componentst of the right pane."""
+        vpn_connect_section = QVBoxLayout(self.vpn_connect_widget)
         hline = QFrame()
         hline.setFrameShape(QFrame.HLine)
         hline.setFrameShadow(QFrame.Sunken)
-        vpn_list = QListWidget()
-        ipsum_vpn_interfaces = ['eth', 'wifi']
-        vpn_list.addItems(ipsum_vpn_interfaces)
+        vpn_data = list_vpns()
+        vpn_list = QTreeWidget()
+        # Last Attempted should have unicode X or V, depending.
+        # Ideographic CJK space added to end of headers for spacing
+        local_tz = time.localtime().tm_zone
+        headers = [
+            "VPN Name　",
+            "Server　",
+            "Last Attempted (" + local_tz + ")　",
+            "Last Connected (" + local_tz + ")　",
+            "Uptime　",
+            "Sent,B　",
+            "Recv,B　"
+        ]
+        vpn_list.setHeaderLabels(headers)
+        # Resize all headers
+        for i in range(7):
+            vpn_list.header().setSectionResizeMode(i, QHeaderView.ResizeToContents)
+        for connection in vpn_data:
+            if vpn_data[connection]["is_connected"]:
+                name = "🌐　" + vpn_data[connection]["name"]
+            else:
+                name = vpn_data[connection]["name"]
+            print(name + ' data:', vpn_data[connection])
+            this_widget = QTreeWidgetItem(vpn_list, [
+                name,
+                vpn_data[connection]["CommRemoteAddress"],
+                vpn_data[connection]["last_attempted"],
+                vpn_data[connection]["last_connected"],
+                vpn_data[connection]["vpn_uptime"],
+                vpn_data[connection]["bytes_sent"],
+                vpn_data[connection]["bytes_recv"],
+            ])
+            # Make it so table entries are selectable (and can be copied)
+            this_widget.setFlags(this_widget.flags() | Qt.ItemIsSelectable)
+            this_widget.setFlags(this_widget.flags() | Qt.ItemIsEditable)
+
+        interface_details = QPlainTextEdit()
+        interface_details.setReadOnly(True)
 
         check_for_probs_cb = QCheckBox(
             "Check for issues before connecting (recommended)")
@@ -249,7 +292,7 @@ class MainWindowUi(QMainWindow):
         probs_list.addItems(problems)
 
         self.add_all_to_layout(
-            self.vpn_connect_section,
+            vpn_connect_section,
             [
                 QLabel("<h3>VPN Connections</h3>"),
                 hline,
@@ -269,7 +312,7 @@ class MainWindowUi(QMainWindow):
 
     def combine_sections_dashboard(self):
         """Combine left and right panes into a final layout."""
-         # Create a horizontal line above the status bar to highlight it
+        # Create a horizontal line above the status bar to highlight it
         self.hline.setFrameShape(QFrame.HLine)
         self.hline.setFrameShadow(QFrame.Sunken)
         self.vline.setFrameShape(QFrame.VLine)
@@ -284,17 +327,22 @@ class MainWindowUi(QMainWindow):
         main_widget = QWidget()
         main_layout = QVBoxLayout(main_widget)
 
-        left_pane = QVBoxLayout()
+        left_pane_widget = QWidget()
+        left_pane = QVBoxLayout(left_pane_widget)
         left_pane.addWidget(QLabel("<h3>Create VPN Connection</h3>"))
         left_pane.addWidget(hline)
         left_pane.addWidget(self.create_vpn_tabs)
         left_pane.addLayout(self.vpn_opts_layout)
+        # Ensure that create vpn button is on bottom
+        left_pane.addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding))
         left_pane.addWidget(self.create_vpn_btn)
+        # Nothing in the left pane should need to be expanded horizontally
+        left_pane_widget.setSizePolicy(QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding))
 
         two_pane_layout = QHBoxLayout()
-        two_pane_layout.addLayout(left_pane)
+        two_pane_layout.addWidget(left_pane_widget)
         two_pane_layout.addWidget(self.vline)
-        two_pane_layout.addLayout(self.vpn_connect_section)
+        two_pane_layout.addWidget(self.vpn_connect_widget)
 
         main_layout.addLayout(two_pane_layout)
         main_layout.addWidget(self.hline)
