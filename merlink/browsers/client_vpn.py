@@ -14,8 +14,8 @@
 # limitations under the License.
 """API to interact with the Meraki Dashboard using the requests module."""
 import re
+import subprocess as sp
 import sys
-import os
 
 from .dashboard import DashboardBrowser
 from .pages.page_hunters import get_pagetext_json_value
@@ -28,6 +28,7 @@ class ClientVpnBrowser(DashboardBrowser):
         """Initialize Client VPN object."""
         super(ClientVpnBrowser, self).__init__()
         self.vpn_vars = ''
+        self.error_checks = [6 * True]  # If an error check fails, change value to False
 
     def get_client_vpn_psk(self):
         """Return the Client VPN PSK."""
@@ -90,7 +91,7 @@ class ClientVpnBrowser(DashboardBrowser):
         return self.orgs_dict[self.active_org_id]['node_groups'][
             self.active_network_id]['client_vpn_enabled']
 
-    def troubleshoot_client_vpn(self):
+    def troubleshoot_client_vpn(self) -> list:
         """Troubleshoot Client VPN.
 
         Six tests are used to see what might be wrong.
@@ -106,14 +107,13 @@ class ClientVpnBrowser(DashboardBrowser):
         """
         # If the user is behind their firewall, they will not be able to
         # connect (and a VPN connection would be pointless.)
-        errors = ''
-        errors += self.check_firewall_page_errors()
-        errors += self.check_nat_rules()
-        errors += self.check_firewall_connectivity()
 
-        if errors:
-            return errors
-        return "No common misconfigurations found."
+        # Errors is a list of 6 bools (false is failed).
+        self.check_firewall_page_errors()
+        self.check_nat_rules()
+        self.check_firewall_connectivity()
+
+        return self.error_checks
 
     def check_firewall_page_errors(self):
         """Check 3 things using info from Appliance Status page.
@@ -128,14 +128,13 @@ class ClientVpnBrowser(DashboardBrowser):
         client_public_ip = get_pagetext_json_value('request_ip', pagetext)
         firewall_public_ip = get_pagetext_json_value('{"public_ip', pagetext)
         if client_public_ip == firewall_public_ip:
-            errors += "\nERROR: You cannot connect to your firewall if " \
-                      "you are behind it!"
+            self.error_checks[0] = False
         # 0 = online, 2 = temporarily offline, 3 = offline for a week+
         firewall_status_code = get_pagetext_json_value("status#", pagetext)
         if firewall_status_code == -1:
-            errors += "\nERROR: There is no firewall in this network!"
+            self.error_checks[1] = False
         elif firewall_status_code == '0':
-            errors += "\nERROR: Your firewall is offline!"
+            self.error_checks[2] = False
         return errors
 
     def check_nat_rules(self):
@@ -157,13 +156,11 @@ class ClientVpnBrowser(DashboardBrowser):
         port_forwarding_ipsec_ports = re.search(
             r'"udp","public_port":"[4]?500"', pagetext)
         if port_forwarding_ipsec_ports:
-            errors += "\nERROR: You are port forwarding " \
-                      "IPSEC udp ports 500 and 4500!"
+            self.error_checks[3] = False
         natting_ipsec_ports = re.search(
             r'"dst_port":\[[0-9",]*"[4]?500"[0-9",]*\]', pagetext)
         if natting_ipsec_ports:
-            errors += "\nERROR: You are natting " \
-                      "IPSEC udp ports 500 and 4500!"
+            self.error_checks[4] = False
         return errors
 
     def check_firewall_connectivity(self):
@@ -180,9 +177,7 @@ class ClientVpnBrowser(DashboardBrowser):
         else:  # *nix of some kind
             # ping 4 times every 200ms
             ping_string = "ping -c 5 -i 0.2 " + address
-        ping_response = os.system(ping_string)
+        retcode = sp.run(ping_string, stdout=sp.PIPE, stderr=sp.PIPE).returncode
         # Non-0 ping responses mean failure. Error codes are OS-dependent.
-        if ping_response != 0:
-            # Failure error dialog and then return
-            return "\nERROR: Cannot ping device!"
-        return ""
+        if not isinstance(retcode, int) or retcode != 0:
+            self.error_checks[5] = False

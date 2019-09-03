@@ -44,10 +44,12 @@ from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QFrame
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QListWidget
+from PyQt5.QtWidgets import QListWidgetItem
 from PyQt5.QtWidgets import QSpacerItem
 from PyQt5.QtWidgets import QHeaderView
-from PyQt5.Qt import QSizePolicy, QModelIndex
+from PyQt5.Qt import QSizePolicy, QIcon
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QBrush, QColor
 
 from merlink.qt.gui_utils import disable_lineedit
 from merlink.os_utils import list_vpns
@@ -85,6 +87,8 @@ class MainWindowUi(QMainWindow):
         self.network_dropdown = QComboBox()
         self.idle_disconnect_chkbox = QCheckBox("Idle disconnect seconds?")
         self.idle_disconnect_spinbox = QSpinBox()
+        # Problems will be populated by merlink_gui.py
+        self.potential_problem_list = QListWidget()
         self.connect_vpn_btn = QPushButton("Connect")
 
         self.hline = QFrame()
@@ -107,6 +111,7 @@ class MainWindowUi(QMainWindow):
         self.setup_manual_tab()
         self.setup_dashboard_tab()
         self.vpn_connect_setup()
+        self.refresh_problem_list_view()
 
         self.decorate_sections()
         self.combine_sections_dashboard()
@@ -313,10 +318,6 @@ class MainWindowUi(QMainWindow):
         interface_details = QPlainTextEdit()
         interface_details.setReadOnly(True)
         # Check for problems if attempted time > connection time or connection time DNE
-        probs_list = QListWidget()
-        problems = ["Forget the milk", "My hovercraft is full of eels"]
-        probs_list.addItems(problems)
-
         self.add_all_to_layout(
             vpn_connect_section,
             [
@@ -326,10 +327,41 @@ class MainWindowUi(QMainWindow):
                 vpn_list,
                 QLabel("<h4>Preflight Checklist</h4>"),
                 QLabel("<p><i>Runs when the last attempt for this connection was unsuccessful.</i></p>"),
-                probs_list,
+                self.potential_problem_list,
                 self.connect_vpn_btn
             ]
         )
+
+    def refresh_problem_list_view(self, success_checks=None):
+        """Refresh the problem list view. Provides a method merlink_gui can call.
+        The reason a QListWidget is used here instead of a QPlainTextEdit is that
+        it is easier to add icons to a QListWidget (and then make it unselectable).
+        """
+        # If this is run without sending in data, use unknown icon
+        successes_unknown = success_checks is None
+        check_texts = [
+            "1. Is the user behind the firewall?",
+            "2. Is there a firewall in the network?",
+            "3. Is the firewall online?",
+            "4. Is 500 + 4500 traffic being forwarded?",
+            "5. Is 500 + 4500 traffic being natted?",
+            "6. Can the client ping the firewall?"
+        ]
+
+        # Delete existing and refresh
+        self.potential_problem_list.clear()
+        for i in range(6):
+            if successes_unknown:
+                icon = QIcon("media/question-mark-16.png")
+            elif success_checks[i]:
+                icon = QIcon("media/checkmark-16.png")
+            else:
+                icon = QIcon("media/x-mark-16.png")
+            widget_item = QListWidgetItem(icon, check_texts[i])
+            if successes_unknown:
+                widget_item.setForeground(QBrush(QColor("#aaaaaa")))
+            widget_item.setFlags(widget_item.flags() & ~Qt.ItemIsSelectable)
+            self.potential_problem_list.addItem(widget_item)
 
     def decorate_sections(self):
         """Add a box around each section for readability."""

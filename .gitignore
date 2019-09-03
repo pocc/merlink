@@ -7,10 +7,11 @@ bin/
 dist/
 **/cred*
 
-# no vim cruft
+# no vim/OS cruft
 *.swp
 *.swo
 *~
+.DS_Store
 
 # no compiled files
 __pycache__/

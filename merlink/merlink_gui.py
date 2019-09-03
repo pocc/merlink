@@ -128,7 +128,6 @@ class MainWindow(MainWindowUi):
     def __init__(self):
         """Initialize GUI objects, decorate main window object, and show it."""
         super().__init__()
-        # self = main_window.MainWindowUi()
         self.browser = ClientVpnBrowser()
         self.login_dict = {}
 
@@ -195,9 +194,10 @@ class MainWindow(MainWindowUi):
         self.network_dropdown.clear()
         self.refresh_network_dropdown()
 
+        self.refresh_vpn_list()
+
         # All of the major MainWindow slots that signals target
-        self.org_dropdown.currentIndexChanged.connect(
-            self.change_organization)
+        self.org_dropdown.currentIndexChanged.connect(self.change_organization)
         self.network_dropdown.activated.connect(self.change_network)
         self.connect_vpn_btn.clicked.connect(self.setup_vpn)
 
@@ -281,6 +281,15 @@ class MainWindow(MainWindowUi):
         print('current_org_network_list', current_org_network_list)
         self.network_dropdown.addItems(current_org_network_list)
 
+    def refresh_vpn_list(self):
+        """Refresh the values in the vpn list, per OS."""
+        pass
+
+    def troubleshoot_current_vpn(self):
+        """Troubleshoot current VPN connection (interfacing between browser and gui)."""
+        problems = self.troubleshoot_client_vpn()
+        self.refresh_problem_list_view(problems)
+
     def setup_vpn(self):
         """Set up VPN vars and start OS-dependent connection scripts.
 
@@ -350,7 +359,7 @@ class MainWindow(MainWindowUi):
         show_error_dialog("Connection Failure")
         self.tray_icon.set_vpn_failure()
 
-        self.status.showMessage("Status: Connection failed to " +
-                                self.network_dropdown.currentText() + ".")
+        message = "Connection failed to " + self.network_dropdown.currentText() + "."
+        self.status.showMessage("Status: " + message)
         # Show user error text if available
-        show_error_dialog(self.browser.troubleshoot_client_vpn())
+        show_error_dialog(message)
