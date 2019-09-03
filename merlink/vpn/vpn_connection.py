@@ -50,26 +50,37 @@ class VpnConnection:
         self.vpn_options = vpn_options
         self.vpn_name = ''
         self.vpn_uuid = ''
-        self.os_index = 3  # Default index for unknown OS
+        if sys.platform == 'win32':
+            self.os_index = 0
+        elif sys.platform == 'darwin':
+            self.os_index = 1
+        elif sys.platform.startswith('linux'):
+            self.os_index = 2
+        else:  # Unknown OS
+            exit("Unknown OS")
         self.sanitize_variables()
+
+    def build_vpn(self):
+        """Build the VPN connection, but do not connect."""
+        build_vpn_list = [
+            self.build_windows_vpn,
+            self.build_macos_vpn,
+            self.build_linux_vpn
+        ]
+
+        build_vpn_retcode = build_vpn_list[self.os_index]()
+        return build_vpn_retcode
 
     def attempt_vpn(self):
         """Interface for other classes, calls this OS's connect script."""
-        platform = sys.platform
-        # Numbers arbitrarily chosen
-        if platform == 'win32':
-            self.os_index = 0
-            exit_code = self.attempt_windows_vpn()
-        elif platform == 'darwin':
-            self.os_index = 1
-            exit_code = self.attempt_macos_vpn()
-        elif platform.startswith('linux'):
-            self.os_index = 2
-            exit_code = self.attempt_linux_vpn()
-        else:  # Unknown OS
-            exit_code = 255
+        attempt_vpn_list = [
+            self.attempt_windows_vpn,
+            self.attempt_macos_vpn,
+            self.attempt_linux_vpn
+        ]
 
-        return exit_code
+        attempt_vpn_retcode = attempt_vpn_list[self.os_index]()
+        return attempt_vpn_retcode
 
     def sanitize_variables(self):
         """Sanitize variables for powershell/bash input."""
@@ -84,6 +95,18 @@ class VpnConnection:
             self.vpn_data[i] = self.vpn_data[i].replace('$', esc_char + '$')
             # Surround each var with double quotes in case of spaces
             self.vpn_data[i] = '\"' + self.vpn_data[i] + '\"'
+
+    def build_windows_vpn(self):
+        """Build the windows VPN, but do not start it."""
+        pass
+
+    def build_macos_vpn(self):
+        """Build the windows VPN, but do not start it."""
+        pass
+
+    def build_linux_vpn(self):
+        """Build the windows VPN, but do not start it."""
+        pass
 
     def attempt_windows_vpn(self):
         """Attempt to connect to Windows VPN.
@@ -101,8 +124,7 @@ class VpnConnection:
         # 32bit powershell path :
         # 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe'
         # Opinionated view that 32bit is not necessary
-        powershell_path = \
-            'C:\\Windows\\SysWOW64\\WindowsPowerShell\\v1.0\\powershell.exe'
+        powershell_path = 'C:\\Windows\\SysWOW64\\WindowsPowerShell\\v1.0\\powershell.exe'
 
         for i in range(len(self.vpn_options)):
             # Convert to string

@@ -129,7 +129,6 @@ class MainWindow(MainWindowUi):
         """Initialize GUI objects, decorate main window object, and show it."""
         super().__init__()
         self.browser = ClientVpnBrowser()
-        self.login_dict = {}
 
     def attempt_login(self):
         """Create a LoginDialog object and steal its cookies."""
@@ -150,13 +149,11 @@ class MainWindow(MainWindowUi):
         self.menu_widget = MenuBarsUi(self.menuBar())
         self.menu_widget.generate_menu_bars()
         self.tray_icon = SystrayIconUi(self, self)
-        self.login_dict = {'username': '', 'password': ''}
 
         # Triggers
         self.setup_main_window()
 
-        self.org_dropdown.currentIndexChanged.connect(
-            self.change_organization)
+        self.org_dropdown.currentIndexChanged.connect(self.change_organization)
         self.main_window_set_admin_layout()
         self.guest_user_chkbox.stateChanged.connect(
             lambda state: self.disable_email_pass(not state))
@@ -187,9 +184,7 @@ class MainWindow(MainWindowUi):
         # Get the data we need and remove the cruft we don't
         current_org = self.browser.get_active_org_name()
         print('main window orgs', org_list)
-        self.status.showMessage("Status: Fetching networks in "
-                                    + current_org + "...")
-        self.vpn_name_textfield.setEnabled(False)
+        self.status.showMessage("Status: Fetching networks in " + current_org + "...")
         # Remove all elements from the network UI dropdown
         self.network_dropdown.clear()
         self.refresh_network_dropdown()
@@ -199,6 +194,7 @@ class MainWindow(MainWindowUi):
         # All of the major MainWindow slots that signals target
         self.org_dropdown.currentIndexChanged.connect(self.change_organization)
         self.network_dropdown.activated.connect(self.change_network)
+        self.create_vpn_btn.clicked.connect(self.build_vpn)
         self.connect_vpn_btn.clicked.connect(self.setup_vpn)
 
     def change_organization(self):
@@ -211,7 +207,6 @@ class MainWindow(MainWindowUi):
         selected_org_index = self.org_dropdown.currentIndex() - 1
         selected_org_name = self.org_dropdown.currentText()
         self.connect_vpn_btn.setEnabled(False)
-        self.vpn_name_textfield.setEnabled(False)
         if selected_org_index == -1:
             self.status.showMessage("Status: Select an Organization")
             self.network_dropdown.setEnabled(False)
@@ -238,7 +233,6 @@ class MainWindow(MainWindowUi):
         if current_network_index == -1:
             self.status.showMessage("Status: Select a Network")
             self.connect_vpn_btn.setEnabled(False)
-            self.vpn_name_textfield.setEnabled(False)
         else:
             network_list = self.browser.get_network_names(['wired'])
             print('main window network list', network_list)
@@ -252,7 +246,6 @@ class MainWindow(MainWindowUi):
             self.browser.get_client_vpn_data()
             if not self.browser.is_client_vpn_enabled():
                 self.connect_vpn_btn.setEnabled(False)
-                self.vpn_name_textfield.setEnabled(False)
                 error_message = "ERROR: Client VPN is not enabled on " + \
                                 current_network + ".\n\nPlease enable it and"\
                                 + " try again."
@@ -264,9 +257,8 @@ class MainWindow(MainWindowUi):
                 self.connect_vpn_btn.setEnabled(True)
                 self.status.showMessage("Status: Ready to connect to " +
                                         current_network + ".")
-                vpn_name = current_network.replace('- appliance', '') + '- VPN'
+                vpn_name = current_network.replace('- appliance', '') + '-VPN'
                 self.vpn_name_textfield.setText(vpn_name)
-                self.vpn_name_textfield.setEnabled(True)
 
     def refresh_network_dropdown(self):
         """Remove old values of the network dropdown and add new ones.
@@ -290,44 +282,70 @@ class MainWindow(MainWindowUi):
         problems = self.troubleshoot_client_vpn()
         self.refresh_problem_list_view(problems)
 
+    def build_vpn(self):
+        """Build a VPN, but don't start it."""
+        dashboard_tab = 0
+        current_tab = self.create_vpn_tabs.currentIndex()
+        if current_tab == dashboard_tab:
+            # If they have not selected organization or network
+            if 'Select' in self.org_dropdown.currentText() or \
+                    'Select' in self.network_dropdown.currentText():
+                # They haven't selected an item in one of the message boxes
+                show_error_dialog('You must select BOTH an organization '
+                                  'AND network before connecting!')
+                return
+        else:  # Manual Tab
+            empty_textfield = ""
+            if self.manual_username_textfield.text() == "":
+                empty_textfield = "username"
+            elif self.manual_password_textfield.text() == "":
+                empty_textfield = "password"
+            elif self.manual_server_name_textfield.text() == "":
+                empty_textfield = "server"
+            elif self.manual_shared_secret_textfield.text() == "":
+                empty_textfield = "shared secret"
+            if empty_textfield:
+                show_error_dialog('The ' + empty_textfield + ' textfield is empty!'
+                                  'Fix this before continuing.')
+                return
+
+        self.status.showMessage('Status: Connecting...')
+        vpn_data = self.get_vpn_data(current_tab)
+        vpn_options = self.get_vpn_options()
+        connection = VpnConnection(vpn_data, vpn_options)
+
+        connection.build_vpn()
+        return_code = connection.attempt_vpn()
+        successful_connection = (return_code == 0)
+        if successful_connection:
+            self.communicate_vpn_success()
+        else:
+            self.communicate_vpn_failure()
+
     def setup_vpn(self):
         """Set up VPN vars and start OS-dependent connection scripts.
 
         Pass vpn vars that are required for an L2TP connection as
         list vpn_data. Pass OS-specific parameters as list <OS>_options.
         """
-        # If they have not selected organization or network
-        if 'Select' in self.org_dropdown.currentText() or \
-                'Select' in self.network_dropdown.currentText():
-            # They haven't selected an item in one of the message boxes
-            self.show_error_dialog('You must select BOTH an organization '
-                                   'AND network before connecting!')
+        self.status.showMessage('Status: Connecting...')
 
-        else:
-            self.status.showMessage('Status: Connecting...')
-            connection = VpnConnection(vpn_data=self.get_vpn_data(),
-                                       vpn_options=self.get_vpn_options())
-
-            return_code = connection.attempt_vpn()
-            successful_connection = (return_code == 0)
-            if successful_connection:
-                self.communicate_vpn_success()
-            else:
-                self.communicate_vpn_failure()
-
-    def get_vpn_data(self):
+    def get_vpn_data(self, current_tab):
         """Gather the VPN data from various sources."""
         # If the user is logging in as a guest user
-        if self.radio_admin_user.isChecked() == 0:
-            username = self.radio_username_textfield.text()
-            password = self.radio_password_textfield.text()
+        if current_tab == 0:
+            username = self.dashboard_username_field.text()
+            password = self.dashboard_password_field.text()
+            address = self.browser.get_client_vpn_address()
+            psk = self.browser.get_client_vpn_psk()
         else:
-            username = self.login_dict['username']
-            password = self.login_dict['password']
+            username = self.manual_username_textfield.text()
+            password = self.manual_password_textfield.text()
+            address = self.manual_server_name_textfield.text()
+            psk = self.manual_shared_secret_textfield.text()
 
-        vpn_name = self.vpn_name_textfield.text()
-        address = self.browser.get_client_vpn_address()
-        psk = self.browser.get_client_vpn_psk()
+        vpn_name = self.vpn_name_textfield.text()  # Should be shared
+
         return [vpn_name, address, psk, username, password]
 
     def get_vpn_options(self):

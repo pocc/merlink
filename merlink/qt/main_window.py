@@ -77,10 +77,11 @@ class MainWindowUi(QMainWindow):
 
         # Required for Login. Elements should be object variables if they
         # Could be called by other modules
-        self.username_textfield = QLineEdit()
-        self.password_textfield = QLineEdit()
+        self.login_dict = {}
+        self.dashboard_username_field = QLineEdit()
+        self.dashboard_password_field = QLineEdit()
         self.guest_user_chkbox = QCheckBox("Use different account.")
-        self.password_textfield.setEchoMode(QLineEdit.Password)
+        self.dashboard_password_field.setEchoMode(QLineEdit.Password)
         self.org_dropdown = QComboBox()
         self.create_vpn_btn = QPushButton("Create VPN Interface")
         self.org_dropdown = QComboBox()
@@ -145,9 +146,9 @@ class MainWindowUi(QMainWindow):
             email_pass_layout,
             [
                 username_label,
-                self.username_textfield,
+                self.dashboard_username_field,
                 password_label,
-                self.password_textfield,
+                self.dashboard_password_field,
                 self.org_dropdown,
                 self.network_dropdown
             ]
@@ -158,8 +159,12 @@ class MainWindowUi(QMainWindow):
 
     def disable_email_pass(self, change_to_disabled):
         """Disable username/password if user should not edit them."""
-        disable_lineedit(self.username_textfield, change_to_disabled)
-        disable_lineedit(self.password_textfield, change_to_disabled)
+        disable_lineedit(self.dashboard_username_field, change_to_disabled)
+        disable_lineedit(self.dashboard_password_field, change_to_disabled)
+        if change_to_disabled:
+            self.main_window_set_admin_layout()
+        else:
+            self.main_window_set_guest_layout()
 
     def vpn_opts_setup(self):
         """Set up the vpn vars UI region."""
@@ -217,27 +222,27 @@ class MainWindowUi(QMainWindow):
         self.tab_manual.layout = QVBoxLayout()
         # User should be able to change email/pass as it's required
         self.disable_email_pass(False)
-        username_textfield = QLineEdit()
-        password_textfield = QLineEdit()
-        password_textfield.setEchoMode(QLineEdit.Password)
+        self.manual_username_textfield = QLineEdit()
+        self.manual_password_textfield = QLineEdit()
+        self.manual_password_textfield.setEchoMode(QLineEdit.Password)
         username_label = QLabel("Email")
         password_label = QLabel("Password")
         server_name_label = QLabel("Server name/IP")
-        server_name_textfield = QLineEdit()
+        self.manual_server_name_textfield = QLineEdit()
         shared_secret_label = QLabel("Shared Secret")
-        shared_secret_textfield = QLineEdit()
-        shared_secret_textfield.setEchoMode(QLineEdit.Password)
+        self.manual_shared_secret_textfield = QLineEdit()
+        self.manual_shared_secret_textfield.setEchoMode(QLineEdit.Password)
         self.add_all_to_layout(
             self.tab_manual.layout,
             [
                 username_label,
-                username_textfield,
+                self.manual_username_textfield,
                 password_label,
-                password_textfield,
+                self.manual_password_textfield,
                 server_name_label,
-                server_name_textfield,
+                self.manual_server_name_textfield,
                 shared_secret_label,
-                shared_secret_textfield,
+                self.manual_shared_secret_textfield,
                 QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
             ]
         )
@@ -256,7 +261,7 @@ class MainWindowUi(QMainWindow):
         local_tz = time.localtime().tm_zone
         headers = [
             "VPN Name　",
-            "State　",
+            "Last Attempt　",
             "Server　",
             "Username　"
         ]
@@ -414,12 +419,12 @@ class MainWindowUi(QMainWindow):
         Hides guest user layout as we will only be connecting with one user.
         The user will see the username/obfuscated password they entered.
         """
-        self.username_textfield.setText(
+        self.dashboard_username_field.setText(
             self.login_dict['username'])
-        self.username_textfield.setReadOnly(True)
-        self.password_textfield.setText(
+        self.dashboard_username_field.setReadOnly(True)
+        self.dashboard_password_field.setText(
             self.login_dict['password'])
-        self.password_textfield.setReadOnly(True)
+        self.dashboard_password_field.setReadOnly(True)
 
     def main_window_set_guest_layout(self):
         """Set the guest user layout.
@@ -428,10 +433,10 @@ class MainWindowUi(QMainWindow):
         The user will see blank user/pass text fields where they can enter
         information for a guest user.
         """
-        self.radio_username_textfield.clear()
-        self.radio_username_textfield.setReadOnly(False)
-        self.radio_password_textfield.clear()
-        self.radio_password_textfield.setReadOnly(False)
+        self.dashboard_username_field.clear()
+        self.dashboard_username_field.setReadOnly(False)
+        self.dashboard_password_field.clear()
+        self.dashboard_password_field.setReadOnly(False)
 
     @staticmethod
     def add_all_to_layout(layout, element_list):
